@@ -7,6 +7,7 @@ import { AppStatus } from './elements/app-status'
 import { AppPanel } from './elements/app-panel'
 import { AppFoot } from './elements/app-foot'
 import { MyWines } from './elements/my-wines'
+import { FindPanel } from './elements/find-panel'
 
 /**
  * The app entry point.
@@ -30,6 +31,7 @@ const ELEMENTS: Array<[string, CustomElementConstructor]> = [
   ['app-panel', AppPanel],
   ['app-foot', AppFoot],
   ['my-wines', MyWines],
+  ['find-panel', FindPanel],
 ]
 
 export function defineElements(): void {

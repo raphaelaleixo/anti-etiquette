@@ -2,6 +2,13 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { storage } from '../src/lib/storage'
 import * as app from '../src/lib/appState'
 import { DEFAULT_FILTERS } from '../src/lib/filters'
+import type { TasteProfile } from '../src/lib/types'
+
+const PROFILE: TasteProfile = {
+  seeds: [], grapes: {}, regions: [], countries: [], appellations: [],
+  tasteTags: [], medianPrice: 20,
+}
+const EMPTY_RESULTS = { results: [], favourites: [], catalog: [], profile: PROFILE }
 
 beforeEach(() => {
   storage.removeItem('branch')
@@ -18,7 +25,7 @@ describe('appState publishes like the cellar does', () => {
     ['setMode', () => app.setMode('find')],
     ['setBranch', () => app.setBranch('23112')],
     ['setFilters', () => app.setFilters(DEFAULT_FILTERS)],
-    ['setResults', () => app.setResults([])],
+    ['setResults', () => app.setResults(EMPTY_RESULTS)],
     ['setStatus', () => app.setStatus('Searching…')],
     ['setError', () => app.setError('nope')],
     ['clearResults', () => app.clearResults()],
@@ -58,7 +65,7 @@ describe('persistence', () => {
 
   it('clears status when results arrive and when an error is set', () => {
     app.setStatus('Searching…')
-    app.setResults([])
+    app.setResults(EMPTY_RESULTS)
     expect(app.getSnapshot().status).toBe('')
 
     app.setStatus('Searching…')

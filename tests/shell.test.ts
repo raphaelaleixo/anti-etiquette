@@ -4,7 +4,13 @@ import { defineElements } from '../src/ui/shell'
 import * as appState from '../src/lib/appState'
 import * as cellar from '../src/lib/cellar'
 import { storage } from '../src/lib/storage'
-import type { Wine } from '../src/lib/types'
+import type { TasteProfile, Wine } from '../src/lib/types'
+
+const PROFILE: TasteProfile = {
+  seeds: [], grapes: {}, regions: [], countries: [], appellations: [],
+  tasteTags: [], medianPrice: 20,
+}
+const EMPTY_RESULTS = { results: [], favourites: [], catalog: [], profile: PROFILE }
 
 function wine(sku: string): Wine {
   return {
@@ -143,7 +149,7 @@ describe('app-status', () => {
     appState.setStatus('Loading page 2 of 9…')
     expect(el.querySelector('.status')!.textContent).toContain('Loading page 2 of 9')
 
-    appState.setResults([])
+    appState.setResults(EMPTY_RESULTS)
     expect(el.querySelector('.status')).toBe(null)
   })
 

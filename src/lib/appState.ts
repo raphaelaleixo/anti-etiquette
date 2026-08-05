@@ -1,7 +1,7 @@
 import { storage } from './storage'
-import { DEFAULT_FILTERS } from './filters'
+import { DEFAULT_FILTERS, filtersEqual } from './filters'
 import type { CatalogFilters } from './catalog'
-import type { ScoredWine } from './types'
+import type { ScoredWine, TasteProfile, Wine } from './types'
 
 /**
  * Everything on screen that is not the wine list.
@@ -21,6 +21,17 @@ export interface AppState {
   branch: string
   filters: CatalogFilters
   results: readonly ScoredWine[]
+  /** Saved wines that happen to be stocked at this branch. */
+  favourites: readonly Wine[]
+  /** The branch's whole filtered catalog, kept for the prompt's "N available". */
+  catalog: readonly Wine[]
+  profile: TasteProfile | null
+  /** True once a search has completed, which is what swaps the footer. */
+  searched: boolean
+  /** How many ranked wines go into the prompt. 0 means all of them. */
+  promptCount: number
+  /** Catalog paging, for the header progress bar. */
+  progress: { done: number; total: number } | null
   /** Non-empty while a search is running; drives the disabled state. */
   status: string
   error: string | null
@@ -63,6 +74,12 @@ let state: AppState = {
   branch: readBranch(),
   filters: readFilters(),
   results: [],
+  favourites: [],
+  catalog: [],
+  profile: null,
+  searched: false,
+  promptCount: 20,
+  progress: null,
   status: '',
   error: null,
 }
@@ -88,28 +105,56 @@ export function setMode(mode: Mode): void {
   set({ mode })
 }
 
+/** Changing the branch invalidates results — they were for the old one. */
 export function setBranch(branch: string): void {
   persist(BRANCH_KEY, branch)
-  set({ branch })
+  set({ branch, ...blankResults() })
 }
 
+/**
+ * Only discards results when the filters would actually produce a different
+ * search, so opening the sheet to check what is set and applying it unchanged
+ * does not throw away a search.
+ */
 export function setFilters(filters: CatalogFilters): void {
   persist(FILTERS_KEY, JSON.stringify(filters))
-  set({ filters })
+  set(filtersEqual(filters, state.filters) ? { filters } : { filters, ...blankResults() })
 }
 
-export function setResults(results: readonly ScoredWine[]): void {
-  set({ results, status: '', error: null })
+export function setResults(payload: {
+  results: readonly ScoredWine[]
+  favourites: readonly Wine[]
+  catalog: readonly Wine[]
+  profile: TasteProfile
+}): void {
+  set({ ...payload, searched: true, status: '', error: null, progress: null })
 }
 
-export function setStatus(status: string): void {
-  set({ status })
+export function setStatus(status: string, progress: AppState['progress'] = null): void {
+  set({ status, progress })
 }
 
 export function setError(error: string | null): void {
-  set({ error, status: '' })
+  set({ error, status: '', progress: null })
+}
+
+export function setPromptCount(promptCount: number): void {
+  set({ promptCount })
+}
+
+function blankResults() {
+  return {
+    results: [] as readonly ScoredWine[],
+    favourites: [] as readonly Wine[],
+    catalog: [] as readonly Wine[],
+    profile: null,
+    searched: false,
+    status: '',
+    error: null,
+    progress: null,
+  }
 }
 
 export function clearResults(): void {
-  set({ results: [], status: '', error: null })
+  set(blankResults())
 }

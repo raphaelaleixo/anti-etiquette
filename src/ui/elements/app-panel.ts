@@ -9,7 +9,6 @@ import * as appState from '../../lib/appState'
  * have to unsubscribe here by hand on every switch, and the leak it caused
  * would be invisible.
  *
- * Task 8 replaces the find placeholder.
  */
 export class AppPanel extends StoreElement {
   protected sources() {
@@ -20,6 +19,6 @@ export class AppPanel extends StoreElement {
     const { mode } = appState.getSnapshot()
     mount(this, mode === 'wines'
       ? html`<div class="panel" data-panel="wines"><my-wines></my-wines></div>`
-      : html`<div class="panel" data-panel="find"></div>`)
+      : html`<div class="panel" data-panel="find"><find-panel></find-panel></div>`)
   }
 }
