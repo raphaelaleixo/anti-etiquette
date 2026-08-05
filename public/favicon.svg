@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Wine at the SAQ">
+  <rect width="32" height="32" rx="7" fill="#15161a"/>
+  <!-- Bowl: wide at the rim, tapering to a rounded base. Solid rather than
+       outlined so it stays legible at 16px. -->
+  <path d="M9 6.5h14c0 7-3 11.2-7 11.9-4-.7-7-4.9-7-11.9z" fill="#d7b681"/>
+  <!-- Stem -->
+  <rect x="15.1" y="17.8" width="1.8" height="6.9" fill="#d7b681"/>
+  <!-- Foot -->
+  <rect x="10.3" y="24.3" width="11.4" height="2.1" rx="1.05" fill="#d7b681"/>
+</svg>

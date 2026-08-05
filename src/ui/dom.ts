@@ -21,44 +21,64 @@ export function esc(v: unknown): string {
   return String(v).replace(/[&<>"']/g, c => ESCAPES[c]!)
 }
 
-interface Raw {
-  __raw: string
+/**
+ * Markup that is known safe to insert.
+ *
+ * Only `html` and `raw` produce it, and only `mount` consumes it, so an
+ * ordinary string can never reach innerHTML by accident.
+ */
+export interface Html {
+  readonly __raw: string
 }
 
 /**
- * Explicit opt-out for markup that is already safe — nested `html` results,
- * most often. `grep 'raw('` is the audit.
+ * Explicit opt-out for markup that is already safe and did NOT come from
+ * `html` — the only reason to reach for this is genuinely external trusted
+ * markup.
+ *
+ * `grep 'raw('` is the audit, and it is only a useful audit if the hits are
+ * few. Nested `html` results are safe automatically and must not use this.
  */
-export function raw(markup: string): Raw {
+export function raw(markup: string): Html {
   return { __raw: markup }
 }
 
-function isRaw(v: unknown): v is Raw {
-  return typeof v === 'object' && v !== null && typeof (v as Raw).__raw === 'string'
+function isHtml(v: unknown): v is Html {
+  return typeof v === 'object' && v !== null && typeof (v as Html).__raw === 'string'
 }
 
 /**
- * Nullish and `false` render as nothing, so `${cond && raw(…)}` reads the way
- * it looks. Arrays are joined, each element following the same rule.
+ * Nullish and `false` render as nothing, so `${cond && html`…`}` reads the way
+ * it looks. Arrays are joined, each element following the same rule. Anything
+ * else is escaped.
  */
 function interpolate(v: unknown): string {
   if (v === null || v === undefined || v === false) return ''
-  if (isRaw(v)) return v.__raw
+  if (isHtml(v)) return v.__raw
   if (Array.isArray(v)) return v.map(interpolate).join('')
   return esc(v)
 }
 
-/** Tagged template. Interpolations are HTML-escaped; nothing opts out silently. */
-export function html(strings: TemplateStringsArray, ...values: unknown[]): string {
+/**
+ * Tagged template. Interpolated *values* are HTML-escaped; interpolated
+ * `html` results are not, because they were escaped when they were built.
+ *
+ * Returning `Html` rather than `string` is what makes composition safe without
+ * an opt-out at every nesting site. An earlier draft returned a string, which
+ * meant every nested template needed `raw()` — and a `raw()` on every list row
+ * is not an audit trail, it is noise that hides the one call that matters.
+ */
+export function html(strings: TemplateStringsArray, ...values: unknown[]): Html {
   let out = strings[0] ?? ''
   for (let i = 0; i < values.length; i++) {
     out += interpolate(values[i]) + (strings[i + 1] ?? '')
   }
-  return out
+  return { __raw: out }
 }
 
-export function mount(host: HTMLElement, markup: string): void {
-  host.innerHTML = markup
+/** The only path to innerHTML, and it accepts nothing but `Html`. */
+export function mount(host: HTMLElement, markup: Html): void {
+  host.innerHTML = markup.__raw
 }
 
 /**

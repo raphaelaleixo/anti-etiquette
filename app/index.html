@@ -1,12 +1,56 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Anti-Étiquette</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- iOS does not accept SVG here — it silently falls back to a screenshot
+         of the page. PNG only. -->
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Wine" />
+    <!-- Tints the phone browser's chrome to match the app ground, so the
+         status bar doesn't sit as a white band above a near-black page. -->
+    <meta name="theme-color" content="#15161a" />
+    <meta name="description" content="Find a wine you'll like at your SAQ branch. Runs entirely in your browser." />
   </head>
   <body>
-    <!-- Task 4 builds the shell here and mounts src/ui/shell.ts. -->
-    <noscript>This tool needs JavaScript — it runs entirely in your browser.</noscript>
+    <!--
+      The shell is static markup, not JS-generated: it is the same on every
+      load, so building it at runtime would only add a frame of empty page.
+      The custom elements below upgrade in place once the module runs.
+    -->
+    <main>
+      <div class="shell">
+        <header class="shell-head">
+          <h1 class="visually-hidden">Anti-Étiquette — wine at the SAQ</h1>
+          <div class="head-row">
+            <div class="label">Anti-Étiquette</div>
+            <div class="head-status"></div>
+          </div>
+          <mode-switch></mode-switch>
+        </header>
+
+        <div class="shell-body">
+          <app-status></app-status>
+          <app-panel></app-panel>
+        </div>
+
+        <div class="shell-fade" aria-hidden="true"></div>
+        <div class="shell-foot">
+          <app-foot></app-foot>
+        </div>
+      </div>
+    </main>
+
+    <noscript>
+      This tool runs entirely in your browser, so it needs JavaScript. Nothing
+      you save here is sent anywhere.
+    </noscript>
+
+    <script type="module" src="/src/ui/shell.ts"></script>
   </body>
 </html>

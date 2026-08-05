@@ -1,0 +1,579 @@
+/* Reduced motion — global escape hatch, mandatory per guidance. Every rule
+   added below this line is covered by construction; per-component overrides
+   still follow where a transform needs neutralising explicitly. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:root{
+  color-scheme:dark;
+  --ground:#15161a; --raise:#1d1f24; --raise2:#24262c;
+  --ink:oklch(0.945 0.012 80); --ink2:oklch(0.985 0.008 80);
+  --mute:oklch(0.72 0.012 80); --mute2:oklch(0.60 0.010 80);
+  --line:rgba(255,255,255,0.09); --line2:rgba(255,255,255,0.16);
+  --brass:oklch(0.80 0.085 85); --good:oklch(0.76 0.105 155);
+  --warn:oklch(0.76 0.135 62); --bad:oklch(0.70 0.155 22);
+  --ui:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+
+body{margin:0;background:#0d0e10;color:var(--ink);font-family:var(--ui);
+     -webkit-font-smoothing:antialiased;}
+a{color:var(--brass);text-decoration:none;}
+a:hover{color:var(--ink2);}
+::selection{background:var(--brass);color:#15161a;}
+
+.label{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;
+       text-transform:uppercase;color:var(--mute2);}
+
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+                 overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+h1{font-size:1.6rem;}
+h2{font-size:1.05rem;margin-bottom:.3rem;}
+textarea,select,input[type="number"],input[type="text"]{
+  font:inherit;color:var(--ink2);background:#101114;
+  border:none;box-shadow:inset 0 0 0 1px var(--line);
+  border-radius:12px;padding:12px 14px;box-sizing:border-box;width:100%;}
+textarea:focus,select:focus,input:focus{outline:2px solid var(--brass);
+  outline-offset:1px;}
+button{font:inherit;cursor:pointer;}
+button:disabled{opacity:.45;cursor:default;}
+button.secondary{background:transparent;}
+
+/* Tap feedback — there is no hover on a phone, so a pressed state is the
+   only confirmation a tap registered before the result appears. `scale`
+   (not transform: scale()) composites independently and won't clobber any
+   other transform already on the element. */
+button, .chip {
+  transition: background-color 140ms ease, box-shadow 140ms ease,
+              scale 100ms ease;
+}
+button:active:not(:disabled), .chip:active { scale: 0.98; }
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled), .chip:active { scale: none; }
+}
+.hint{color:var(--mute);font-size:.9rem;margin-top:.2rem;}
+.warn{color:var(--warn);}
+.error{color:var(--bad);}
+.status{color:var(--mute);}
+.price{font-variant-numeric:tabular-nums;margin-left:.5rem;}
+.mywines-group + .mywines-group{margin-top:1.6rem;}
+
+/* Rows/cards that arrive after an async fetch rise in, staggered by an
+   inline --i custom property set in the React .map() (works everywhere,
+   no sibling-index() feature detection needed). `backwards` is mandatory —
+   without it every row is briefly visible at full opacity before its delay
+   elapses, which flashes worse than no animation at all. Delay is clamped
+   so a long list (e.g. My wines) can't push the last row's start past a
+   perceptible lag. */
+@keyframes rise-in {
+  from { opacity: 0; translate: 0 6px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+.results-row, .mywines-row, .favourites-card {
+  animation: rise-in 260ms ease-out backwards;
+  animation-delay: min(calc(var(--i, 0) * 28ms), 300ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .results-row, .mywines-row, .favourites-card { animation: none; }
+}
+
+/* Favourites — promoted card */
+.favourites-card{border-radius:18px;
+    background:linear-gradient(180deg,#23272a 0%,#1e2124 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10);overflow:hidden;}
+.favourites-head{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;}
+.favourites-dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex:none;}
+.favourites-title{font-size:17px;font-weight:600;color:var(--ink2);}
+.favourites-list{display:flex;flex-direction:column;}
+.favourites-row{display:flex;gap:12px;padding:11px 16px;
+    border-top:1px solid rgba(255,255,255,0.07);align-items:baseline;}
+.favourites-body{flex:1;min-width:0;}
+.favourites-name{display:block;font-size:15px;color:var(--ink2);line-height:1.25;}
+.favourites-stock{font-size:12px;color:var(--mute2);margin-top:2px;}
+.favourites-price{font-size:15px;font-variant-numeric:tabular-nums;
+    color:var(--ink);flex:none;}
+
+/* Best matches — numbered rows */
+.results-section{display:flex;flex-direction:column;gap:2px;}
+.results-head{display:flex;align-items:baseline;justify-content:space-between;
+    padding-bottom:8px;}
+.results-count{font-size:12px;color:var(--mute2);}
+.results-list{display:flex;flex-direction:column;}
+.results-row{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line);}
+.results-rank{font-family:var(--mono);font-size:12px;color:var(--brass);
+    width:16px;flex:none;padding-top:3px;}
+.results-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
+.results-name-row{display:flex;gap:10px;align-items:baseline;}
+.results-name{flex:1;min-width:0;font-size:16px;color:var(--ink2);line-height:1.25;}
+.results-price{font-size:15px;font-variant-numeric:tabular-nums;flex:none;color:var(--ink);}
+.results-stock{font-size:12px;color:var(--mute2);}
+.reason{margin:0;color:var(--mute);font-size:13px;line-height:1.4;text-wrap:pretty;}
+
+/* Prompt dialog */
+.prompt-actions{flex:1;display:flex;flex-direction:column;gap:6px;}
+.btn-note{font-family:var(--mono);font-size:12px;font-weight:400;
+    opacity:.65;margin-left:.5rem;}
+.prompt-include{display:flex;align-items:center;gap:6px;}
+.prompt-include>span{font-size:11px;color:var(--mute2);flex:none;}
+.prompt-include-seg{display:flex;gap:2px;padding:2px;background:#101114;
+    border-radius:9px;box-shadow:inset 0 0 0 1px var(--line);flex:1;
+    position:relative;}
+.prompt-include-seg button{flex:1;height:26px;margin:0;border:none;
+    border-radius:7px;background:transparent;color:var(--mute2);font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;z-index:1;transition:color 160ms ease;}
+.prompt-include-seg button.active{color:var(--ink2);font-weight:600;}
+
+/* Sliding pill — fallback path. Three equal segments: 2px padding either
+   side and two 2px gaps, so each is (100% - 8px)/3. Sliding by its own
+   width plus one gap steps to the next. */
+.prompt-include-seg::before{content:'';position:absolute;
+    inset-block:2px;inset-inline-start:2px;
+    inline-size:calc((100% - 8px) / 3);
+    border-radius:7px;background:var(--raise2);
+    translate:0;}
+.prompt-include-seg[data-active="1"]::before{translate:calc(100% + 2px);}
+.prompt-include-seg[data-active="2"]::before{translate:calc(200% + 4px);}
+
+@media (prefers-reduced-motion: no-preference){
+  .prompt-include-seg::before{
+      transition:translate 220ms cubic-bezier(0.32,0.72,0,1);}
+}
+/* Not a bottom sheet (it's a centred card), so it gets a fade+scale entrance
+   rather than the .sheet primitive's slide — but the same three mandatory
+   top-layer properties: transition-behavior: allow-discrete, `overlay` in
+   the transition list, and @starting-style. */
+.prompt-dialog{background:var(--raise);color:var(--ink2);border:none;
+    border-radius:16px;padding:16px;max-width:92vw;width:26rem;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    opacity:1;scale:1;
+    transition:opacity 200ms ease,scale 200ms ease,display 200ms allow-discrete,
+               overlay 200ms allow-discrete;
+    transition-behavior:allow-discrete;}
+.prompt-dialog:not([open]){opacity:0;scale:0.96;}
+.prompt-dialog[open]{@starting-style{opacity:0;scale:0.96;}}
+.prompt-dialog::backdrop{background:rgba(8,9,11,0);
+    transition:background-color 200ms ease,display 200ms allow-discrete,
+               overlay 200ms allow-discrete;}
+.prompt-dialog[open]::backdrop{
+    background:rgba(8,9,11,0.72);
+    @starting-style{background:rgba(8,9,11,0);}}
+
+@media (prefers-reduced-motion: reduce){
+  .prompt-dialog, .prompt-dialog:not([open]){opacity:1;scale:1;}
+}
+.prompt-dialog textarea{width:100%;font-family:var(--mono);font-size:.8rem;
+    box-sizing:border-box;min-height:16rem;user-select:text;}
+.prompt-dialog textarea.copy-failed{box-shadow:inset 0 0 0 2px var(--bad);
+    outline:2px solid var(--bad);outline-offset:1px;}
+.prompt-dialog-footer{display:flex;gap:10px;margin-top:12px;}
+/* .prompt-link is an <a>, not a <button> — it needs the flex centring and
+   text-decoration reset that a real button gets for free, plus an explicit
+   ink colour to override the global brass `a{color:var(--brass)}` rule. */
+.prompt-link{display:flex;align-items:center;justify-content:center;
+    text-decoration:none;color:#15161a;}
+.prompt-link.btn-secondary{color:var(--ink2);}
+.prompt-dialog-head{display:flex;align-items:center;justify-content:space-between;
+    gap:8px;}
+.prompt-dialog-head h2{margin:0;}
+/* Same 44px circular target as the wine-list remove control, so × means the
+   same thing everywhere. Negative margin keeps the optical alignment with the
+   heading without shrinking the tap area. */
+.icon-close{width:44px;height:44px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;color:var(--mute2);
+    font-size:22px;line-height:1;background:rgba(255,255,255,0.04);
+    border:none;padding:0;margin:-6px -6px -6px 0;}
+
+/* My wines — liked vs steer clear */
+.mywines-group--disliked{opacity:0.86;}
+.mywines-head{display:flex;align-items:center;gap:8px;padding-bottom:6px;}
+.mywines-badge{width:20px;height:20px;border-radius:50%;font-size:12px;
+    font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
+.mywines-badge--good{background:var(--good);color:#15161a;}
+.mywines-badge--bad{box-shadow:inset 0 0 0 1.5px var(--bad);color:var(--bad);}
+.mywines-title{font-size:17px;font-weight:600;color:var(--ink2);}
+.mywines-title--quiet{color:var(--ink);}
+.mywines-count{font-size:13px;color:var(--mute2);}
+.mywines{list-style:none;padding:0;margin:0;}
+.mywines-row{display:flex;gap:10px;align-items:center;padding:8px 0;
+    border-top:1px solid var(--line);}
+.mywines-rule{width:3px;height:34px;border-radius:2px;flex:none;background:var(--good);}
+.mywines-row--disliked .mywines-rule{background:var(--bad);opacity:0.7;}
+.mywines-body{flex:1;min-width:0;}
+.mywines-name{font-size:16px;line-height:1.25;color:var(--ink2);}
+.mywines-row--disliked .mywines-name{color:var(--mute);}
+.mywines-region{font-size:12px;color:var(--mute2);margin-top:2px;}
+.mywines-remove{width:44px;height:44px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;color:var(--mute2);
+    font-size:19px;background:rgba(255,255,255,0.04);border:none;padding:0;}
+
+/* Per-row actions. One quiet control rather than a re-file dropdown next to a
+   remove button — neither is a primary action, and together they crowded the
+   name they act on. */
+.mywines-menu-btn{width:44px;height:44px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;color:var(--mute2);
+    font-size:19px;line-height:1;background:rgba(255,255,255,0.04);
+    border:none;padding:0;}
+.mywines-menu-btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+
+.wine-menu{margin:0;padding:6px;min-width:14rem;border:1px solid var(--line2);
+    border-radius:14px;background:var(--raise);color:var(--ink2);
+    box-shadow:0 16px 40px rgba(0,0,0,0.55);
+    opacity:0;scale:0.96;
+    transition:opacity 140ms ease,scale 140ms ease,
+               display 140ms allow-discrete,overlay 140ms allow-discrete;
+    transition-behavior:allow-discrete;}
+.wine-menu:popover-open{opacity:1;scale:1;
+    @starting-style{opacity:0;scale:0.96;}}
+
+/* Tucked under the kebab where anchor positioning exists; centred by the
+   browser's own default where it does not. */
+@supports (position-area: block-end) {
+  .wine-menu{position-area:block-end span-inline-start;
+      position-try-fallbacks:flip-block,flip-inline;
+      inset:auto;margin:4px 0 0;}
+}
+
+.wine-menu-head{font-size:12px;color:var(--mute2);padding:6px 10px 8px;
+    border-bottom:1px solid var(--line);margin-bottom:4px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wine-menu-item{display:flex;align-items:center;gap:8px;width:100%;
+    padding:10px;border:none;background:none;border-radius:9px;
+    font:inherit;font-size:15px;color:var(--ink2);text-align:left;}
+.wine-menu-item[aria-pressed="true"]{color:var(--brass);}
+.wine-menu-item--danger{color:var(--bad);margin-top:4px;
+    border-top:1px solid var(--line);border-radius:0 0 9px 9px;}
+.wine-menu-tick{width:1rem;flex:none;font-size:12px;}
+@media (hover:hover){.wine-menu-item:hover{background:var(--raise2);}}
+
+/* Don't recommend — a third, quieter list. Dimmer than "steer clear" because
+   it is bookkeeping rather than an opinion. */
+.mywines-group--skipped{opacity:0.72;margin-top:1.6rem;}
+.mywines-group--skipped > summary{list-style:none;cursor:pointer;
+    align-items:center;padding-block:6px;}
+.mywines-group--skipped > summary::-webkit-details-marker{display:none;}
+.mywines-group--skipped > summary::after{content:'▸';margin-left:auto;
+    color:var(--mute2);font-size:12px;transition:rotate 160ms ease;}
+.mywines-group--skipped[open] > summary::after{rotate:90deg;}
+.mywines-badge--quiet{box-shadow:inset 0 0 0 1.5px var(--mute2);color:var(--mute2);}
+.mywines-row--skipped .mywines-rule{background:var(--mute2);opacity:0.5;}
+.mywines-row--skipped .mywines-name{color:var(--mute);}
+
+/* Shell */
+.shell{min-height:100dvh;max-width:30rem;margin-inline:auto;
+       display:flex;flex-direction:column;background:var(--ground);}
+.shell-head{padding:12px 16px;display:flex;flex-direction:column;gap:12px;}
+.shell-body{flex:1;min-height:0;padding:0 16px 8px;
+            display:flex;flex-direction:column;gap:18px;}
+.shell-fade{height:26px;margin-top:-26px;position:sticky;bottom:0;z-index:2;
+            pointer-events:none;
+            background:linear-gradient(180deg,rgba(21,22,26,0) 0%,var(--ground) 90%);}
+.shell-foot{position:sticky;bottom:0;z-index:3;
+            border-top:1px solid var(--line);
+            background:rgba(29,31,36,0.92);backdrop-filter:blur(12px);
+            padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+            display:flex;gap:12px;align-items:stretch;}
+
+.head-row{display:flex;align-items:baseline;justify-content:space-between;}
+.head-status{font-size:12px;color:var(--mute2);}
+
+/* Catalog-fetch progress — conveys real information (page N of M), so
+   reduced motion de-animates the fill, it never hides the bar. Animating
+   `scale` with transform-origin: left rather than `width` keeps the update
+   on the compositor. */
+.progress{height:2px;background:var(--line);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--brass);transform-origin:left;
+                transition:scale 200ms ease-out;}
+
+/* Mode switch */
+.modeswitch{display:flex;gap:4px;padding:4px;background:var(--raise);
+            border-radius:13px;position:relative;}
+
+/* The sliding pill. A pseudo-element, so it stays out of the DOM and the
+   accessibility tree. Track padding is 4px and the gap is 4px, so each
+   segment is (100% - 12px) / 2 = 50% - 6px wide; sliding it by its own
+   width plus the gap lands it exactly on the second segment. No measuring. */
+.modeswitch::before{content:'';position:absolute;
+    inset-block:4px;inset-inline-start:4px;inline-size:calc(50% - 6px);
+    border-radius:10px;background:var(--raise2);
+    box-shadow:inset 0 0 0 1px var(--line);
+    translate:0;
+    /* Its own transition name so it slides *during* the view transition.
+       Without this the header snapshot would hold it still and it would
+       jump into place when the snapshot lifts. */
+    view-transition-name:mode-thumb;}
+.modeswitch[data-mode="find"]::before{translate:calc(100% + 4px);}
+
+@media (prefers-reduced-motion: no-preference){
+  .modeswitch::before{transition:translate 280ms cubic-bezier(0.32,0.72,0,1);}
+}
+::view-transition-group(mode-thumb){
+    animation-duration:280ms;
+    animation-timing-function:cubic-bezier(0.32,0.72,0,1);}
+
+.modeswitch button{flex:1;height:40px;margin:0;border:none;background:none;
+                    border-radius:10px;font-size:15px;color:var(--mute);
+                    display:flex;align-items:center;justify-content:center;
+                    cursor:pointer;position:relative;z-index:1;
+                    transition:color 160ms ease;}
+/* Fill now comes from the pill, so the active button only changes its type. */
+.modeswitch button.active{font-weight:600;color:var(--ink2);}
+
+/* Buttons */
+.btn-primary{flex:1;min-height:52px;border:none;border-radius:13px;
+             background:var(--brass);color:#15161a;font-size:17px;
+             font-weight:600;letter-spacing:-0.01em;
+             transition:background-color 160ms ease,color 160ms ease,
+                        scale 100ms ease;}
+.btn-secondary{flex:1;min-height:52px;border:none;border-radius:13px;
+               background:transparent;color:var(--ink2);font-size:16px;
+               box-shadow:inset 0 0 0 1px var(--line2);}
+
+/* Chips — open the branch / filter sheets */
+.chip-row{display:flex;gap:8px;}
+.chip{height:46px;border:none;border-radius:12px;background:var(--raise);
+      color:var(--ink2);display:flex;align-items:center;gap:8px;
+      padding:0 14px;font-size:15px;font:inherit;cursor:pointer;}
+.chip-branch{flex:1;min-width:0;justify-content:flex-start;}
+.chip-dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;}
+.chip-branch-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
+                   white-space:nowrap;text-align:left;}
+.chip-change{font-size:13px;color:var(--mute2);flex:none;}
+.chip-filter{flex:none;}
+
+/* Sheet primitive (Sheet.tsx) — bottom sheet on native <dialog>.
+   Animated once here, not per sheet (BranchSheet/FilterSheet/AddWinesSheet/
+   the prompt dialog all share it). Top-layer elements need three things
+   together to animate open→closed: transition-behavior: allow-discrete (so
+   `display` can transition), `overlay` in the transition list (so the
+   element stays in the top layer while exiting), and @starting-style (the
+   entry-from state). `overlay` is Chromium-only — Firefox/Safari show the
+   exit instantly, which is accepted graceful degradation; entry still
+   animates everywhere. No JS transitionend fallback. */
+.sheet{border:none;padding:0;background:transparent;max-width:none;width:100%;
+       max-height:100dvh;height:100dvh;margin:0;
+       transition-property:display,overlay;transition-duration:240ms;
+       transition-behavior:allow-discrete;}
+.sheet::backdrop{background:rgba(8,9,11,0);
+       transition:background-color 240ms ease,display 240ms allow-discrete,
+                  overlay 240ms allow-discrete;}
+.sheet[open]::backdrop{
+       background:rgba(8,9,11,0.72);
+       @starting-style{background:rgba(8,9,11,0);}}
+.sheet-inner{position:absolute;inset:auto 0 0 0;max-height:calc(100dvh - 96px);
+             border-radius:24px 24px 0 0;background:var(--raise);
+             box-shadow:0 -20px 50px -20px rgba(0,0,0,0.9),inset 0 1px 0 var(--line2);
+             display:flex;flex-direction:column;overflow:hidden;
+             max-width:30rem;margin-inline:auto;
+             translate:0 0;transition:translate 240ms cubic-bezier(0.32,0.72,0,1);}
+.sheet:not([open]) .sheet-inner{translate:0 100%;}
+.sheet[open] .sheet-inner{@starting-style{translate:0 100%;}}
+.sheet-full .sheet-inner{top:96px;}
+
+@media (prefers-reduced-motion: reduce){
+  .sheet .sheet-inner,
+  .sheet:not([open]) .sheet-inner{translate:none;}
+}
+.sheet-head{display:flex;flex-direction:column;gap:12px;padding:10px 16px 12px;}
+.sheet-grip{width:38px;height:4px;border-radius:2px;background:var(--line2);
+            align-self:center;}
+.sheet-titlerow{display:flex;align-items:center;justify-content:space-between;}
+.sheet-title{font-size:19px;font-weight:600;color:var(--ink2);}
+.sheet-cancel{background:none;border:none;font:inherit;font-size:15px;color:var(--mute);
+              padding:8px;margin:-8px;}
+.sheet-body{flex:1;min-height:0;overflow-y:auto;padding:0 16px;
+            display:flex;flex-direction:column;gap:16px;}
+.sheet-foot{padding:16px 16px calc(20px + env(safe-area-inset-bottom));
+            display:flex;flex-direction:column;gap:8px;}
+/* Two actions side by side in the pinned footer (Back / Save). Save keeps the
+   weight, so Back takes only the width its label needs. */
+.sheet-foot-row{display:flex;gap:8px;}
+.sheet-foot-row .btn-primary{flex:1;}
+.sheet-summary{font-size:12px;color:var(--mute2);text-align:center;margin:0;}
+
+/* Branch sheet */
+input.branch-filter{border-radius:999px;height:46px;background:#101114;}
+.branch-group{display:flex;flex-direction:column;}
+.label--brass{color:var(--brass);padding-bottom:6px;}
+.branch-row{display:flex;gap:11px;align-items:center;padding:10px 0;
+            border-top:1px solid var(--line);background:none;border-left:none;
+            border-right:none;width:100%;min-height:44px;text-align:left;
+            color:inherit;font:inherit;}
+.branch-radio{width:18px;height:18px;border-radius:50%;flex:none;
+              box-shadow:inset 0 0 0 1.5px var(--line2);display:flex;
+              align-items:center;justify-content:center;font-size:11px;
+              font-weight:700;color:#15161a;}
+.branch-radio--on{background:var(--brass);box-shadow:none;}
+.branch-body{flex:1;min-width:0;}
+.branch-name{font-size:16px;color:var(--ink2);line-height:1.25;display:block;}
+.branch-address{font-size:12px;color:var(--mute2);margin-top:2px;display:block;}
+
+/* Filter sheet */
+.filtersheet-section{display:flex;flex-direction:column;gap:10px;}
+.filtersheet-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.pill{height:44px;padding:0 18px;border-radius:999px;font-size:15px;
+      color:var(--mute);background:none;border:none;font:inherit;
+      box-shadow:inset 0 0 0 1px var(--line2);display:flex;align-items:center;
+      justify-content:center;}
+.pill--brass{background:var(--brass);color:#15161a;font-weight:600;box-shadow:none;}
+.pill--raised{background:var(--raise2);color:var(--ink2);font-weight:600;
+              box-shadow:inset 0 0 0 1px var(--line2);}
+.filtersheet-pricehead{display:flex;align-items:baseline;justify-content:space-between;}
+.filtersheet-priceband{font-size:15px;color:var(--ink2);font-variant-numeric:tabular-nums;}
+.filtersheet-numbers{display:flex;gap:10px;padding-top:2px;}
+.filtersheet-numberbox{flex:1;height:52px;border-radius:12px;background:#101114;
+                        box-shadow:inset 0 0 0 1px var(--line);padding:0 14px;
+                        display:flex;flex-direction:column;justify-content:center;
+                        gap:2px;}
+.filtersheet-numberbox .label{padding:0;}
+.filtersheet-numberbox input{background:none;box-shadow:none;border-radius:0;
+                              padding:0;height:auto;font-size:17px;
+                              color:var(--ink2);font-variant-numeric:tabular-nums;}
+.filtersheet-note{display:flex;gap:9px;align-items:flex-start;padding:12px 14px;
+                   border-radius:12px;background:rgba(255,255,255,0.03);}
+.filtersheet-note div{font-size:13px;line-height:1.45;color:var(--mute);}
+.filtersheet-dot{width:7px;height:7px;border-radius:50%;background:var(--good);
+                  flex:none;margin-top:6px;}
+
+/* Add-wines sheet */
+.addwines-heading{font-size:26px;line-height:1.2;letter-spacing:-0.02em;color:var(--ink2);}
+.addwines-sub{font-size:15px;line-height:1.45;color:var(--mute);margin-top:10px;}
+.seedinput{display:flex;flex-direction:column;gap:12px;}
+.seedinput-panel{border-radius:16px;background:var(--raise);
+                  box-shadow:inset 0 0 0 1px var(--line);padding:14px;
+                  display:flex;flex-direction:column;gap:10px;}
+.seedinput-panel textarea{background:none;box-shadow:none;padding:0;
+                           min-height:150px;font-size:16px;line-height:1.6;}
+
+/* Resolution table — per-row like/steer-clear assignment */
+.resolution{display:flex;flex-direction:column;gap:12px;}
+.resolution-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+/* The dismiss sits top-right against the name, not vertically centred against
+   a two-line body. */
+.resolution-row{display:flex;gap:8px;align-items:flex-start;padding:10px 0;
+                 border-top:1px solid var(--line);}
+.resolution-body{flex:1;min-width:0;display:flex;flex-direction:column;
+                  align-items:flex-start;gap:2px;}
+.resolution-name{font-size:15px;color:var(--ink2);line-height:1.3;}
+.resolution-meta{font-size:12px;color:var(--mute2);}
+.resolution-name--warn{color:var(--warn);}
+.resolution-meta--warn{color:var(--warn);opacity:0.8;}
+/* The kind picker. A select rather than three buttons: this is the primary
+   action per row, so it should show its current state at a glance. Sitting
+   under the name rather than beside it gives a long wine name the full width
+   — the reason three 44px buttons had to go. */
+.resolution-kind{width:auto;max-width:100%;margin-top:5px;font-size:13px;
+                  color:var(--ink2);background:var(--raise2);
+                  border:1px solid var(--line2);border-radius:9px;
+                  padding:7px 8px;
+                  /* The global `select` rule paints an inset 1px border via
+                     box-shadow; left on, it doubles up with the real border. */
+                  box-shadow:none;}
+.resolution-kind:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+
+/* Drop one line from the batch — deliberately not another option inside the
+   picker, since it is not a verdict on the wine but a refusal to file it. */
+.resolution-dismiss{width:34px;height:38px;flex:none;border-radius:10px;
+                     display:flex;align-items:center;justify-content:center;
+                     font-size:19px;line-height:1;color:var(--mute2);
+                     background:none;border:none;padding:0;}
+.resolution-dismiss:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+@media (hover:hover){.resolution-dismiss:hover{color:var(--bad);}}
+
+/* ---- Mode transition -------------------------------------------------
+   The header holds the mode switch itself, so it must stay put while the
+   content slides under it — otherwise the control you just tapped moves.
+   Naming head and body separately takes them out of the root snapshot;
+   root then covers the footer, which cross-fades because its buttons
+   differ between modes. */
+.shell-head{view-transition-name:app-head;}
+.shell-body{view-transition-name:app-body;}
+
+::view-transition-group(app-head){animation-duration:0s;}
+::view-transition-group(app-body){
+    animation:280ms cubic-bezier(0.32,0.72,0,1) both;}
+::view-transition-group(root){animation:180ms ease both;}
+
+/* Animate transform, not inset properties — it stays off the layout path. */
+/* A full-width slide, with no opacity. An earlier version faded to 0 over a
+   24% shift, and the fade swallowed the movement completely — mid-transition
+   the content area was simply blank, which reads as a flicker rather than a
+   direction. Old and new are already stacked by the transition, so moving
+   them past each other is the whole effect. */
+@keyframes vt-out-left  { to   { transform:translateX(-100%); } }
+@keyframes vt-in-right  { from { transform:translateX(100%);  } }
+@keyframes vt-out-right { to   { transform:translateX(100%);  } }
+@keyframes vt-in-left   { from { transform:translateX(-100%); } }
+
+/* plus-lighter is what the UA uses to keep a crossfade from dipping in
+   brightness. With a slide there is no crossfade, and it instead blows out
+   the overlap into a bright band. */
+::view-transition-old(app-body),
+::view-transition-new(app-body){mix-blend-mode:normal;}
+
+html:active-view-transition-type(forward)::view-transition-old(app-body){
+    animation-name:vt-out-left;}
+html:active-view-transition-type(forward)::view-transition-new(app-body){
+    animation-name:vt-in-right;}
+html:active-view-transition-type(backward)::view-transition-old(app-body){
+    animation-name:vt-out-right;}
+html:active-view-transition-type(backward)::view-transition-new(app-body){
+    animation-name:vt-in-left;}
+
+@media (prefers-reduced-motion: reduce){
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*){animation:none !important;}
+}
+
+/* ---- Segmented pills: anchor-positioned enhancement -------------------
+   The fallbacks above slide by arithmetic, which assumes equal-width
+   segments. Where anchor positioning is available the pill simply tethers
+   to whichever segment is active — any count, any width, nothing to
+   recompute if a label changes length or a segment is added.
+   Chrome 150 supports this; Safari 18.4 does not, and falls back. */
+@supports (anchor-name: --probe) {
+  .modeswitch button.active{anchor-name:--mode-active;}
+  .modeswitch::before{
+      position-anchor:--mode-active;
+      /* Inset properties, not position-area — position-area cannot be
+         transitioned. */
+      inset-inline-start:anchor(left);
+      inset-inline-end:anchor(right);
+      inline-size:auto;
+      translate:none;}
+  .modeswitch[data-mode="find"]::before{translate:none;}
+
+  .prompt-include-seg button.active{anchor-name:--include-active;}
+  .prompt-include-seg::before{
+      position-anchor:--include-active;
+      inset-inline-start:anchor(left);
+      inset-inline-end:anchor(right);
+      inline-size:auto;
+      translate:none;}
+  .prompt-include-seg[data-active="1"]::before,
+  .prompt-include-seg[data-active="2"]::before{translate:none;}
+
+  @media (prefers-reduced-motion: no-preference){
+    .modeswitch::before,
+    .prompt-include-seg::before{
+        transition:inset 280ms cubic-bezier(0.32,0.72,0,1);}
+    .prompt-include-seg::before{transition-duration:220ms;}
+  }
+}
+
+/* SAQ community rating. Sits on the same meta line as stock, so it reads as
+   one more fact about the bottle rather than a badge competing with price. */
+.rating{margin-left:.5rem;font-variant-numeric:tabular-nums;}
+.rating-score{color:var(--ink);}
+.rating-outof,.rating-count{color:var(--mute2);}
+/* Fewer than five reviews: dimmed so a 100/100 off three votes doesn't
+   out-shout a 90 off two hundred. */
+.rating--thin{opacity:.55;}

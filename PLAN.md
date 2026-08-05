@@ -110,11 +110,13 @@ doesn't stand alone, everything after this is built on sand.
 
 ```ts
 export function esc(v: unknown): string
-/** Tagged template. Interpolations are HTML-escaped; nothing opts out silently. */
-export function html(strings: TemplateStringsArray, ...values: unknown[]): string
-/** Explicit, greppable opt-out for already-safe markup (nested html`` results). */
-export function raw(markup: string): { __raw: string }
-export function mount(host: HTMLElement, markup: string): void
+/** Branded safe markup. Only html() and raw() make it; only mount() takes it. */
+export interface Html { readonly __raw: string }
+/** Tagged template. Interpolated values are escaped; interpolated Html is not. */
+export function html(strings: TemplateStringsArray, ...values: unknown[]): Html
+/** Explicit, greppable opt-out — for external safe markup, NOT for nesting. */
+export function raw(markup: string): Html
+export function mount(host: HTMLElement, markup: Html): void
 /** One listener on the host, matched by selector — survives innerHTML replacement. */
 export function delegate(host, type, selector, fn): void
 /** Light-DOM custom element base: subscribes on connect, unsubscribes on disconnect. */
@@ -129,6 +131,13 @@ unsubscribe thunks from `sources()`, call them in `disconnectedCallback`, `rende
 and on every published change. Subclasses implement two methods and nothing else — no attribute
 observers, no property accessors, no `attributeChangedCallback`. Sections that need to react to
 an attribute change re-read it in `render()`.
+
+**`html` returns `Html`, not `string`.** An earlier draft returned a string, which made nested
+templates indistinguishable from user data and so required `raw()` at every nesting site. That
+defeats the point: a `raw()` on every list row is not an audit trail, it is noise hiding the one
+call that matters. Branding the return type makes composition safe by construction and leaves
+`raw()` for genuinely external markup — of which this app has none, so `grep 'raw('` should return
+zero hits in `src/` outside `dom.ts`. That zero is the security property, and it is checkable.
 
 **`html` escaping by default is non-negotiable, and it is a real regression to guard against.**
 React escaped interpolated text for free. Wine names, regions and appellations are third-party

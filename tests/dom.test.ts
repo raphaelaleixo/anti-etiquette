@@ -31,7 +31,7 @@ describe('esc', () => {
 describe('html', () => {
   it('escapes interpolations but not the literal parts', () => {
     const name = '<b>Château</b>'
-    expect(html`<p>${name}</p>`).toBe('<p>&lt;b&gt;Château&lt;/b&gt;</p>')
+    expect(html`<p>${name}</p>`.__raw).toBe('<p>&lt;b&gt;Château&lt;/b&gt;</p>')
   })
 
   it('escapes quotes, so an interpolation cannot break out of an attribute', () => {
@@ -42,22 +42,40 @@ describe('html', () => {
     expect(host.firstElementChild?.getAttribute('data-sku')).toBe('" onclick="steal()')
   })
 
-  it('composes nested html through raw()', () => {
+  it('composes nested html without an opt-out at every nesting site', () => {
     const row = (n: string) => html`<li>${n}</li>`
-    const markup = html`<ul>${raw([row('a'), row('b')].join(''))}</ul>`
-    expect(markup).toBe('<ul><li>a</li><li>b</li></ul>')
+    expect(html`<ul>${[row('a'), row('b')]}</ul>`.__raw)
+      .toBe('<ul><li>a</li><li>b</li></ul>')
+  })
+
+  it('escapes a plain string that merely looks like markup', () => {
+    // The distinction the branded type buys: nesting is safe automatically,
+    // but a bare string is still data, wherever it came from.
+    const notMarkup = '<li>a</li>'
+    expect(html`<ul>${notMarkup}</ul>`.__raw).toBe('<ul>&lt;li&gt;a&lt;/li&gt;</ul>')
+  })
+
+  it('inlines raw(), which is the explicit opt-out for external safe markup', () => {
+    expect(html`<ul>${raw('<li>a</li>')}</ul>`.__raw).toBe('<ul><li>a</li></ul>')
+  })
+
+  it('escapes a nested value inside a nested template', () => {
+    const name = '<script>x</script>'
+    const row = (n: string) => html`<li>${n}</li>`
+    expect(html`<ul>${row(name)}</ul>`.__raw)
+      .toBe('<ul><li>&lt;script&gt;x&lt;/script&gt;</li></ul>')
   })
 
   it('joins arrays, escaping each element', () => {
-    expect(html`<p>${['<a>', '<b>']}</p>`).toBe('<p>&lt;a&gt;&lt;b&gt;</p>')
+    expect(html`<p>${['<a>', '<b>']}</p>`.__raw).toBe('<p>&lt;a&gt;&lt;b&gt;</p>')
   })
 
   it('renders nullish and false as nothing, so `cond && …` reads as it looks', () => {
-    expect(html`<p>${null}${undefined}${false}</p>`).toBe('<p></p>')
+    expect(html`<p>${null}${undefined}${false}</p>`.__raw).toBe('<p></p>')
   })
 
   it('renders zero, which is falsy but meaningful', () => {
-    expect(html`<p>${0}</p>`).toBe('<p>0</p>')
+    expect(html`<p>${0}</p>`.__raw).toBe('<p>0</p>')
   })
 })
 
