@@ -99,7 +99,11 @@ function toWine(raw: unknown): Wine | null {
   }
 }
 
-function toEntry(raw: unknown): CellarEntry | null {
+/**
+ * Validate one entry. Exported so import runs through the same code path a
+ * read does — one validator, not two that drift.
+ */
+export function parseEntry(raw: unknown): CellarEntry | null {
   if (typeof raw !== 'object' || raw === null) return null
   const r = raw as Record<string, unknown>
   const sku = str(r.sku)
@@ -153,7 +157,7 @@ function read(): CellarEntry[] {
     quarantine(rawText)
     return []
   }
-  return parsed.map(toEntry).filter((e): e is CellarEntry => e !== null)
+  return parsed.map(parseEntry).filter((e): e is CellarEntry => e !== null)
 }
 
 function write(next: CellarEntry[]): string | null {
@@ -291,7 +295,7 @@ export function markUnresolved(skus: string[]): void {
 
 /** Wholesale replacement, for import. Validates through the same path as a read. */
 export function replaceAll(next: CellarEntry[]): void {
-  const clean = next.map(toEntry).filter((e): e is CellarEntry => e !== null)
+  const clean = next.map(parseEntry).filter((e): e is CellarEntry => e !== null)
   mutate(() => clean)
 }
 

@@ -1,6 +1,10 @@
 import { StoreElement, html, mount, delegate, type Html } from '../dom'
 import * as cellar from '../../lib/cellar'
 import type { CellarEntry } from '../../lib/cellar'
+import {
+  serialize, filename, parseDocument, merge, recordExport, shouldSuggestExport,
+} from '../../lib/cellarIo'
+import { isPersistent } from '../../lib/storage'
 import { KIND_LABEL, KINDS, type SeedKind } from '../../lib/types'
 
 /**
@@ -114,12 +118,91 @@ function list(entries: CellarEntry[]): Html {
   return html`<ul class="mywines">${entries.map(row)}</ul>`
 }
 
+/**
+ * The backup block.
+ *
+ * The copy is deliberately plain about the limitation rather than reassuring
+ * about the feature: this list lives in one browser and one "clear browsing
+ * data" ends it. On iOS Safari it is sharper still — script-writable storage
+ * is evicted after seven days without interaction, so a visitor who tries this
+ * once and returns three weeks later finds nothing. "Add to Home Screen" is a
+ * real mitigation, which is why the webmanifest ships.
+ */
+function backup(entryCount: number, nag: boolean, message: string | null): Html {
+  return html`
+    <details class="backup" data-backup>
+      <summary class="backup-summary">
+        Saved in this browser only${nag ? ' · back it up' : ''}
+      </summary>
+      <p class="hint">
+        Nothing here is sent anywhere, which also means nothing here is anywhere
+        else. Clearing site data removes it. On an iPhone, Safari drops it after
+        seven days without a visit — adding this page to your Home Screen keeps
+        it around.
+      </p>
+      <div class="backup-actions">
+        <button type="button" class="btn-secondary" data-act="export">
+          Export ${entryCount} wine${entryCount === 1 ? '' : 's'}
+        </button>
+        <button type="button" class="btn-secondary" data-act="import">Import a file</button>
+        <input type="file" accept="application/json,.json" data-act="file" hidden />
+      </div>
+      ${message && html`<p class="hint backup-message">${message}</p>`}
+    </details>
+  `
+}
+
 export class MyWines extends StoreElement {
+  /** Result of the last export or import, shown until the next render. */
+  #message: string | null = null
+
   protected sources() {
     return [cellar.subscribe]
   }
 
+  #export(): void {
+    const now = Date.now()
+    const { entries } = cellar.getSnapshot()
+    const blob = new Blob([serialize(entries, now)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename(now)
+    a.click()
+    URL.revokeObjectURL(url)
+    recordExport(now)
+    this.#message = `Exported ${entries.length} wine${entries.length === 1 ? '' : 's'}.`
+    this.render()
+  }
+
+  async #import(file: File): Promise<void> {
+    const result = parseDocument(await file.text())
+    if (!result.ok) {
+      this.#message = result.error
+      this.render()
+      return
+    }
+    const before = cellar.getSnapshot().entries.length
+    // Merge, not replace: the real case is a laptop export landing on a phone
+    // that already has three wines, and replacing would destroy them.
+    cellar.replaceAll(merge(cellar.getSnapshot().entries, result.entries))
+    const added = cellar.getSnapshot().entries.length - before
+    const skipped = result.skipped > 0 ? ` ${result.skipped} unreadable entr${result.skipped === 1 ? 'y was' : 'ies were'} skipped.` : ''
+    this.#message =
+      `Imported ${result.entries.length} — ${added} new, ${result.entries.length - added} already here.${skipped}`
+    this.render()
+  }
+
   connectedCallback(): void {
+    delegate(this, 'click', '[data-act="export"]', () => this.#export())
+    delegate(this, 'click', '[data-act="import"]', () => {
+      this.querySelector<HTMLInputElement>('[data-act="file"]')?.click()
+    })
+    delegate(this, 'change', '[data-act="file"]', (_e, el) => {
+      const file = (el as HTMLInputElement).files?.[0]
+      if (file) void this.#import(file)
+    })
+
     delegate(this, 'click', '[data-act]', (_e, el) => {
       const sku = el.dataset.sku
       if (!sku) return
@@ -146,6 +229,7 @@ export class MyWines extends StoreElement {
 
   protected render(): void {
     const { entries } = cellar.getSnapshot()
+    const nag = !isPersistent() || shouldSuggestExport(entries.length, Date.now())
     const of = (kind: SeedKind) => entries.filter(e => e.kind === kind)
     const liked = of('like')
     const disliked = of('dislike')
@@ -191,6 +275,14 @@ export class MyWines extends StoreElement {
         </p>
         ${skipped.length > 0 && list(skipped)}
       </details>
+
+      ${backup(entries.length, nag, this.#message)}
     `)
+
+    // `open` is a boolean attribute, so it is set rather than interpolated.
+    // Opened only when there is something to say — a block that springs open
+    // on every render is the kind of prompt people learn to close unread.
+    const details = this.querySelector('[data-backup]')
+    if (details instanceof HTMLDetailsElement) details.open = nag || this.#message !== null
   }
 }

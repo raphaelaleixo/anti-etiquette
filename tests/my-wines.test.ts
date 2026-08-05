@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineElements } from '../src/ui/shell'
 import * as cellar from '../src/lib/cellar'
 import { storage } from '../src/lib/storage'
@@ -24,6 +24,7 @@ function mountList(): HTMLElement {
 beforeEach(() => {
   document.body.innerHTML = ''
   storage.removeItem('cellar.v2')
+  storage.removeItem('cellar.lastExport')
   cellar.reload()
 })
 
@@ -206,5 +207,133 @@ describe('third-party names are data, not markup', () => {
     const button = el.querySelector('.mywines-menu-btn')!
     expect(button.getAttribute('onmouseover')).toBe(null)
     expect(button.getAttribute('aria-label')).toContain('onmouseover')
+  })
+})
+
+describe('the backup block', () => {
+  it('is honest about where the list lives', () => {
+    cellar.saveWine(wine('111'), 'like')
+    const el = mountList()
+    expect(el.querySelector('.backup-summary')!.textContent)
+      .toContain('Saved in this browser only')
+    // The iOS eviction window is the sharp end of this, so it is stated.
+    expect(el.querySelector('.backup .hint')!.textContent).toContain('seven days')
+  })
+
+  it('stays closed and unnagging for a short list', () => {
+    cellar.saveWine(wine('111'), 'like')
+    const el = mountList()
+    expect(el.querySelector<HTMLDetailsElement>('[data-backup]')!.open).toBe(false)
+    expect(el.querySelector('.backup-summary')!.textContent).not.toContain('back it up')
+  })
+
+  it('opens and nags once the list is worth losing', () => {
+    for (let i = 0; i < 10; i++) cellar.saveWine(wine(String(100 + i)), 'like')
+    const el = mountList()
+    expect(el.querySelector<HTMLDetailsElement>('[data-backup]')!.open).toBe(true)
+    expect(el.querySelector('.backup-summary')!.textContent).toContain('back it up')
+  })
+
+  it('counts what would be exported', () => {
+    cellar.saveWine(wine('111'), 'like')
+    cellar.saveWine(wine('222'), 'skip')
+    const el = mountList()
+    expect(el.querySelector('[data-act="export"]')!.textContent).toContain('Export 2 wines')
+  })
+})
+
+describe('importing a file', () => {
+  function file(contents: string): File {
+    return new File([contents], 'wines.json', { type: 'application/json' })
+  }
+
+  async function importInto(el: HTMLElement, contents: string): Promise<void> {
+    const input = el.querySelector<HTMLInputElement>('[data-act="file"]')!
+    Object.defineProperty(input, 'files', { value: [file(contents)], configurable: true })
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+    await vi.waitFor(() => expect(el.querySelector('.backup-message')).toBeTruthy())
+  }
+
+  it('merges rather than replacing', async () => {
+    cellar.saveWine(wine('111'), 'like')
+    const el = mountList()
+
+    await importInto(el, JSON.stringify({
+      format: 'saq-wine-matcher.cellar', version: 2,
+      entries: [{ sku: '222', kind: 'dislike', addedAt: 1, wine: null, wineFetchedAt: 0 }],
+    }))
+
+    // The local wine is still here — that is the whole point of merge.
+    expect(cellar.getSnapshot().refs).toEqual([
+      { sku: '111', kind: 'like' },
+      { sku: '222', kind: 'dislike' },
+    ])
+    expect(el.querySelector('.backup-message')!.textContent).toContain('1 new')
+  })
+
+  it('reports a file that is not an export instead of silently doing nothing', async () => {
+    cellar.saveWine(wine('111'), 'like')
+    const el = mountList()
+
+    await importInto(el, JSON.stringify({ some: 'other json' }))
+
+    expect(el.querySelector('.backup-message')!.textContent).toContain('not a wine list export')
+    expect(cellar.getSnapshot().entries).toHaveLength(1) // and changes nothing
+  })
+
+  it('says how many entries it could not read', async () => {
+    const el = mountList()
+    await importInto(el, JSON.stringify({
+      format: 'saq-wine-matcher.cellar', version: 2,
+      entries: [{ sku: '111', kind: 'like' }, { kind: 'like' }],
+    }))
+    expect(el.querySelector('.backup-message')!.textContent).toContain('1 unreadable entry was skipped')
+  })
+
+  it('escapes an error built from file contents', async () => {
+    const el = mountList()
+    await importInto(el, JSON.stringify({
+      format: 'saq-wine-matcher.cellar',
+      version: '<img src=x onerror="window.pwned=1">',
+      entries: [],
+    }))
+    expect(el.querySelector('.backup-message img')).toBe(null)
+    expect((globalThis as Record<string, unknown>).pwned).toBeUndefined()
+  })
+})
+
+describe('exporting', () => {
+  it('offers a dated file and records that a backup was taken', () => {
+    cellar.saveWine(wine('111'), 'like')
+    const el = mountList()
+
+    const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:stub')
+    const revoked = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    let downloaded = ''
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      downloaded = this.download
+    })
+
+    el.querySelector<HTMLButtonElement>('[data-act="export"]')!.click()
+
+    expect(created).toHaveBeenCalled()
+    expect(revoked).toHaveBeenCalledWith('blob:stub') // no leaked object URL
+    expect(downloaded).toMatch(/^my-wines-\d{4}-\d{2}-\d{2}\.json$/)
+    expect(el.querySelector('.backup-message')!.textContent).toContain('Exported 1 wine')
+    expect(storage.getItem('cellar.lastExport')).not.toBe(null)
+  })
+
+  it('stops nagging once an export has been taken', () => {
+    for (let i = 0; i < 10; i++) cellar.saveWine(wine(String(100 + i)), 'like')
+    const el = mountList()
+    expect(el.querySelector('.backup-summary')!.textContent).toContain('back it up')
+
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:stub')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    el.querySelector<HTMLButtonElement>('[data-act="export"]')!.click()
+
+    expect(el.querySelector('.backup-summary')!.textContent).not.toContain('back it up')
   })
 })

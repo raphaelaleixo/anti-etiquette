@@ -273,6 +273,18 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .mywines-row--unresolved .mywines-name{color:var(--mute);font-variant-numeric:tabular-nums;}
 .mywines-row--unresolved .mywines-region{font-style:italic;}
 
+/* Backup block — the honest note at the foot of My Wines. */
+.backup{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);}
+.backup-summary{font-size:13px;color:var(--mute2);cursor:pointer;list-style:none;
+  padding:4px 0;}
+.backup-summary::-webkit-details-marker{display:none;}
+.backup-summary::before{content:'›';display:inline-block;width:14px;
+  color:var(--mute2);transition:rotate 160ms ease;}
+.backup[open] > .backup-summary::before{rotate:90deg;}
+.backup-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.backup-actions button{flex:1;min-width:9rem;}
+.backup-message{color:var(--ink2);margin-top:10px;}
+
 /* Shell */
 .shell{min-height:100dvh;max-width:30rem;margin-inline:auto;
        display:flex;flex-direction:column;background:var(--ground);}
