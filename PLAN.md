@@ -419,7 +419,15 @@ any of this.
 
 ---
 
-## Separately: a bug in the current app
+## Separately: a bug in the current app — since fixed
+
+**Resolved before this fork began.** The original repo carries commit `1ace1aa`, *"never
+substitute a different wine when resolving by SKU"*, and `resolveWineName` now ends with
+`if (/^\d+$/.test(name) && found.sku !== name) return null`. The guard transferred to this fork
+with `catalog.ts` in Task 1, so Tasks 7 and 12 inherit it rather than needing to add it. The
+account below is kept because it is why the check exists, and Task 11 must preserve it when it
+splits the function in two.
+
 
 `resolveWineName(sku)` full-text searches the SKU and returns `wines[0]` with no check that it is
 the wine asked for (`catalog.ts:63-68`), and `App.tsx:113` calls it for every saved wine on every

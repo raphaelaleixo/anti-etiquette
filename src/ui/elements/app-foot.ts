@@ -2,6 +2,7 @@ import { StoreElement, html, mount, delegate } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
 import { transitionTo } from '../../lib/viewTransition'
+import { openAddWines } from '../addWines'
 
 /**
  * The pinned footer, whose contents depend on the tab.
@@ -21,7 +22,7 @@ export class AppFoot extends StoreElement {
           transitionTo(() => appState.setMode('find'), 'forward')
           break
         case 'add-wines':
-          // Task 6 opens the sheet here.
+          openAddWines()
           break
         case 'search':
           // Task 8 runs the search here.
