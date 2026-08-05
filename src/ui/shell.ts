@@ -1,6 +1,7 @@
 import '../styles.css'
 import { isPersistent } from '../lib/storage'
 import { watchOtherTabs } from '../lib/cellar'
+import { hydrateMissing } from '../lib/hydrate'
 import { ModeSwitch } from './elements/mode-switch'
 import { AppStatus } from './elements/app-status'
 import { AppPanel } from './elements/app-panel'
@@ -43,6 +44,12 @@ export function start(): void {
   // Notification, not merge — two tabs are last-write-wins by design. This
   // exists so the losing tab stops showing a list that is no longer true.
   watchOtherTabs()
+
+  // Returns without touching the network on virtually every load: a wine is
+  // cached when it is added, so only migrated or imported entries are ever
+  // missing one. Failures are the user's list being briefly incomplete, not
+  // something to interrupt them over.
+  void hydrateMissing().catch(() => {})
 
   // Render-once, so it is a plain DOM write rather than a StoreElement: the
   // answer cannot change within a session.
