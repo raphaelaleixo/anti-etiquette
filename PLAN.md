@@ -379,6 +379,30 @@ document, import it through the app's own button, delete the script.
 
 README + `docs/ui-description.md`: new data model, zero configuration, working `npm run dev`.
 
+## Task 13 — Cleanup pass
+
+Last, once every feature is in and green. Twelve tasks of incremental building leave things that
+are individually reasonable and collectively untidy, and they are only visible from the end.
+
+- **Duplication across the elements and sheets.** Row markup, `$${price.toFixed(2)}`, the
+  set-property-after-mount dance for `disabled`/`selected`/`value`, `[...snap.refs]` copies to
+  satisfy `readonly`. Some of this wants a helper in `dom.ts`; some of it is fine repeated twice
+  and only worth touching at three.
+- **`appState` has grown wide** — twelve fields, several of which only mean anything together
+  (`results`/`favourites`/`catalog`/`profile`/`searched` are one thing). Worth looking at whether
+  that is one nested value.
+- **Dead or near-dead exports.** `chipSummary` vs `fullSummary`, `KINDS` vs `KIND_LABEL` usage,
+  anything in `filters.ts` or `branches.ts` that turned out to have one caller or none.
+- **Test overlap.** Some behaviour is now covered in three files; some helper (`wine()`,
+  `entry()`) is copy-pasted into six.
+- **Comment density.** Several were written to justify a decision at the time and no longer earn
+  their space now that the code around them settled.
+
+Constraints: no behaviour change, the suite stays green throughout, and the mutation-tested
+invariants keep their tests. Run `/simplify` over the diff as a starting point, but treat its
+output as suggestions — the escape-by-default and publish-inside-mutator patterns look like
+indirection worth removing and are not.
+
 ---
 
 ## Verification
@@ -406,8 +430,17 @@ README + `docs/ui-description.md`: new data model, zero configuration, working `
   checks `/` serves the landing, `/app/` deep-links directly with no rewrite rule, and a hard
   reload on `/app/` doesn't 404.
 - **Landing weight**: confirm `dist/index.html` pulls none of the app bundle.
-- **Bundle**: confirm the app chunk lands near ~10KB gzipped. If it doesn't, something pulled in
-  a dependency that shouldn't be there.
+- **Zero runtime dependencies, enforced not asserted** (`tests/no-dependencies.test.ts`): the
+  package declares no `dependencies` or `peerDependencies`; no file in `src/` imports a bare
+  specifier or a `node:` built-in; `fetch(` appears in exactly one file; `import.meta.env` appears
+  in none. This is the property the fork is built on, and a single stray import would undo it
+  without failing anything else — it would show up only as a bigger bundle nobody looked at.
+- **Bundle**: measure and record it; there is no target. The "~10KB" figure above was estimated
+  before the code existed and the app is simply larger than the guess — 14.8KB gzipped at Task 8,
+  against 117KB for React + Firebase + app. Size is an outcome to watch, not a budget to defend;
+  the dependency check above is the thing that actually matters, so a bundle that grows for a
+  reason is fine and one that grows because something got imported is caught by the test, not by
+  reading the number.
 
 ## Out of scope
 
