@@ -5,6 +5,7 @@ import { ModeSwitch } from './elements/mode-switch'
 import { AppStatus } from './elements/app-status'
 import { AppPanel } from './elements/app-panel'
 import { AppFoot } from './elements/app-foot'
+import { MyWines } from './elements/my-wines'
 
 /**
  * The app entry point.
@@ -27,6 +28,7 @@ const ELEMENTS: Array<[string, CustomElementConstructor]> = [
   ['app-status', AppStatus],
   ['app-panel', AppPanel],
   ['app-foot', AppFoot],
+  ['my-wines', MyWines],
 ]
 
 export function defineElements(): void {

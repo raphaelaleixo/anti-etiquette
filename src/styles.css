@@ -266,6 +266,13 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .mywines-row--skipped .mywines-rule{background:var(--mute2);opacity:0.5;}
 .mywines-row--skipped .mywines-name{color:var(--mute);}
 
+/* A saved SKU the catalog could not resolve. Deliberately visible rather than
+   hidden: the React app showed these as a permanent "Loading 1 more…" that
+   could not be removed, so the row states the problem and offers the exit. */
+.mywines-row--unresolved .mywines-rule{background:var(--mute2);opacity:0.35;}
+.mywines-row--unresolved .mywines-name{color:var(--mute);font-variant-numeric:tabular-nums;}
+.mywines-row--unresolved .mywines-region{font-style:italic;}
+
 /* Shell */
 .shell{min-height:100dvh;max-width:30rem;margin-inline:auto;
        display:flex;flex-direction:column;background:var(--ground);}

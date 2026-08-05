@@ -210,9 +210,16 @@ filters, results, status, error.
 `app/index.html` plus `src/ui/shell.ts`. Header, mode switch, footer, sheet hosts — and the one
 call that registers every custom element in `src/ui/elements/`.
 
-**Subscribing sections are light-DOM custom elements.** `<my-wines>`, `<wine-row>`,
-`<search-results>` and `<app-status>` extend `StoreElement`, subscribing in `connectedCallback`
-and unsubscribing in `disconnectedCallback`.
+**Subscribing sections are light-DOM custom elements.** `<my-wines>`, `<search-results>`,
+`<app-status>` and the shell's own `<mode-switch>`, `<app-panel>` and `<app-foot>` extend
+`StoreElement`, subscribing in `connectedCallback` and unsubscribing in `disconnectedCallback`.
+
+**Sections, not rows.** An earlier draft made each row an element too, on the theory that re-filing
+one wine would re-render one row instead of the list. It would not: every re-file moves a wine
+*between* groups, so the parent section has to re-render regardless, and the row elements would
+just be destroyed and re-upgraded on each pass. Rows are plain markup. A list of tens of rows
+rebuilds in well under a frame, and this is the same "rebuild the section, don't diff" bargain the
+whole design already takes.
 
 This replaces the central subscription registry — a list of `subscribe(render)` calls made once
 here — that an earlier draft of this plan put in this file. That registry's defence against a
@@ -228,9 +235,10 @@ view-transition pseudo-elements, `@starting-style`, the `prefers-reduced-motion`
 global regardless, leaving a hybrid stylesheet and a migration in exchange for isolation that
 protects against nothing in a single-author app with no third-party widgets.
 
-**Components take an identity, not an object.** Attributes are strings, so
-``html`<wine-row wine="${w}">` `` yields `[object Object]`. Pass `sku=` and let the row read the
-cellar itself. Consequence worth having: re-filing one wine re-renders one row, not the list.
+**An element takes an identity, not an object.** Attributes are strings, so
+``html`<some-el wine="${w}">` `` yields `[object Object]`. Any element that needs a record takes
+`sku=` and reads the store itself. No element needs this today — sections read the whole snapshot —
+but it is the constraint that decides the question if one ever does.
 
 `shell.ts` must `define()` all elements **before** the first `mount()` that emits their tags — an
 undefined custom element parses fine and sits inert, which fails silently. One bundle, defined at
@@ -256,9 +264,14 @@ the popover's own DOM node mid-handler when the section re-renders. Reverse it: 
 mutate. Worth stating because it will not fail loudly — it will fail as an occasional stuck
 overlay.
 
-Per-row `<wine-row>` elements do **not** rescue this. The kebab lives inside the row, so a
-row-scoped re-render destroys it exactly as a whole-list re-render would, and `removeSeed` takes
-the row away entirely. The rule is independent of render granularity.
+Finer render granularity would not rescue this. The kebab lives inside the row, so a row-scoped
+re-render would destroy it exactly as a whole-list re-render does, and `removeSeed` takes the row
+away entirely. The rule is independent of how much gets rebuilt.
+
+The test observes the ordering through a stubbed `hidePopover`, because no headless DOM implements
+the Popover API — happy-dom has none at all, and calling it throws. That is the right level:
+top-layer behaviour and `popovertarget`'s implicit anchor are real-browser concerns and stay on the
+manual checklist. The production call is guarded for engines without the API.
 
 Killing the async gap deletes real surface: `skipsRevealed`, `onRevealSkipped`, all three
 `*Total` props and all three "Loading N more…" lines, since `liked.length === likedTotal` now
