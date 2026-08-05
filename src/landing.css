@@ -1,0 +1,320 @@
+/*
+ * Landing page — structure only.
+ *
+ * Deliberately plain: layout, rhythm and responsive behaviour, with the visual
+ * design (the Organic palette, Caprasimo/Figtree, the bottle mark) to be
+ * layered on top later. Everything here is either a structural rule or one of
+ * Task 10's stated requirements — both colour schemes, reduced motion, no CDN.
+ *
+ * System fonts throughout for now, so the page ships no network requests at
+ * all. When the real typefaces land they must be self-hosted, not linked from
+ * Google Fonts: an app whose whole argument is "nothing is sent anywhere"
+ * cannot open the page by telling a third party you opened it.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --ground: #f5ead8;
+  --surface: #fffaf2;
+  --ink: #221417;
+  --ink-quiet: #5d4a4c;
+  --line: rgba(34, 20, 23, 0.14);
+  --field: #6d1f2c;
+  --field-ink: #f5ead8;
+  --field-quiet: #c98d97;
+  --accent: #b4532f;
+  --accent-ink: #fffaf2;
+  --accent-soft: #f0d9cd;
+  --leaf-fill: #dcddc2;
+  --leaf-ink: #37402a;
+
+  --gap: clamp(1.5rem, 4vw, 2.75rem);
+  --measure: 62ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #15161a;
+    --surface: #1c1d22;
+    --ink: #ece7e2;
+    --ink-quiet: #a29a95;
+    --line: rgba(255, 255, 255, 0.13);
+    --field: #3a1119;
+    --field-ink: #f0e4e6;
+    --field-quiet: #c98d97;
+    --accent: #cf6a41;
+    --accent-ink: #17100c;
+    --accent-soft: #3a2119;
+    --leaf-fill: #2a3122;
+    --leaf-ink: #cdd3bb;
+  }
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3 { line-height: 1.15; text-wrap: balance; margin: 0; }
+p { margin: 0; text-wrap: pretty; }
+a { color: inherit; }
+
+/* A visible focus ring everywhere, since every action here is a link. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ chrome */
+
+.brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.brand-name { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+
+/*
+ * Placeholder for the retained mark (4c — black bottle, white label, red X
+ * clipped to the label). Drawn as a plain shape for now so the layout reserves
+ * the right box and nothing depends on an asset that does not exist yet.
+ */
+.brand-mark {
+  inline-size: 2rem;
+  block-size: 2rem;
+  flex: none;
+  border-radius: 0.55rem;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.site-head {
+  background: var(--field);
+  color: var(--field-ink);
+  padding: 0.9rem var(--gap);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.site-head .brand-mark { background: var(--ground); box-shadow: none; }
+
+.site-nav { display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 1.6rem); }
+.site-nav a { text-decoration: none; color: var(--field-quiet); }
+.site-nav a:hover { color: var(--field-ink); }
+
+/* ------------------------------------------------------------------ buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.btn-lg { padding: 0.95rem 1.75rem; font-size: 1.05rem; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-secondary { background: transparent; color: inherit; border-color: currentColor; }
+.site-nav .btn-primary { color: var(--accent-ink); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn { transition: translate 140ms ease, background-color 140ms ease; }
+  .btn:hover { translate: 0 -1px; }
+}
+
+/* --------------------------------------------------------------------- hero */
+
+main { display: block; }
+
+.hero {
+  padding: clamp(2.5rem, 7vw, 4.75rem) var(--gap);
+  display: grid;
+  gap: clamp(2rem, 5vw, 3.5rem);
+  align-items: center;
+  /* One column until there is genuinely room for two. */
+  grid-template-columns: 1fr;
+  max-inline-size: 78rem;
+  margin-inline: auto;
+}
+@media (min-width: 56rem) {
+  .hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
+}
+
+.hero h1 {
+  font-size: clamp(2.4rem, 7vw, 4.75rem);
+  max-inline-size: 14ch;
+  letter-spacing: -0.02em;
+}
+.lede {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--ink-quiet);
+  max-inline-size: 42ch;
+  margin-block-start: 1.1rem;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-start: 1.75rem;
+}
+.fineprint {
+  font-size: 0.9rem;
+  color: var(--ink-quiet);
+  margin-block-start: 1.1rem;
+}
+
+/* Reserves the hero image's box without shipping an image yet. */
+.hero-figure {
+  aspect-ratio: 21 / 23;
+  border-radius: 1.75rem;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+@media (max-width: 56rem) {
+  .hero-figure { display: none; }
+}
+
+/* -------------------------------------------------------------------- steps */
+
+.steps {
+  padding: 0 var(--gap) clamp(3rem, 8vw, 4.5rem);
+  max-inline-size: 78rem;
+  margin-inline: auto;
+}
+.steps h2 { font-size: clamp(1.6rem, 4vw, 2.15rem); max-inline-size: 20ch; }
+
+.step-list {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  border-block-start: 1px solid var(--line);
+}
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 1.25rem;
+  align-items: start;
+  padding: 1.4rem 0;
+  border-block-end: 1px solid var(--line);
+}
+@media (min-width: 56rem) {
+  .step {
+    grid-template-columns: auto 19rem 1fr;
+    align-items: center;
+    gap: 1.6rem;
+  }
+}
+.step-num {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  grid-row: span 2;
+}
+@media (min-width: 56rem) {
+  .step-num { grid-row: auto; }
+}
+.step h3 { font-size: 1.2rem; }
+.step p { color: var(--ink-quiet); max-inline-size: 56ch; }
+.step--alt .step-num { background: var(--leaf-fill); color: var(--leaf-ink); }
+
+/* ------------------------------------------------------------------ privacy */
+
+.privacy {
+  margin: 0 var(--gap) clamp(3rem, 8vw, 4.5rem);
+  max-inline-size: calc(78rem - var(--gap) * 2);
+  margin-inline: auto;
+  border-radius: 1.25rem;
+  background: var(--leaf-fill);
+  color: var(--leaf-ink);
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+.privacy h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); margin-block-end: 0.5rem; }
+.privacy p { max-inline-size: 52ch; }
+.privacy-nots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+.privacy-nots li { display: flex; align-items: center; gap: 0.55rem; }
+
+/* The struck-through square: the design's "not this" mark, drawn in CSS. */
+.not-mark {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  flex: none;
+  border-radius: 0.5rem;
+  background: var(--surface);
+  position: relative;
+}
+.not-mark::before,
+.not-mark::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0.2rem;
+  inset-block-start: calc(50% - 1px);
+  block-size: 2px;
+  background: var(--ink);
+}
+.not-mark::before { rotate: 45deg; }
+.not-mark::after { rotate: -45deg; }
+
+/* -------------------------------------------------------------------- about */
+
+.about {
+  padding: 0 var(--gap) clamp(3rem, 8vw, 4.5rem);
+  max-inline-size: 78rem;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.about h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); }
+.about p { color: var(--ink-quiet); max-inline-size: var(--measure); }
+.about strong { color: var(--ink); }
+
+/* ------------------------------------------------------------------- footer */
+
+.site-foot {
+  background: var(--field);
+  color: var(--field-ink);
+  padding: clamp(2rem, 5vw, 2.75rem) var(--gap);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 2.5rem;
+  align-items: end;
+  justify-content: space-between;
+}
+.foot-brand { display: flex; align-items: center; gap: 0.7rem; }
+.foot-brand .brand-mark { background: var(--ground); box-shadow: none; }
+.foot-brand .brand-name { font-size: 1.4rem; }
+.foot-note {
+  color: var(--field-quiet);
+  font-size: 0.95rem;
+  max-inline-size: 46ch;
+  flex: 1 1 22rem;
+}

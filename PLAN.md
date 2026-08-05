@@ -342,6 +342,26 @@ Implemented from the design you supply — same flow as the last redesign: produ
 Design, I import via the DesignSync MCP and build it. Responsive, both colour schemes,
 `prefers-reduced-motion` honoured, all assets local (no CDN).
 
+**Done: structure only.** The design (`Anti-Étiquette.dc.html`, project `a955c614`) was imported
+and its *information architecture* built — header, hero, five steps, privacy strip, About, footer —
+in English, with placeholder shapes where the mark and hero image go. Visual design and copy
+language were explicitly deferred.
+
+Three things in that design are larger than this task and need a decision before they can land:
+
+1. **It is written in French**, with an FR/EN toggle in both the site header and the app header.
+   The app built in Tasks 1–9 is entirely English and has no i18n layer. A toggle implies one.
+2. **It re-skins the app, not just the landing.** The two phone screens are a light cream ground
+   with a wine header and terracotta actions; the app currently ships the original near-black
+   theme, and `styles.css` transferred on the strength of that. Adopting the new palette is a
+   rewrite of that stylesheet, not a landing-page task.
+3. **It links Caprasimo and Figtree from Google Fonts.** That cannot ship as-is: a page whose
+   entire argument is "nothing is sent anywhere" must not announce each visit to a font CDN. The
+   typefaces have to be self-hosted, which is a licence question as much as a build one.
+
+The retained mark is 4c — black bottle, white label, red X clipped inside the label — drawn in CSS
+in the design rather than supplied as an asset.
+
 - Returning visitors skip it: a ~5-line inline, synchronous script checks for `cellar.v2` and
   redirects to `/app/`, so there's no flash of the landing.
 - `manifest.webmanifest`: `start_url` → `/app/`.

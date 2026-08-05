@@ -1,0 +1,134 @@
+import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+
+/**
+ * The landing page is static HTML with one inline script, so it is checked as
+ * a document rather than exercised as a component. What matters here is what
+ * it does NOT do: reach the network, ship the app bundle, or strand a
+ * returning visitor.
+ */
+
+const landing = readFileSync('index.html', 'utf8')
+const app = readFileSync('app/index.html', 'utf8')
+
+describe('the returning-visitor redirect', () => {
+  it('is inline and synchronous, so the landing never flashes', () => {
+    const head = landing.slice(0, landing.indexOf('</head>'))
+    expect(head).toContain('location.replace')
+    // A deferred or module script would paint the landing first and then yank
+    // it away, which is worse than not redirecting at all.
+    expect(head).not.toMatch(/<script[^>]*\b(defer|async|type="module")/)
+  })
+
+  it('keys off the cellar, not a flag it would have to keep in sync', () => {
+    expect(landing).toContain("localStorage.getItem('cellar.v2')")
+  })
+
+  it('replaces rather than pushes, so Back does not bounce', () => {
+    expect(landing).toContain("location.replace('/app/')")
+    expect(landing).not.toContain("location.assign('/app/')")
+  })
+
+  it('survives a browser that denies storage', () => {
+    // Reading localStorage throws outright in some configurations, and an
+    // uncaught throw here would leave a blank page rather than a landing.
+    const script = landing.slice(landing.indexOf('<script>'), landing.indexOf('</script>'))
+    expect(script).toContain('try')
+    expect(script).toContain('catch')
+  })
+
+  it('has an escape hatch so the About link is reachable', () => {
+    expect(landing).toContain("location.search.includes('stay')")
+    expect(app).toContain('/?stay#about')
+  })
+})
+
+describe('what the landing does not ship', () => {
+  it('pulls no app JavaScript', () => {
+    // The landing is the URL that gets posted; it should not carry the app.
+    expect(landing).not.toContain('/src/ui/')
+    expect(landing).not.toMatch(/<script[^>]+src=/)
+  })
+
+  it('requests nothing from a third party', () => {
+    // An app whose whole argument is "nothing is sent anywhere" cannot open
+    // the page by telling a font CDN that you opened it.
+    const urls = [...landing.matchAll(/(?:href|src)="(https?:\/\/[^"]+)"/g)].map(m => m[1])
+    expect(urls).toEqual([])
+  })
+
+  it('links only to local assets and its own routes', () => {
+    const css = readFileSync('src/landing.css', 'utf8')
+    expect(css).not.toContain('@import url(http')
+    expect(css).not.toContain('fonts.googleapis')
+    expect(css).not.toContain('fonts.gstatic')
+  })
+})
+
+describe('the structure carried over from the design', () => {
+  const sections = ['id="how"', 'id="privacy"', 'id="about"']
+
+  for (const id of sections) {
+    it(`has the ${id} section the nav points at`, () => {
+      expect(landing).toContain(id)
+      expect(landing).toContain(`href="#${id.slice(4, -1)}"`)
+    })
+  }
+
+  it('lists five steps', () => {
+    expect(landing.match(/class="step[ "]/g) ?? []).toHaveLength(5)
+  })
+
+  it('offers the app from the head, the hero and the foot', () => {
+    expect(landing.match(/href="\/app\/"/g) ?? []).toHaveLength(3)
+  })
+})
+
+describe('the About note', () => {
+  it('says the data never leaves the browser', () => {
+    expect(landing).toContain('never leaves')
+  })
+
+  it('says it is unofficial and unaffiliated', () => {
+    expect(landing).toMatch(/unofficial/i)
+    expect(landing).toMatch(/not affiliated with/i)
+  })
+
+  it('says it is Montréal only', () => {
+    expect(landing).toMatch(/Montréal branches only/i)
+  })
+
+  it('is reachable from the app as well as the landing', () => {
+    expect(app).toContain('#about')
+  })
+})
+
+describe("Task 10's stated requirements", () => {
+  const css = readFileSync('src/landing.css', 'utf8')
+
+  it('honours both colour schemes', () => {
+    expect(css).toContain('color-scheme: light dark')
+    expect(css).toContain('@media (prefers-color-scheme: dark)')
+  })
+
+  it('gates motion behind a preference rather than assuming it', () => {
+    expect(css).toContain('prefers-reduced-motion: no-preference')
+  })
+
+  it('is responsive rather than fixed to the design canvas width', () => {
+    expect(css).toContain('@media (min-width:')
+    expect(css).not.toContain('width: 1280px')
+  })
+})
+
+describe('the manifest', () => {
+  const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'))
+
+  it('opens the app, not the landing, when installed', () => {
+    expect(manifest.start_url).toBe('/app/')
+  })
+
+  it('keeps scope at the root so the landing stays in the installed app', () => {
+    expect(manifest.scope).toBe('/')
+  })
+})

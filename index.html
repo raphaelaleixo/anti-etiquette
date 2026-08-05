@@ -1,13 +1,165 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Anti-Étiquette</title>
-    <meta name="description" content="Find a wine you'll like at your SAQ branch. Runs entirely in your browser." />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Anti-Étiquette — buy the wine, not the label</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#15161a" />
+    <meta
+      name="description"
+      content="Name a few wines you've liked. Anti-Étiquette reads what your SAQ branch has on the shelf right now and tells you which bottle to take. Runs entirely in your browser."
+    />
+    <meta property="og:title" content="Anti-Étiquette" />
+    <meta property="og:description" content="Buy the wine, not the label. Runs entirely in your browser." />
+    <meta property="og:type" content="website" />
+
+    <script>
+      // Returning visitors never see this page. Synchronous and in <head> on
+      // purpose: anything deferred would paint the landing first and then yank
+      // it away. `replace` rather than `assign` so the landing does not sit in
+      // history as a page Back returns to.
+      //
+      // `?stay` is the escape hatch — the app's own links here carry it, so
+      // reading the About note does not bounce you straight back.
+      try {
+        if (!location.search.includes('stay') && localStorage.getItem('cellar.v2')) {
+          location.replace('/app/')
+        }
+      } catch (e) {
+        // Storage denied. Showing the landing is the right fallback.
+      }
+    </script>
+    <link rel="stylesheet" href="/src/landing.css" />
   </head>
   <body>
-    <!-- Task 10 builds the landing page here, from a supplied design. -->
-    <noscript>This tool needs JavaScript — it runs entirely in your browser.</noscript>
+    <header class="site-head">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Anti-Étiquette</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#about">About</a>
+        <a class="btn btn-primary" href="/app/">Build my list</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>Buy the wine, not the label.</h1>
+          <p class="lede">
+            Name a few bottles you've enjoyed. Anti-Étiquette reads what your SAQ
+            branch has on the shelf right now and tells you which one to take.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="/app/">Build my list</a>
+            <a class="btn btn-secondary btn-lg" href="#how">How it works</a>
+          </div>
+          <p class="fineprint">
+            Everything stays in your browser. No sign-up, and nothing is sent anywhere.
+          </p>
+        </div>
+        <div class="hero-figure" aria-hidden="true"></div>
+      </section>
+
+      <section id="how" class="steps">
+        <h2>Five steps, about ninety seconds.</h2>
+        <ol class="step-list">
+          <li class="step">
+            <span class="step-num" aria-hidden="true">1</span>
+            <h3>Name wines you've drunk</h3>
+            <p>
+              Paste them however you remember them. Loved or hated both help — a
+              bottle you didn't finish says as much as one you did.
+            </p>
+          </li>
+          <li class="step">
+            <span class="step-num" aria-hidden="true">2</span>
+            <h3>Pick your branch</h3>
+            <p>
+              The catalogue is read live: grape, region, price, and what is
+              actually on the shelf at that branch.
+            </p>
+          </li>
+          <li class="step">
+            <span class="step-num" aria-hidden="true">3</span>
+            <h3>Set your price range</h3>
+            <p>
+              Looking for a $20 bottle? You won't be shown a $100 one to impress
+              you. The budget is a filter, not a suggestion.
+            </p>
+          </li>
+          <li class="step">
+            <span class="step-num" aria-hidden="true">4</span>
+            <h3>Take a bottle</h3>
+            <p>
+              A short ranked list, each with a plain sentence saying why that
+              one — built from what you already like.
+            </p>
+          </li>
+          <li class="step step--alt">
+            <span class="step-num" aria-hidden="true">5</span>
+            <h3>Want a second opinion?</h3>
+            <p>
+              The app writes a prompt ready to paste into ChatGPT, Claude or
+              Gemini: your taste on one side, what's in stock on the other.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section id="privacy" class="privacy">
+        <div class="privacy-copy">
+          <h2>No account to create.</h2>
+          <p>
+            Your list lives in your browser's storage and never leaves it. No
+            account, no email, no analytics, no cookie banner, and nothing to
+            delete later.
+          </p>
+        </div>
+        <ul class="privacy-nots">
+          <li><span class="not-mark" aria-hidden="true"></span>Sign-in</li>
+          <li><span class="not-mark" aria-hidden="true"></span>Tracking</li>
+          <li><span class="not-mark" aria-hidden="true"></span>Server</li>
+        </ul>
+      </section>
+
+      <section id="about" class="about">
+        <h2>About</h2>
+        <p>
+          Anti-Étiquette matches an SAQ branch's current stock against wines you
+          already like, and explains each suggestion in a sentence.
+        </p>
+        <p>
+          <strong>Your data never leaves your browser.</strong> There is no
+          server, no database and no account — the page talks to the SAQ's own
+          public catalogue directly, the same way saq.com does, and everything
+          you save is stored locally. Because of that, clearing your browsing
+          data clears your list, so the app offers an export.
+        </p>
+        <p>
+          This is an unofficial tool, not affiliated with or endorsed by the
+          Société des alcools du Québec. Inventory data comes from its public
+          catalogue. Montréal branches only.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <div class="foot-brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Anti-Étiquette</span>
+      </div>
+      <p class="foot-note">
+        Made in Montréal. Not affiliated with the Société des alcools du Québec;
+        inventory data comes from its public catalogue.
+      </p>
+      <a class="btn btn-primary" href="/app/">Build my list</a>
+    </footer>
   </body>
 </html>

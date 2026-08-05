@@ -30,6 +30,12 @@
           <div class="head-row">
             <div class="label">Anti-Étiquette</div>
             <div class="head-status"></div>
+            <!--
+              `?stay` suppresses the landing page's returning-visitor redirect.
+              Without it this link would bounce straight back here, since
+              having a saved list is exactly what triggers that redirect.
+            -->
+            <a class="head-about" href="/?stay#about">About</a>
           </div>
           <mode-switch></mode-switch>
         </header>

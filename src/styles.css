@@ -302,6 +302,9 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 
 .head-row{display:flex;align-items:baseline;justify-content:space-between;}
 .head-status{font-size:12px;color:var(--mute2);}
+.head-about{font-size:12px;color:var(--mute2);text-decoration:none;margin-left:auto;
+  padding:2px 6px;border-radius:6px;}
+.head-about:hover{color:var(--ink2);}
 
 /* Catalog-fetch progress — conveys real information (page N of M), so
    reduced motion de-animates the fill, it never hides the bar. Animating
