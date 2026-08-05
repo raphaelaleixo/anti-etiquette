@@ -1,0 +1,20 @@
+{
+  "name": "anti-etiquette",
+  "version": "0.1.0",
+  "description": "A static, dependency-free SAQ wine matcher. Runs entirely in your browser.",
+  "license": "ISC",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
+  }
+}

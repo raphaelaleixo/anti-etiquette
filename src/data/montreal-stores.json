@@ -1,0 +1,332 @@
+[
+  {
+    "id": "23185",
+    "name": "Ateliers Angus",
+    "address": "4125, rue André-Laurendeau"
+  },
+  {
+    "id": "23241",
+    "name": "Av. Laurier Est",
+    "address": "1325, avenue Laurier Est"
+  },
+  {
+    "id": "23065",
+    "name": "Av. Laurier Ouest",
+    "address": "390, avenue Laurier Ouest"
+  },
+  {
+    "id": "23076",
+    "name": "Beaubien - 27e avenue",
+    "address": "4390, rue Beaubien Est"
+  },
+  {
+    "id": "23020",
+    "name": "Beaubien - De Lorimier",
+    "address": "2100, rue Beaubien Est"
+  },
+  {
+    "id": "23066",
+    "name": "Beaubien - St-André",
+    "address": "900, rue Beaubien Est"
+  },
+  {
+    "id": "23191",
+    "name": "Carrefour Angrignon",
+    "address": "2500, boulevard Angrignon"
+  },
+  {
+    "id": "23106",
+    "name": "Carrefour de la Pointe",
+    "address": "12653, rue Sherbrooke Est"
+  },
+  {
+    "id": "23064",
+    "name": "Centre Domaine",
+    "address": "3215 av. De Granby"
+  },
+  {
+    "id": "23112",
+    "name": "Centre Eaton",
+    "address": "677, rue Sainte-Catherine Ouest"
+  },
+  {
+    "id": "23174",
+    "name": "Complexe Desjardins",
+    "address": "150, rue Ste-Catherine Ouest"
+  },
+  {
+    "id": "23124",
+    "name": "Côte-des-Neiges - Jean-Brillant",
+    "address": "5252, chemin de la Côte-des-Neiges"
+  },
+  {
+    "id": "23113",
+    "name": "De la Montagne",
+    "address": "1450, de la Montagne"
+  },
+  {
+    "id": "23134",
+    "name": "De Maisonneuve - City Councillors",
+    "address": "425, boulevard De Maisonneuve Ouest"
+  },
+  {
+    "id": "23023",
+    "name": "Décarie - Côte-Vertu",
+    "address": "954, boulevard Décarie"
+  },
+  {
+    "id": "23326",
+    "name": "Dépôt Marché Central",
+    "address": "1001, rue du Marché Central"
+  },
+  {
+    "id": "23009",
+    "name": "Du Parc - Fairmount Ouest",
+    "address": "5261, avenue du Parc"
+  },
+  {
+    "id": "23385",
+    "name": "Exclusivement pour les restaurateurs",
+    "address": "150, rue St-Zotique Ouest"
+  },
+  {
+    "id": "23390",
+    "name": "Exclusivement pour les restaurateurs",
+    "address": "1900, rue St-Patrick"
+  },
+  {
+    "id": "23028",
+    "name": "Faubourg Sainte-Catherine",
+    "address": "1618, rue Ste-Catherine Ouest"
+  },
+  {
+    "id": "23036",
+    "name": "Fleury - Papineau",
+    "address": "1745-A, rue Fleury Est"
+  },
+  {
+    "id": "23044",
+    "name": "Galeries D'Anjou",
+    "address": "7999, boulevard les Galeries d'Anjou"
+  },
+  {
+    "id": "23169",
+    "name": "Galeries Normandie",
+    "address": "2834, rue de Salaberry"
+  },
+  {
+    "id": "23250",
+    "name": "Griffintown",
+    "address": "231, rue Peel"
+  },
+  {
+    "id": "23011",
+    "name": "Halles D'Anjou",
+    "address": "7500, boulevard les Galeries d'Anjou"
+  },
+  {
+    "id": "23003",
+    "name": "Halles de la Gare",
+    "address": "895, rue de la Gauchetière Ouest"
+  },
+  {
+    "id": "23146",
+    "name": "Henri-Bourassa Est - Rolland",
+    "address": "6186, boulevard Henri-Bourassa Est"
+  },
+  {
+    "id": "23087",
+    "name": "Henri-Bourassa Ouest - Tanguay",
+    "address": "450, boulevard Henri-Bourassa Ouest"
+  },
+  {
+    "id": "23030",
+    "name": "Jarry - Lajeunesse",
+    "address": "553, rue Jarry Est"
+  },
+  {
+    "id": "23138",
+    "name": "Jean-Talon - Viau",
+    "address": "7205, boulevard Viau"
+  },
+  {
+    "id": "23344",
+    "name": "Jean-Talon Est - Pie IX",
+    "address": "4355, rue Jean-Talon Est"
+  },
+  {
+    "id": "23337",
+    "name": "L'Île-des-Soeurs",
+    "address": "44, place du Commerce"
+  },
+  {
+    "id": "23345",
+    "name": "La Cité - Les Galeries du Parc",
+    "address": "3575, avenue du Parc"
+  },
+  {
+    "id": "23013",
+    "name": "Lajeunesse - Fleury",
+    "address": "10418, rue Lajeunesse"
+  },
+  {
+    "id": "23163",
+    "name": "LaSalle - Boul. Champlain",
+    "address": "8070, boulevard Champlain"
+  },
+  {
+    "id": "23132",
+    "name": "Marché Atwater",
+    "address": "155, avenue Atwater"
+  },
+  {
+    "id": "23055",
+    "name": "Marché Jean-Talon",
+    "address": "7077, avenue Casgrain"
+  },
+  {
+    "id": "23210",
+    "name": "Mont-Royal Est - Mentana",
+    "address": "940, avenue du Mont-Royal Est"
+  },
+  {
+    "id": "23101",
+    "name": "Mont-Royal Est - Papineau",
+    "address": "1690, avenue du Mont-Royal Est"
+  },
+  {
+    "id": "23220",
+    "name": "Mont-Royal Ouest - Clark",
+    "address": "55, avenue du Mont-Royal Ouest"
+  },
+  {
+    "id": "23145",
+    "name": "N.D.G. - Av. Somerled",
+    "address": "6265, avenue Somerled"
+  },
+  {
+    "id": "23100",
+    "name": "N.D.G. - Rue Monkland",
+    "address": "5617, avenue de Monkland"
+  },
+  {
+    "id": "23092",
+    "name": "N.D.G. - Rue Sherbrooke Ouest",
+    "address": "6108, rue Sherbrooke Ouest"
+  },
+  {
+    "id": "23304",
+    "name": "N.D.G. - Rue St-Jacques",
+    "address": "6630, rue St-Jacques"
+  },
+  {
+    "id": "23091",
+    "name": "Notre-Dame Est - St-Donat",
+    "address": "8269, rue Notre-Dame Est"
+  },
+  {
+    "id": "23021",
+    "name": "Ontario - Pie IX",
+    "address": "4035, rue Ontario Est"
+  },
+  {
+    "id": "23208",
+    "name": "Papineau - Crémazie",
+    "address": "8405, rue Papineau"
+  },
+  {
+    "id": "23336",
+    "name": "Petite Italie",
+    "address": "7010, boulevard Saint-Laurent"
+  },
+  {
+    "id": "23099",
+    "name": "Pie IX - Industriel",
+    "address": "10210, boulevard Pie-IX"
+  },
+  {
+    "id": "23126",
+    "name": "Pierrefonds - Boul. des Sources",
+    "address": "4990, boulevard des Sources"
+  },
+  {
+    "id": "23136",
+    "name": "Pierrefonds - Boul. St-Jean",
+    "address": "4777, boulevard St-Jean"
+  },
+  {
+    "id": "23329",
+    "name": "Place D'Armes",
+    "address": "501, place d'Armes"
+  },
+  {
+    "id": "23167",
+    "name": "Place Dupuis",
+    "address": "865, rue Ste-Catherine Est"
+  },
+  {
+    "id": "23075",
+    "name": "Place Vertu",
+    "address": "3111, boulevard de la Côte Vertu"
+  },
+  {
+    "id": "23109",
+    "name": "Queen-Mary - Décarie",
+    "address": "5295, chemin Queen-Mary"
+  },
+  {
+    "id": "23331",
+    "name": "R.D.P. - Boul. Maurice-Duplessis",
+    "address": "7517, boulevard Maurice-Duplessis"
+  },
+  {
+    "id": "23237",
+    "name": "R.D.P. - Boul. Rodolphe-Forget",
+    "address": "12401, boulevard Rodolphe-Forget"
+  },
+  {
+    "id": "23173",
+    "name": "Rue Masson",
+    "address": "2685, rue Masson"
+  },
+  {
+    "id": "23019",
+    "name": "Saint-Denis - Rachel",
+    "address": "4190, rue St-Denis"
+  },
+  {
+    "id": "23217",
+    "name": "Sainte-Catherine Ouest - Lambert Closse",
+    "address": "2204, rue Ste-Catherine Ouest"
+  },
+  {
+    "id": "23171",
+    "name": "Sherbrooke Est - Autoroute 25",
+    "address": "7550, rue Sherbrooke Est"
+  },
+  {
+    "id": "23010",
+    "name": "St-Laurent - Des Pins",
+    "address": "3730, boulevard St-Laurent"
+  },
+  {
+    "id": "23213",
+    "name": "Ste-Catherine est/ De Lorimier",
+    "address": "2104, rue Sainte-Catherine Est"
+  },
+  {
+    "id": "23001",
+    "name": "Ste-Catherine Ouest - Stanley",
+    "address": "1176, rue Ste-Catherine Ouest"
+  },
+  {
+    "id": "23155",
+    "name": "Van Horne - Wilderton",
+    "address": "2861, avenue Van Horne"
+  },
+  {
+    "id": "23107",
+    "name": "Verdun",
+    "address": "4215, rue Wellington"
+  }
+]
