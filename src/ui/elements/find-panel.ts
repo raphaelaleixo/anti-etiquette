@@ -6,6 +6,7 @@ import { branchName } from '../../lib/branches'
 import { describeMatch } from '../../lib/reasons'
 import { openBranchSheet } from '../branchSheet'
 import { openFilterSheet } from '../filterSheet'
+import { openAddWines } from '../addWines'
 import type { ScoredWine, TasteProfile, Wine } from '../../lib/types'
 
 /** Below this, SAQ's community average is closer to noise than signal. */
@@ -109,14 +110,49 @@ export class FindPanel extends StoreElement {
     delegate(this, 'click', '[data-find]', (_e, el) => {
       if (el.dataset.find === 'branch') openBranchSheet()
       else if (el.dataset.find === 'filters') openFilterSheet()
+      else if (el.dataset.find === 'add') openAddWines()
     })
     super.connectedCallback()
+  }
+
+  /**
+   * What is missing before a search can run, said plainly.
+   *
+   * The React app showed a disabled button and nothing else, so a first
+   * visitor saw a dead control with no way to learn what it wanted. Both
+   * requirements are named, and the one that is missing is the one that gets
+   * the action.
+   */
+  #emptyState(likedCount: number, branch: string): Html | false {
+    if (likedCount > 0 && branch) return false
+    return html`
+      <section class="find-empty">
+        ${likedCount === 0
+          ? html`
+            <h2>First, name a wine or two you've liked.</h2>
+            <p class="hint">
+              Matches are built from wines you already know you enjoy, so there
+              is nothing to go on until there is at least one.
+            </p>
+            <button type="button" class="btn-primary" data-find="add">＋ Add wines</button>
+          `
+          : html`
+            <h2>Now pick your branch.</h2>
+            <p class="hint">
+              Stock differs from one SAQ to the next, so the list is only worth
+              anything once it knows which shelf it is reading.
+            </p>
+            <button type="button" class="btn-primary" data-find="branch">Choose a branch</button>
+          `}
+      </section>
+    `
   }
 
   protected render(): void {
     const { branch, filters, results: ranked, favourites: favs, catalog, profile } =
       appState.getSnapshot()
     const hidden = cellar.hiddenSkus([...cellar.getSnapshot().refs])
+    const likedCount = cellar.getSnapshot().liked.length
 
     // Re-filed after a search, the already-rendered rows still hold the wine,
     // so filtering here reflows the list with no further network traffic.
@@ -134,6 +170,7 @@ export class FindPanel extends StoreElement {
           ${chipSummary(filters)}
         </button>
       </div>
+      ${this.#emptyState(likedCount, branch)}
       ${profile && favourites(visibleFavourites)}
       ${profile && results(visible, profile, catalog.length)}
     `)

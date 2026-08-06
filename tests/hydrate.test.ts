@@ -37,7 +37,7 @@ afterEach(() => {
  */
 describe('the no-network-on-load guarantee', () => {
   it('makes no lookups at all when every entry is cached', async () => {
-    const spy = vi.spyOn(catalog, 'resolveWineName')
+    const spy = vi.spyOn(catalog, 'resolveSku')
     cellar.replaceAll([
       entry('111', { wine: wine('111') }),
       entry('222', { wine: wine('222') }),
@@ -51,13 +51,13 @@ describe('the no-network-on-load guarantee', () => {
   })
 
   it('makes no lookups on an empty list', async () => {
-    const spy = vi.spyOn(catalog, 'resolveWineName')
+    const spy = vi.spyOn(catalog, 'resolveSku')
     expect((await hydrateMissing()).attempted).toBe(0)
     expect(spy).not.toHaveBeenCalled()
   })
 
   it('looks up only the entries actually missing a record', async () => {
-    const spy = vi.spyOn(catalog, 'resolveWineName')
+    const spy = vi.spyOn(catalog, 'resolveSku')
       .mockImplementation(async sku => wine(sku))
     cellar.replaceAll([
       entry('111', { wine: wine('111') }),
@@ -75,7 +75,7 @@ describe('the no-network-on-load guarantee', () => {
 
 describe('caching what it finds', () => {
   it('writes the resolved wine into the entry', async () => {
-    vi.spyOn(catalog, 'resolveWineName')
+    vi.spyOn(catalog, 'resolveSku')
       .mockImplementation(async sku => wine(sku, { name: 'Resolved at last' }))
     cellar.replaceAll([entry('111')])
 
@@ -86,7 +86,7 @@ describe('caching what it finds', () => {
   })
 
   it('leaves the kind alone — hydration is a cache fill, not a re-file', async () => {
-    vi.spyOn(catalog, 'resolveWineName').mockImplementation(async sku => wine(sku))
+    vi.spyOn(catalog, 'resolveSku').mockImplementation(async sku => wine(sku))
     cellar.replaceAll([entry('111', { kind: 'dislike' })])
 
     await hydrateMissing()
@@ -95,7 +95,7 @@ describe('caching what it finds', () => {
   })
 
   it('never adds an entry the list did not already have', async () => {
-    vi.spyOn(catalog, 'resolveWineName').mockImplementation(async sku => wine(sku))
+    vi.spyOn(catalog, 'resolveSku').mockImplementation(async sku => wine(sku))
     cellar.replaceAll([entry('111')])
 
     await hydrateMissing()
@@ -106,7 +106,7 @@ describe('caching what it finds', () => {
 
 describe('a SKU the catalog does not know', () => {
   it('is marked so it is not looked up again on every load', async () => {
-    const spy = vi.spyOn(catalog, 'resolveWineName').mockResolvedValue(null)
+    const spy = vi.spyOn(catalog, 'resolveSku').mockResolvedValue(null)
     cellar.replaceAll([entry('10237458')])
 
     const first = await hydrateMissing()
@@ -124,7 +124,7 @@ describe('a SKU the catalog does not know', () => {
 
   it('keeps the entry rather than removing it', async () => {
     // The list is precious; a lookup failure is a cache miss, never a deletion.
-    vi.spyOn(catalog, 'resolveWineName').mockResolvedValue(null)
+    vi.spyOn(catalog, 'resolveSku').mockResolvedValue(null)
     cellar.replaceAll([entry('10237458', { kind: 'skip' })])
 
     await hydrateMissing()
@@ -140,7 +140,7 @@ describe('a SKU the catalog does not know', () => {
  */
 describe('a lookup that fails outright', () => {
   it('is not recorded as unresolved, so the next load tries again', async () => {
-    const spy = vi.spyOn(catalog, 'resolveWineName')
+    const spy = vi.spyOn(catalog, 'resolveSku')
       .mockRejectedValue(new Error('network down'))
     cellar.replaceAll([entry('111')])
 
@@ -157,14 +157,14 @@ describe('a lookup that fails outright', () => {
   })
 
   it('does not reject, so a dead catalog cannot take down the load', async () => {
-    vi.spyOn(catalog, 'resolveWineName').mockRejectedValue(new Error('network down'))
+    vi.spyOn(catalog, 'resolveSku').mockRejectedValue(new Error('network down'))
     cellar.replaceAll([entry('111'), entry('222')])
 
     await expect(hydrateMissing()).resolves.toMatchObject({ failed: 2 })
   })
 
   it('keeps the wines it did resolve when others fail', async () => {
-    vi.spyOn(catalog, 'resolveWineName').mockImplementation(async sku => {
+    vi.spyOn(catalog, 'resolveSku').mockImplementation(async sku => {
       if (sku === '222') throw new Error('network down')
       return wine(sku)
     })
@@ -184,7 +184,7 @@ describe('concurrency', () => {
     // single burst — the exact thing dropping the stock endpoint deleted.
     let inFlight = 0
     let peak = 0
-    vi.spyOn(catalog, 'resolveWineName').mockImplementation(async sku => {
+    vi.spyOn(catalog, 'resolveSku').mockImplementation(async sku => {
       inFlight++
       peak = Math.max(peak, inFlight)
       await new Promise(r => setTimeout(r, 1))
@@ -201,7 +201,7 @@ describe('concurrency', () => {
 
   it('resolves every entry exactly once', async () => {
     const seen: string[] = []
-    vi.spyOn(catalog, 'resolveWineName').mockImplementation(async sku => {
+    vi.spyOn(catalog, 'resolveSku').mockImplementation(async sku => {
       seen.push(sku)
       return wine(sku)
     })

@@ -1,7 +1,7 @@
 import { html, mount, delegate, type Html } from './dom'
 import { openSheet } from './sheet'
-import { resolveWineName } from '../lib/catalog'
-import { dismissAt, type Resolution } from '../lib/resolution'
+import { searchWines } from '../lib/catalog'
+import { dismissAt, chooseCandidate, type Resolution } from '../lib/resolution'
 import * as cellar from '../lib/cellar'
 import * as appState from '../lib/appState'
 import { KIND_LABEL, KINDS, type SeedKind } from '../lib/types'
@@ -53,13 +53,41 @@ function inputStep(text: string): Html {
 
 // ---------------------------------------------------------------- step two
 
+/**
+ * The alternatives picker.
+ *
+ * Only shown when the catalog offered more than one, so an unambiguous match
+ * does not sprout a control implying doubt. "None of these" keeps the line in
+ * the batch as unmatched rather than dropping it — dropping it is what the ×
+ * does, and the two are different intentions.
+ */
+function candidatePicker(r: Resolution, i: number): Html | false {
+  const candidates = r.candidates ?? []
+  if (candidates.length < 2) return false
+  return html`
+    <select
+      class="resolution-alt" data-add="candidate" data-index="${i}"
+      aria-label="Which wine ${r.input} means"
+    >
+      ${candidates.map((w, ci) => html`
+        <option value="${ci}">${w.name} · $${w.price.toFixed(2)}</option>
+      `)}
+      <option value="-1">None of these</option>
+    </select>
+  `
+}
+
 function resolutionRow(r: Resolution, i: number): Html {
   if (r.wine === null) {
+    const tried = r.candidates?.length ?? 0
     return html`
       <li class="resolution-row resolution-row--unmatched">
         <div class="resolution-body">
           <div class="resolution-name resolution-name--warn">${r.input}</div>
-          <div class="resolution-meta resolution-meta--warn">no match — ignored</div>
+          <div class="resolution-meta resolution-meta--warn">
+            ${tried === 0 ? 'no match — not added' : 'nothing chosen — not added'}
+          </div>
+          ${candidatePicker(r, i)}
         </div>
         <button
           type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
@@ -73,6 +101,7 @@ function resolutionRow(r: Resolution, i: number): Html {
       <div class="resolution-body">
         <div class="resolution-name">${r.wine.name}</div>
         <div class="resolution-meta">$${r.wine.price.toFixed(2)} · from "${r.input}"</div>
+        ${candidatePicker(r, i)}
         <select
           class="resolution-kind" data-add="kind" data-index="${i}"
           aria-label="Which list ${r.wine.name} belongs in"
@@ -189,6 +218,14 @@ export function openAddWines(): void {
       const row = batch[Number(el.dataset.index)]
       if (row) el.value = row.kind
     }
+    for (const el of sheet.body.querySelectorAll<HTMLSelectElement>('[data-add="candidate"]')) {
+      const row = batch[Number(el.dataset.index)]
+      if (!row) continue
+      const chosen = row.wine === null
+        ? -1
+        : (row.candidates ?? []).findIndex(w => w.sku === row.wine!.sku)
+      el.value = String(chosen)
+    }
   }
 
   function renderStep(): void {
@@ -207,11 +244,17 @@ export function openAddWines(): void {
     error = null
     renderFoot()
     try {
-      batch = await Promise.all(names.map(async name => ({
-        input: name,
-        wine: await resolveWineName(name),
-        kind: 'like' as SeedKind,
-      })))
+      batch = await Promise.all(names.map(async name => {
+        const candidates = await searchWines(name)
+        return {
+          input: name,
+          // Best match pre-selected, but the alternatives travel with it so a
+          // wrong guess is a visible choice rather than a silent substitution.
+          wine: candidates[0] ?? null,
+          kind: 'like' as SeedKind,
+          candidates,
+        }
+      }))
     } catch (e) {
       error = `Could not reach the SAQ catalog: ${e instanceof Error ? e.message : String(e)}`
     } finally {
@@ -244,6 +287,17 @@ export function openAddWines(): void {
     // Only the footer count changes as the user types. Re-rendering the body
     // here would take the caret and the scroll position with it.
     renderFoot()
+  })
+
+  delegate(sheet.body, 'change', '[data-add="candidate"]', (_e, el) => {
+    if (!batch) return
+    const i = Number(el.dataset.index)
+    const row = batch[i]
+    if (!row) return
+    syncKindsFromDom()
+    batch = batch.map((r, ri) =>
+      ri === i ? chooseCandidate(r, Number((el as HTMLSelectElement).value)) : r)
+    renderStep()
   })
 
   delegate(sheet.body, 'click', '[data-add="dismiss"]', (_e, el) => {

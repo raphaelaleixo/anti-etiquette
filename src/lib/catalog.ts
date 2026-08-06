@@ -56,29 +56,65 @@ async function query(variables: Record<string, unknown>): Promise<any> {
   return json
 }
 
+/** How many alternatives a typed name is worth offering. */
+export const CANDIDATE_LIMIT = 5
+
+const NUMERIC = /^\d+$/
+
 /**
- * Resolve one free-text wine name to its best catalog match, or null.
+ * Candidates for a typed wine name, best first.
  *
- * Also called with a bare SKU when re-hydrating the saved list, and that case
- * needs a guard: the endpoint has no SKU lookup, so the SKU goes through the
- * same phrase search, and a SKU that no longer exists still returns whatever
- * the relevance ranker liked best. `12345678` comes back as `12345671`, a
- * Gewurztraminer. Left unchecked, the day SAQ delists a saved wine is the day
- * a stranger's bottle quietly joins the liked list and starts shaping the
- * taste profile. So for a numeric phrase, demand the SKU we asked for.
+ * This and `resolveSku` were one function taking `size: 1`, which meant a
+ * typed name got the blind top hit and no way to see it was wrong. "Pinot
+ * Noir" is not a wine — it matches hundreds — and silently resolving it to one
+ * arbitrary bottle then feeds that bottle into the taste profile. Returning
+ * the list lets the caller show what else it could have been.
  */
-export async function resolveWineName(name: string): Promise<Wine | null> {
+export async function searchWines(name: string, limit = CANDIDATE_LIMIT): Promise<Wine[]> {
   const json = await query({
     phrase: name,
+    filter: [{ attribute: 'categories', eq: 'products/wine' }],
+    size: limit,
+    page: 1,
+  })
+  const wines = parseProducts(json)
+  // A numeric phrase is a SKU, not a name: demand identity even here, so a
+  // caller that reaches for the wrong function cannot get a substitution.
+  return NUMERIC.test(name) ? wines.filter(w => w.sku === name) : wines
+}
+
+/**
+ * Resolve one SKU to its wine, or null.
+ *
+ * The endpoint has no SKU lookup, so the SKU goes through the same phrase
+ * search — and a SKU that no longer exists still returns whatever the
+ * relevance ranker liked best. `12345678` comes back as `12345671`, a
+ * Gewurztraminer. Left unchecked, the day SAQ delists a saved wine is the day
+ * a stranger's bottle quietly joins the liked list and starts shaping the
+ * taste profile. So demand the SKU we asked for.
+ */
+export async function resolveSku(sku: string): Promise<Wine | null> {
+  const json = await query({
+    phrase: sku,
     filter: [{ attribute: 'categories', eq: 'products/wine' }],
     size: 1,
     page: 1,
   })
-  const wines = parseProducts(json)
-  const found = wines[0]
+  const found = parseProducts(json)[0]
   if (!found) return null
-  if (/^\d+$/.test(name) && found.sku !== name) return null
-  return found
+  return found.sku === sku ? found : null
+}
+
+/**
+ * Resolve one free-text wine name or SKU to a single best match.
+ *
+ * Kept for callers that genuinely want one answer. Prefer `searchWines` when a
+ * human is going to look at the result, and `resolveSku` when the input is
+ * known to be a SKU.
+ */
+export async function resolveWineName(name: string): Promise<Wine | null> {
+  if (NUMERIC.test(name)) return resolveSku(name)
+  return (await searchWines(name, 1))[0] ?? null
 }
 
 export type WineColour = 'all' | 'red' | 'white' | 'rose' | 'orange'

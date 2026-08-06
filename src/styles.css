@@ -599,3 +599,18 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
 /* Fewer than five reviews: dimmed so a 100/100 off three votes doesn't
    out-shout a 90 off two hundred. */
 .rating--thin{opacity:.55;}
+
+/* Find-tab empty state. The React app showed a disabled button and nothing
+   else, so a first visitor met a dead control with no way to learn what it
+   wanted. */
+.find-empty{display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+  padding:28px 0 8px;}
+.find-empty h2{margin:0;font-size:22px;color:var(--ink2);line-height:1.2;
+  max-width:22ch;}
+.find-empty .hint{margin:0;max-width:44ch;}
+.find-empty button{margin-top:6px;}
+
+/* Alternatives picker in the resolution table. Only appears when the catalog
+   offered more than one, so an unambiguous match doesn't sprout a control
+   that implies doubt. */
+.resolution-alt{margin-top:6px;font-size:13px;padding:8px 10px;}

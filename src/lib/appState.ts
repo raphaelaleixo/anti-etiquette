@@ -1,4 +1,5 @@
 import { storage } from './storage'
+import { getSnapshot as getCellarSnapshot } from './cellar'
 import { DEFAULT_FILTERS, filtersEqual } from './filters'
 import type { CatalogFilters } from './catalog'
 import type { ScoredWine, TasteProfile, Wine } from './types'
@@ -69,8 +70,20 @@ function persist(key: string, value: string): void {
   }
 }
 
+/**
+ * Where a visitor lands.
+ *
+ * The React app always opened on *Find a wine* (`App.tsx:52`), which meant a
+ * first visit was a disabled button with no explanation and no reason to guess
+ * that the answer was behind the other tab. Land where there is something to
+ * do: the wines list when it is empty, the search when it is not.
+ */
+export function initialMode(): Mode {
+  return getCellarSnapshot().entries.length > 0 ? 'find' : 'wines'
+}
+
 let state: AppState = {
-  mode: 'wines',
+  mode: initialMode(),
   branch: readBranch(),
   filters: readFilters(),
   results: [],

@@ -1,4 +1,4 @@
-import { resolveWineName } from './catalog'
+import { resolveSku } from './catalog'
 import * as cellar from './cellar'
 import type { CellarEntry } from './cellar'
 import type { Wine } from './types'
@@ -73,11 +73,12 @@ export async function hydrateMissing(): Promise<HydrateResult> {
 
   const results = await mapLimit(targets, CONCURRENCY, async entry => {
     try {
-      // resolveWineName demands `found.sku === sku` for a numeric phrase, so a
-      // delisted SKU comes back null rather than as whatever the relevance
-      // ranker liked best. Without that check this function is the exact path
-      // by which a stranger's bottle joins the liked list.
-      return { sku: entry.sku, wine: await resolveWineName(entry.sku), failed: false }
+      // resolveSku demands `found.sku === sku`, so a delisted SKU comes back
+      // null rather than as whatever the relevance ranker liked best. Without
+      // that check this function is the exact path by which a stranger's
+      // bottle joins the liked list. Task 11 split the function in two; this
+      // is the half that must never guess.
+      return { sku: entry.sku, wine: await resolveSku(entry.sku), failed: false }
     } catch {
       return { sku: entry.sku, wine: null as Wine | null, failed: true }
     }
