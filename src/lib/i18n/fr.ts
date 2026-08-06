@@ -22,8 +22,6 @@ export const fr: Messages = {
   myWinesTab: n => `Mes vins · ${n}`,
   findTab: 'Trouver un vin',
   about: 'À propos',
-  storageOk: 'gardé dans ce navigateur',
-  storageBlocked: 'non gardé — ce navigateur bloque le stockage',
   language: 'Langue',
 
   // -------------------------------------------------------------- kinds

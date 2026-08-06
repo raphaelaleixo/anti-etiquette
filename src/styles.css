@@ -353,9 +353,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
             padding:12px 16px calc(12px + env(safe-area-inset-bottom));
             display:flex;gap:12px;align-items:stretch;}
 
-.head-row{display:flex;align-items:baseline;justify-content:space-between;}
-.head-status{font-size:12px;color:var(--mute2);}
-.head-about{font-size:12px;color:var(--mute2);text-decoration:none;margin-left:auto;
+.head-about{font-size:12px;color:var(--mute2);text-decoration:none;
   padding:2px 6px;border-radius:6px;}
 .head-about:hover{color:var(--ink2);}
 
@@ -711,9 +709,9 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
 .mark-label::before{rotate:-45deg;}
 .mark-label::after{rotate:45deg;}
 
-/* Header lockup: mark, wordmark, and whatever sits opposite them. */
+/* Header lockup: brand on the left, controls pushed to the right. */
 .head-row{display:flex;align-items:center;gap:10px;}
-.head-brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.head-brand{display:flex;align-items:center;gap:10px;min-width:0;margin-right:auto;}
 .head-row .label{font-family:var(--display);font-size:19px;color:var(--ink);
   letter-spacing:0;text-transform:none;}
 

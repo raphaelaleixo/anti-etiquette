@@ -20,8 +20,6 @@ export const en = {
   myWinesTab: (n: number) => `My wines · ${n}`,
   findTab: 'Find a wine',
   about: 'About',
-  storageOk: 'saved in this browser',
-  storageBlocked: 'not saved — this browser is blocking storage',
   language: 'Language',
 
   // -------------------------------------------------------------- kinds

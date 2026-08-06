@@ -1,5 +1,4 @@
 import '../styles.css'
-import { isPersistent } from '../lib/storage'
 import { watchOtherTabs } from '../lib/cellar'
 import { hydrateMissing } from '../lib/hydrate'
 import { initLang, t, subscribe as onLangChange } from '../lib/lang'
@@ -58,18 +57,6 @@ export function start(): void {
   // cached when it is added, so only imported entries are ever missing one. Failures are the user's list being briefly incomplete, not
   // something to interrupt them over.
   void hydrateMissing().catch(() => {})
-
-  // Whether storage works cannot change within a session, so this is a plain
-  // DOM write rather than a StoreElement — but the *wording* can, so it
-  // re-runs on a language change.
-  const note = document.querySelector('.head-status')
-  const showStorageNote = (): void => {
-    if (!note) return
-    note.textContent = isPersistent() ? t().storageOk : t().storageBlocked
-    note.classList.toggle('head-status--warn', !isPersistent())
-  }
-  showStorageNote()
-  onLangChange(showStorageNote)
 
   const about = document.querySelector('.head-about')
   const showAbout = (): void => { if (about) about.textContent = t().about }
