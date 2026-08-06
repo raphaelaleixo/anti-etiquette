@@ -120,9 +120,27 @@ describe('the About note', () => {
 describe("Task 10's stated requirements", () => {
   const css = readFileSync('src/landing.css', 'utf8')
 
-  it('honours both colour schemes', () => {
-    expect(css).toContain('color-scheme: light dark')
-    expect(css).toContain('@media (prefers-color-scheme: dark)')
+  it('is dark, like the app', () => {
+    // Not a preference being honoured: the app has no light palette, so a
+    // landing that followed the OS would open a cream page into an espresso
+    // one. The pages move together or not at all.
+    expect(css).toContain('color-scheme: dark')
+    expect(css).not.toContain('prefers-color-scheme')
+  })
+
+  it('grounds both pages on the same colour', () => {
+    // The flash this prevents is between two files, so neither file can catch
+    // it alone.
+    const ground = (text: string) => /--ground:\s*(#[0-9a-f]{6})/i.exec(text)?.[1]
+    const app = readFileSync('src/styles.css', 'utf8')
+    expect(ground(css)).toBe(ground(app))
+  })
+
+  it('tints the browser chrome to match, on both pages', () => {
+    const meta = (html: string) => /name="theme-color" content="(#[0-9a-f]{6})"/i.exec(html)?.[1]
+    const app = readFileSync('src/styles.css', 'utf8')
+    expect(meta(landing)).toBe(meta(readFileSync('app/index.html', 'utf8')))
+    expect(meta(landing)).toBe(/--ground:\s*(#[0-9a-f]{6})/i.exec(app)?.[1])
   })
 
   it('gates motion behind a preference rather than assuming it', () => {

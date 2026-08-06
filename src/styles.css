@@ -199,12 +199,12 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
     transition-behavior:allow-discrete;}
 .prompt-dialog:not([open]){opacity:0;scale:0.96;}
 .prompt-dialog[open]{@starting-style{opacity:0;scale:0.96;}}
-.prompt-dialog::backdrop{background:rgba(8,9,11,0);
+.prompt-dialog::backdrop{background:rgba(10,7,6,0);
     transition:background-color 200ms ease,display 200ms allow-discrete,
                overlay 200ms allow-discrete;}
 .prompt-dialog[open]::backdrop{
-    background:rgba(8,9,11,0.72);
-    @starting-style{background:rgba(8,9,11,0);}}
+    background:rgba(10,7,6,0.72);
+    @starting-style{background:rgba(10,7,6,0);}}
 
 @media (prefers-reduced-motion: reduce){
   .prompt-dialog, .prompt-dialog:not([open]){opacity:1;scale:1;}
@@ -228,7 +228,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
    heading without shrinking the tap area. */
 .icon-close{width:44px;height:44px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:22px;line-height:1;background:rgba(255,255,255,0.04);
+    font-size:22px;line-height:1;background:rgba(244,235,221,0.05);
     border:none;padding:0;margin:-6px -6px -6px 0;}
 
 /* My wines — liked vs steer clear */
@@ -261,14 +261,14 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .mywines-row--liked .mywines-name{color:var(--ink2);}
 .mywines-remove{width:44px;height:44px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:19px;background:rgba(255,255,255,0.04);border:none;padding:0;}
+    font-size:19px;background:rgba(244,235,221,0.05);border:none;padding:0;}
 
 /* Per-row actions. One quiet control rather than a re-file dropdown next to a
    remove button — neither is a primary action, and together they crowded the
    name they act on. */
 .mywines-menu-btn{width:44px;height:44px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:19px;line-height:1;background:rgba(255,255,255,0.04);
+    font-size:19px;line-height:1;background:rgba(244,235,221,0.05);
     border:none;padding:0;}
 .mywines-menu-btn:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
 
@@ -440,12 +440,12 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
        max-height:100dvh;height:100dvh;margin:0;
        transition-property:display,overlay;transition-duration:240ms;
        transition-behavior:allow-discrete;}
-.sheet::backdrop{background:rgba(8,9,11,0);
+.sheet::backdrop{background:rgba(10,7,6,0);
        transition:background-color 240ms ease,display 240ms allow-discrete,
                   overlay 240ms allow-discrete;}
 .sheet[open]::backdrop{
-       background:rgba(8,9,11,0.72);
-       @starting-style{background:rgba(8,9,11,0);}}
+       background:rgba(10,7,6,0.72);
+       @starting-style{background:rgba(10,7,6,0);}}
 .sheet-inner{position:absolute;inset:auto 0 0 0;max-height:calc(100dvh - 96px);
              border-radius:24px 24px 0 0;background:var(--raise);
              box-shadow:0 -20px 50px -20px rgba(0,0,0,0.9),inset 0 1px 0 var(--line2);
@@ -516,7 +516,7 @@ input.branch-filter{border-radius:999px;height:46px;background:var(--sink);}
                               padding:0;height:auto;font-size:17px;
                               color:var(--ink2);font-variant-numeric:tabular-nums;}
 .filtersheet-note{display:flex;gap:9px;align-items:flex-start;padding:12px 14px;
-                   border-radius:12px;background:rgba(255,255,255,0.03);}
+                   border-radius:12px;background:rgba(244,235,221,0.04);}
 .filtersheet-note div{font-size:13px;line-height:1.45;color:var(--mute);}
 .filtersheet-dot{width:7px;height:7px;border-radius:50%;background:var(--leaf);
                   flex:none;margin-top:6px;}

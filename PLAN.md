@@ -339,8 +339,15 @@ webmanifest already ships, so "Add to Home Screen" is a real mitigation.
 ## Task 10 — Landing page at `/`
 
 Implemented from the design you supply — same flow as the last redesign: produce it in Claude
-Design, I import via the DesignSync MCP and build it. Responsive, both colour schemes,
-`prefers-reduced-motion` honoured, all assets local (no CDN).
+Design, I import via the DesignSync MCP and build it. Responsive, `prefers-reduced-motion`
+honoured, all assets local (no CDN).
+
+**Dark, not "both colour schemes".** That requirement was written before the app existed; the app
+has no light palette, so a landing following the OS would open a cream page into an espresso one —
+a flash and an inconsistency, not a preference honoured. Both pages could take the light palette
+(it exists in the design system, and the light design doc is in the same project) but they would
+have to take it together. A test asserts the two pages share a ground colour and a `theme-color`,
+because the mismatch lives between two files and neither can catch it alone.
 
 **Done: structure only.** The design (`Anti-Étiquette.dc.html`, project `a955c614`) was imported
 and its *information architecture* built — header, hero, five steps, privacy strip, About, footer —

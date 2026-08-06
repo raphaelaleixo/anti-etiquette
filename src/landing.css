@@ -1,9 +1,11 @@
 /*
- * Landing page — the Organic system, light and dark.
+ * Landing page — the Organic system, dark.
  *
- * Both schemes are real: light is the cream ground the design was drawn on,
- * dark the same tokens re-pointed rather than a second design. The mark is
- * drawn in CSS, so the page still ships no images.
+ * Dark-only, deliberately, because the app is: a cream landing opening into
+ * an espresso app is a flash and an inconsistency, not a preference being
+ * honoured. A light palette exists in the design system and both pages could
+ * take it, but they would have to take it together. The mark is drawn in CSS,
+ * so the page still ships no images.
  *
  * Caprasimo and Figtree are declared but not fetched. The design links them
  * from Google Fonts, and a page whose whole argument is "nothing is sent
@@ -13,29 +15,28 @@
  */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  --ground: #f5ead8;
-  --surface: #fffaf2;
-  --ink: #221417;
-  --ink-quiet: #5d4a4c;
-  --line: rgba(34, 20, 23, 0.14);
+  --ground: #1a1512;
+  --surface: #241e19;
+  --ink: #f4ebdd;
+  --ink-quiet: #c2b8a9;
+  --line: rgba(244, 235, 221, 0.15);
   /*
-   * The page chrome — header and footer. Light makes it a wine field; dark
-   * puts it on the ground with a divider instead, because a wine block on an
-   * espresso ground reads as a smudge rather than a band. Same design, and
-   * the difference is why these are tokens rather than one colour.
+   * The page chrome — header and footer. They sit on the ground with a
+   * divider rather than being a wine field: a wine block on an espresso
+   * ground reads as a smudge rather than a band.
    */
-  --chrome: #6d1f2c;
-  --chrome-ink: #f5ead8;
-  --chrome-quiet: #c98d97;
-  --chrome-line: transparent;
-  --accent: #b4532f;
-  --accent-ink: #fffaf2;
-  --accent-soft: #f0d9cd;
-  --accent-soft-ink: #8c491a;
-  --leaf-fill: #dcddc2;
-  --leaf-ink: #37402a;
+  --chrome: #1a1512;
+  --chrome-ink: #f4ebdd;
+  --chrome-quiet: #c2b8a9;
+  --chrome-line: rgba(244, 235, 221, 0.15);
+  --accent: #8e2436;
+  --accent-ink: #f4ebdd;
+  --accent-soft: #3d1721;
+  --accent-soft-ink: #e79aa6;
+  --leaf-fill: #2c3324;
+  --leaf-ink: #dbe3c6;
 
   --gap: clamp(1.5rem, 4vw, 2.75rem);
   --measure: 62ch;
@@ -45,31 +46,6 @@
   --ui: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/*
- * Dark is the Organic tokens re-pointed, not a separate design: espresso
- * ground, warm off-white type, wine red for actions, sage re-cut for the dark
- * ground. The wine field darkens a step so the header still reads as its own
- * block against it.
- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ground: #1a1512;
-    --surface: #241e19;
-    --ink: #f4ebdd;
-    --ink-quiet: #c2b8a9;
-    --line: rgba(244, 235, 221, 0.15);
-    --chrome: #1a1512;
-    --chrome-ink: #f4ebdd;
-    --chrome-quiet: #c2b8a9;
-    --chrome-line: rgba(244, 235, 221, 0.15);
-    --accent: #8e2436;
-    --accent-ink: #f4ebdd;
-    --accent-soft: #3d1721;
-    --accent-soft-ink: #e79aa6;
-    --leaf-fill: #2c3324;
-    --leaf-ink: #dbe3c6;
-  }
-}
 
 *,
 *::before,
