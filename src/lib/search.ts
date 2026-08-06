@@ -49,7 +49,20 @@ export async function runSearch(): Promise<void> {
     rememberBranch(branch)
     rememberBranchCount(branch, catalog.length)
 
-    const profile = buildProfile([...liked])
+    // Opportunistic refresh, at zero extra cost: this branch's whole filtered
+    // catalog is already in hand, so intersecting it with the saved list
+    // updates every cached record that appears in it for no additional
+    // request. Deliberately before buildProfile, so the profile is built from
+    // the fresher prices rather than last month's.
+    //
+    // There is no TTL and no refetch-on-load. `price` is the only cached field
+    // that both drifts and matters, and a wine whose price moved but which is
+    // not stocked at the branch being searched is not a wine anyone is about
+    // to buy.
+    cellar.refreshWines(catalog)
+    const refreshedLiked = cellar.getSnapshot().liked
+
+    const profile = buildProfile([...refreshedLiked])
     const hidden = cellar.hiddenSkus([...cellar.getSnapshot().refs])
     const ranked = rankWines(catalog.filter(w => !hidden.has(w.sku)), profile, RESULT_COUNT)
 

@@ -220,3 +220,67 @@ describe('changing branch or filters invalidates results', () => {
     expect(appState.getSnapshot().searched).toBe(false)
   })
 })
+
+/**
+ * The branch's whole filtered catalog is already in hand, so refreshing the
+ * saved list from it costs nothing. No TTL and no refetch-on-load: price is
+ * the only cached field that both drifts and matters, and a wine that is not
+ * stocked at the branch being searched is not one anyone is about to buy.
+ */
+describe('opportunistic refresh', () => {
+  beforeEach(() => {
+    appState.setBranch('23112')
+  })
+
+  it('updates cached prices from the catalog it already downloaded', async () => {
+    cellar.saveWine(wine('111', { price: 20 }), 'like')
+    const spy = stubCatalog([wine('111', { price: 26 }), wine('900')])
+
+    await runSearch()
+
+    expect(cellar.getSnapshot().entries[0]!.wine!.price).toBe(26)
+    expect(spy).toHaveBeenCalledTimes(1) // one request, the same one as before
+  })
+
+  it('costs no extra network calls at all', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    cellar.saveWine(wine('111'), 'like')
+    stubCatalog([wine('111'), wine('900')])
+
+    await runSearch()
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('leaves saved wines the branch does not stock untouched', async () => {
+    cellar.saveWine(wine('111', { price: 20 }), 'like')
+    cellar.saveWine(wine('222', { price: 30 }), 'like')
+    stubCatalog([wine('111', { price: 26 })])
+
+    await runSearch()
+
+    const entries = cellar.getSnapshot().entries
+    expect(entries[0]!.wine!.price).toBe(26)
+    expect(entries[1]!.wine!.price).toBe(30) // absent from this branch, so unchanged
+  })
+
+  it('builds the profile from the refreshed prices, not the stale ones', async () => {
+    // buildProfile takes a median price, so running it before the refresh
+    // would score every wine against a number that is out of date.
+    cellar.saveWine(wine('111', { price: 20 }), 'like')
+    stubCatalog([wine('111', { price: 60 })])
+
+    await runSearch()
+
+    expect(appState.getSnapshot().profile!.medianPrice).toBe(60)
+  })
+
+  it('does not add catalog wines to the saved list', async () => {
+    cellar.saveWine(wine('111'), 'like')
+    stubCatalog([wine('111'), wine('900'), wine('901')])
+
+    await runSearch()
+
+    expect(cellar.getSnapshot().entries).toHaveLength(1)
+  })
+})
