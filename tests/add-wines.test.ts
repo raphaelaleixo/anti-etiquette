@@ -25,14 +25,20 @@ function stubResolve(results: Array<Wine | null>): void {
   let i = 0
   vi.spyOn(catalog, 'searchWines').mockImplementation(async () => {
     const next = results[i++]
-    return next ? [next] : []
+    return next ? { wines: [next], total: 1 } : { wines: [], total: 0 }
   })
 }
 
-/** Queue a whole candidate list for one line, as an ambiguous name produces. */
-function stubCandidates(lists: Wine[][]): void {
+/**
+ * Queue a whole candidate list for one line, as an ambiguous name produces.
+ * `total` defaults to the list length; pass one to simulate "5 of 340".
+ */
+function stubCandidates(lists: Wine[][], total?: number): void {
   let i = 0
-  vi.spyOn(catalog, 'searchWines').mockImplementation(async () => lists[i++] ?? [])
+  vi.spyOn(catalog, 'searchWines').mockImplementation(async () => {
+    const wines = lists[i++] ?? []
+    return { wines, total: total ?? wines.length }
+  })
 }
 
 beforeEach(() => {
@@ -121,8 +127,8 @@ describe('step two: checking the matches', () => {
 
     expect($('.resolution-row:not(.resolution-row--unmatched) .resolution-name').textContent)
       .toBe('Wine 111')
-    expect($('.resolution-row--unmatched .resolution-name').textContent).toBe('Nonsense')
-    expect($('.resolution-summary').textContent).toContain('1 line ignored')
+    expect($('.resolution-row--unmatched .resolution-input').textContent).toBe('Nonsense')
+    expect($('.resolution-head').textContent).toContain('1 found nothing')
   })
 
   it('shows the price and the line it came from', async () => {
@@ -133,7 +139,8 @@ describe('step two: checking the matches', () => {
     await vi.waitFor(() => expect($('.resolution-meta')).toBeTruthy())
 
     expect($('.resolution-meta').textContent).toContain('$19.95')
-    expect($('.resolution-meta').textContent).toContain('from "Good One"')
+    // What was typed is its own column now, not a parenthetical on the match.
+    expect($('.resolution-input').textContent).toBe('Good One')
   })
 
   it('offers all three kinds, defaulting to like', async () => {
@@ -143,9 +150,9 @@ describe('step two: checking the matches', () => {
     $<HTMLButtonElement>('[data-add="lookup"]').click()
     await vi.waitFor(() => expect($('[data-add="kind"]')).toBeTruthy())
 
-    const select = $<HTMLSelectElement>('[data-add="kind"]')
-    expect([...select.options].map(o => o.value)).toEqual(['like', 'dislike', 'skip'])
-    expect(select.value).toBe('like')
+    const kinds = $$('[data-add="kind"]') as HTMLElement[]
+    expect(kinds.map(b => b.dataset.kind)).toEqual(['like', 'dislike', 'skip'])
+    expect($('[data-add="kind"][aria-pressed="true"]').getAttribute('data-kind')).toBe('like')
   })
 })
 
@@ -180,9 +187,11 @@ describe('dismissing a line', () => {
   })
 
   /**
-   * The kind pickers are uncontrolled — their value lives in the DOM until it
-   * is needed — so anything that re-renders the list has to read them back
-   * first. Without that, dismissing row 3 silently resets rows 1 and 2.
+   * Previously the pickers were uncontrolled selects, so anything that
+   * re-rendered had to read them back first or row 3's dismissal silently
+   * reset rows 1 and 2. They are buttons now and every press updates the batch
+   * immediately, which removes the failure mode rather than guarding it — but
+   * the behaviour is still worth pinning.
    */
   it('keeps kinds chosen on the rows that remain', async () => {
     stubResolve([wine('111'), wine('222'), wine('333')])
@@ -191,14 +200,16 @@ describe('dismissing a line', () => {
     $<HTMLButtonElement>('[data-add="lookup"]').click()
     await vi.waitFor(() => expect($$('.resolution-row')).toHaveLength(3))
 
-    const selects = $$('[data-add="kind"]') as HTMLSelectElement[]
-    selects[0]!.value = 'dislike'
-    selects[1]!.value = 'skip'
+    const press = (row: number, kind: string) =>
+      $$(`[data-add="kind"][data-index="${row}"][data-kind="${kind}"]`)[0]!
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    press(0, 'dislike')
+    press(1, 'skip')
 
     $$('[data-add="dismiss"]')[2]!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
-    const after = $$('[data-add="kind"]') as HTMLSelectElement[]
-    expect(after.map(s => s.value)).toEqual(['dislike', 'skip'])
+    const on = $$('[data-add="kind"][aria-pressed="true"]') as HTMLElement[]
+    expect(on.map(b => b.dataset.kind)).toEqual(['dislike', 'skip'])
   })
 
   it('returns to the text step once the last row is dismissed', async () => {
@@ -237,9 +248,11 @@ describe('saving', () => {
     openAddWines()
     type('One\nTwo')
     $<HTMLButtonElement>('[data-add="lookup"]').click()
-    await vi.waitFor(() => expect($$('[data-add="kind"]')).toHaveLength(2))
+    // Three kind buttons per row now, so wait on rows rather than controls.
+    await vi.waitFor(() => expect($$('.resolution-row')).toHaveLength(2))
 
-    ;($$('[data-add="kind"]')[1] as HTMLSelectElement).value = 'dislike'
+    $$('[data-add="kind"][data-index="1"][data-kind="dislike"]')[0]!
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     $<HTMLButtonElement>('[data-add="save"]').click()
 
     expect(cellar.getSnapshot().refs).toEqual([
@@ -332,36 +345,31 @@ describe('ambiguous names offer alternatives', () => {
     await vi.waitFor(() => expect($('[data-add="candidate"]')).toBeTruthy())
   }
 
-  it('preselects the best match but lists the others', async () => {
+  it('preselects the best match but lists the others outright', async () => {
     await openWithCandidates()
 
-    const select = $<HTMLSelectElement>('[data-add="candidate"]')
-    expect(select.value).toBe('0')
     expect($('.resolution-name').textContent).toBe('Bourgogne Pinot Noir')
-    expect([...select.options].map(o => o.textContent!.trim())).toEqual([
-      'Bourgogne Pinot Noir · $24.00',
-      'Alsace Pinot Noir · $19.00',
-      'Oregon Pinot Noir · $32.00',
-      'None of these',
-    ])
+    const alts = $$('[data-add="candidate"][data-choice]')
+      .filter(b => (b as HTMLElement).dataset.choice !== '-1')
+    expect(alts.map(b => b.querySelector('.resolution-altname')!.textContent!.trim()))
+      .toEqual(['Bourgogne Pinot Noir', 'Alsace Pinot Noir', 'Oregon Pinot Noir'])
+    expect($('[data-add="candidate"][aria-pressed="true"]').getAttribute('data-choice')).toBe('0')
   })
 
   it('switches the match when another is chosen', async () => {
     await openWithCandidates()
 
-    const select = $<HTMLSelectElement>('[data-add="candidate"]')
-    select.value = '2'
-    select.dispatchEvent(new Event('change', { bubbles: true }))
+    $('[data-add="candidate"][data-choice="2"]')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
     expect($('.resolution-name').textContent).toBe('Oregon Pinot Noir')
-    expect($<HTMLSelectElement>('[data-add="candidate"]').value).toBe('2')
+    expect($('[data-add="candidate"][aria-pressed="true"]').getAttribute('data-choice')).toBe('2')
   })
 
   it('saves the chosen alternative, not the top hit', async () => {
     await openWithCandidates()
-    const select = $<HTMLSelectElement>('[data-add="candidate"]')
-    select.value = '1'
-    select.dispatchEvent(new Event('change', { bubbles: true }))
+    $('[data-add="candidate"][data-choice="1"]')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
     $<HTMLButtonElement>('[data-add="save"]').click()
 
@@ -370,15 +378,13 @@ describe('ambiguous names offer alternatives', () => {
 
   it('"None of these" keeps the line but adds nothing', async () => {
     await openWithCandidates()
-    const select = $<HTMLSelectElement>('[data-add="candidate"]')
-    select.value = '-1'
-    select.dispatchEvent(new Event('change', { bubbles: true }))
+    $('[data-add="candidate"][data-choice="-1"]')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
     // Different intention from dismissing: the line stays visible, so the
     // typed text is not silently forgotten.
     expect($$('.resolution-row')).toHaveLength(1)
     expect($('.resolution-row--unmatched')).toBeTruthy()
-    expect($('.resolution-meta').textContent).toContain('nothing chosen')
     expect($<HTMLButtonElement>('[data-add="save"]').disabled).toBe(true)
   })
 
@@ -400,11 +406,51 @@ describe('ambiguous names offer alternatives', () => {
     $<HTMLButtonElement>('[data-add="lookup"]').click()
     await vi.waitFor(() => expect($$('.resolution-row')).toHaveLength(2))
 
-    ;($$('[data-add="kind"]')[1] as HTMLSelectElement).value = 'dislike'
-    const alt = $<HTMLSelectElement>('[data-add="candidate"]')
-    alt.value = '1'
-    alt.dispatchEvent(new Event('change', { bubbles: true }))
+    $$('[data-add="kind"][data-index="1"][data-kind="dislike"]')[0]!
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    $('[data-add="candidate"][data-choice="1"]')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
-    expect(($$('[data-add="kind"]')[1] as HTMLSelectElement).value).toBe('dislike')
+    expect($$('[data-add="kind"][data-index="1"][aria-pressed="true"]')[0]!
+      .getAttribute('data-kind')).toBe('dislike')
+  })
+})
+
+
+/**
+ * "Pinot Noir" is a grape, not a bottle. The count is what tells the visitor
+ * that, and it is the moment the product either earns trust or loses it.
+ */
+describe('an ambiguous name says how ambiguous it is', () => {
+  const five = Array.from({ length: 5 }, (_, i) =>
+    wine(String(900 + i), { name: `Pinot Noir ${i}` }))
+
+  async function openAmbiguous(): Promise<void> {
+    stubCandidates([five], 340)
+    openAddWines()
+    type('pinot noir')
+    $<HTMLButtonElement>('[data-add="lookup"]').click()
+    await vi.waitFor(() => expect($('.resolution-alts')).toBeTruthy())
+  }
+
+  it('says how many wines match the name', async () => {
+    await openAmbiguous()
+    expect($('.resolution-many').textContent).toContain('340 wines match that name')
+  })
+
+  it('says how many of them it is showing', async () => {
+    await openAmbiguous()
+    expect($('.resolution-altfoot').textContent).toContain('Showing 5 of 340')
+  })
+
+  it('stays quiet when the catalog matched only what it returned', async () => {
+    // Two candidates out of two is a choice, not an ambiguity worth a warning.
+    stubCandidates([[wine('111'), wine('222')]])
+    openAddWines()
+    type('Something specific')
+    $<HTMLButtonElement>('[data-add="lookup"]').click()
+    await vi.waitFor(() => expect($('.resolution-alts')).toBeTruthy())
+
+    expect(document.querySelector('.resolution-many')).toBe(null)
   })
 })

@@ -40,7 +40,10 @@ export class AppFoot extends StoreElement {
           break
         case 'prompt':
           openPromptDialog(
-            this.#buildPrompt(), appState.getSnapshot().search?.catalog.length ?? 0)
+            this.#buildPrompt(),
+            appState.getSnapshot().branch
+              ? branchName(appState.getSnapshot().branch)
+              : lang.t().thisBranch)
           break
         case 'prompt-count':
           appState.setPromptCount(Number(el.dataset.count))
@@ -68,7 +71,8 @@ export class AppFoot extends StoreElement {
   }
 
   #promptBox(): Html {
-    const { promptCount } = appState.getSnapshot()
+    const { promptCount, search } = appState.getSnapshot()
+    const total = search?.catalog.length ?? 0
     const length = this.#buildPrompt().length
     return html`
       <div class="prompt-actions">
@@ -82,7 +86,7 @@ export class AppFoot extends StoreElement {
               <button
                 type="button" class="${promptCount === n ? 'active' : ''}"
                 data-act="prompt-count" data-count="${n}"
-              >${n === 0 ? lang.t().includeAll : n}</button>
+              >${n === 0 ? lang.t().allN(total) : lang.t().topN(n)}</button>
             `)}
           </div>
         </div>

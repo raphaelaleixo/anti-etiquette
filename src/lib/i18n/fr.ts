@@ -38,6 +38,32 @@ export const fr: Messages = {
   andMore: n => `+ ${n} de plus`,
   savedShaping: (saved, shaping) => `${saved} gardés · ${shaping} influencent les résultats`,
   emptyGroup: 'Groupe vide',
+  startHere: 'Commencez ici',
+  emptyListBegin: 'Votre liste est vide. Trois vins suffisent pour commencer.',
+  emptyListHow:
+    'Écrivez les noms de vins que vous avez bus et sur lesquels vous avez un ' +
+    'avis — comme vous vous en souvenez, pas comme le catalogue les écrit.',
+  importBackup: 'Importer une copie',
+  whatYouGetBack: 'Ce que vous obtenez',
+  exampleReason: '« Partage Syrah avec votre Duas Quintas. Même région. »',
+  everyExplained:
+    'Chaque suggestion est expliquée en une phrase construite à partir de votre ' +
+    'propre liste. Rien n’est classé par un chiffre que vous ne voyez pas.',
+  threePlaces: 'Chaque vin gardé va dans l’un de trois endroits',
+  moveAnyTime: 'Vous pouvez déplacer un vin entre eux à tout moment.',
+  staysInBrowser: 'Votre liste reste dans ce navigateur. Rien n’est envoyé ailleurs.',
+  keepACopy: 'Gardez une copie',
+  keepACopyWhy:
+    'Votre liste est dans ce navigateur et nulle part ailleurs — c’est toute la ' +
+    'promesse de confidentialité, et son seul coût.',
+  importMerges: 'L’importation fusionne avec ce que vous avez déjà. Rien n’est remplacé.',
+  worthDoingNow: 'À faire maintenant',
+  noBackupYet: n => `${n} vins, aucune copie`,
+  notNow: 'Plus tard',
+  nothingCanBeSaved: 'Rien ne peut être enregistré',
+  storageBlockedWhy:
+    'Ce navigateur ne permet pas à la page de stocker quoi que ce soit — ' +
+    'souvent la navigation privée, ou le stockage bloqué pour ce site.',
 
   // ----------------------------------------------------------- my wines
   likedEmpty: 'Ajoutez des vins que vous avez bus et aimés — pas ceux que vous pensez acheter.',
@@ -127,6 +153,36 @@ export const fr: Messages = {
   batchSummary: (liked, steered) => `${liked} aimé${s(liked)}, ${steered} à éviter`,
   batchSkipped: n => `, ${n} à ne pas proposer`,
   catalogUnreachable: reason => `Impossible de joindre le catalogue de la SAQ : ${reason}`,
+  stepName: '1 · Nommez-les',
+  stepCheck: '2 · Vérifiez les correspondances',
+  closeWithoutSaving: 'Fermer sans enregistrer',
+  reviewHeading: 'Ce que le catalogue a trouvé',
+  reviewTally: (matched, ambiguous, missing) =>
+    [
+      matched > 0 && `${matched} correspondance${matched > 1 ? 's' : ''} nette${matched > 1 ? 's' : ''}.`,
+      ambiguous > 0 && `${ambiguous} à décider.`,
+      missing > 0 && `${missing} sans résultat.`,
+    ].filter(Boolean).join(' '),
+  linesWillSave: (lines, saving) => `${lines} lignes · ${saving} seront enregistrés`,
+  colYouTyped: 'Vous avez écrit',
+  colMatch: 'Correspondance',
+  colFileIn: 'Classer dans',
+  otherMatches: n => `${n} autre${n > 1 ? 's' : ''} correspondance${n > 1 ? 's' : ''}`,
+  needsDecision: 'À décider',
+  manyMatch: n => `${n} vins correspondent à ce nom. Lequel avez-vous bu ?`,
+  pickOrDrop: 'Choisissez-en un, ou retirez la ligne',
+  showingOf: (shown, total) => `${shown} sur ${total} correspondances, les plus proches d’abord.`,
+  noneDropLine: 'Aucun de ceux-ci — retirer la ligne',
+  keepsTheRest: n => `Garde les ${n} autres`,
+  foundNothing: n => `Sans résultat — ${n} ligne${n > 1 ? 's' : ''}`,
+  notSavedNotThrown: 'Ni enregistré, ni jeté',
+  editTheText: 'Modifier le texte',
+  dropIt: 'Retirer',
+  foundNothingWhy:
+    'Les producteurs que la SAQ ne distribue pas, et les millésimes épuisés, ' +
+    'ne seront pas trouvés. Votre liste n’a rien d’anormal.',
+  backToText: 'Retour au texte',
+  tally: (like, dislike, skip) => `${like} plus comme ça · ${dislike} moins · ${skip} masqués`,
 
   // ------------------------------------------------------------ branches
   branchTitle: 'Quelle succursale ?',
@@ -166,9 +222,36 @@ export const fr: Messages = {
   allColours: 'Toutes les couleurs',
   filterSummary: (colour, price, branch) => `${colour} · ${price} · en tablette à ${branch}`,
   thisBranch: 'cette succursale',
+  narrowTheShelf: 'Restreindre la tablette',
+  winesFit: n => `${n} vins correspondent à vos filtres`,
+  thinBand: 'Fourchette étroite — élargissez-la un peu pour un meilleur classement.',
+  searchTheseWines: n => `Chercher parmi ces ${n} vins`,
+  resetFilters: 'Toutes les couleurs, tous les prix',
+  branchSearchPlaceholder: 'Nom ou rue',
+  lastTime: 'la dernière fois',
+  whichShop: 'Dans quelle succursale êtes-vous ?',
+  winesReadyNoBranch: n => `${n} vins prêts. Pas encore de succursale.`,
 
   // -------------------------------------------------------------- prompt
   promptTitle: 'Texte pour l’IA',
+  secondOpinion: 'Obtenir un deuxième avis',
+  promptExplain: branch =>
+    `Ceci résume vos goûts et ce qu’il y a en tablette à ${branch}, en texte ` +
+    `brut. Collez-le dans une IA et discutez avec elle.`,
+  topN: n => `${n} premiers`,
+  allN: n => `Tous les ${n}`,
+  characters: n => `${n} caractères`,
+  stepCopy: 'Étape 1 — copier',
+  stepPaste: 'Étape 2 — coller dans une IA',
+  copySummary: 'Copier le résumé',
+  copiedChars: n => `Copié — ${n} caractères`,
+  nowOpenChat: 'Ouvrez une IA et collez-le.',
+  onClipboard: 'C’est dans votre presse-papiers. Demandez lequel vous plairait vraiment, et pourquoi.',
+  copyAgain: 'Copier de nouveau',
+  clipboardRefused:
+    'Ce navigateur n’a pas permis à la page de copier. Le texte est ' +
+    'sélectionnable — prenez-le à la main.',
+  selectInstead: 'Sélectionner le texte',
   close: 'Fermer',
   promptMeta: (wines, chars) => `${wines} vins disponibles · ${chars} caractères`,
   copy: 'Copier',

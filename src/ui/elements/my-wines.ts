@@ -6,6 +6,7 @@ import {
 } from '../../lib/cellarIo'
 import { isPersistent } from '../../lib/storage'
 import * as lang from '../../lib/lang'
+import { openAddWines } from '../addWines'
 import { KINDS, type SeedKind } from '../../lib/types'
 
 /**
@@ -130,22 +131,95 @@ function list(entries: CellarEntry[]): Html {
  * once and returns three weeks later finds nothing. "Add to Home Screen" is a
  * real mitigation, which is why the webmanifest ships.
  */
+/**
+ * Findable, honest, not alarming.
+ *
+ * Four states rather than one with a warning bolted on: resting, just-acted,
+ * a large list never exported, and a browser that will not store anything.
+ * The last is not a nag — it is a statement that the feature this screen is
+ * about does not work here.
+ */
 function backup(entryCount: number, nag: boolean, message: string | null): Html {
+  const t = lang.t()
+  const blocked = !isPersistent()
+  const unbacked = !blocked && nag
+
+  const heading = blocked ? t.nothingCanBeSaved
+    : unbacked ? t.worthDoingNow
+    : t.keepACopy
+  const summary = blocked ? t.nothingCanBeSaved
+    : unbacked ? t.noBackupYet(entryCount)
+    : t.backupSummary
+
   return html`
-    <details class="backup" data-backup>
-      <summary class="backup-summary">
-        ${lang.t().backupSummary}${nag ? lang.t().backupNag : ''}
-      </summary>
-      <p class="hint">${lang.t().backupNote}</p>
+    <details class="${blocked ? 'backup backup--blocked' : 'backup'}" data-backup>
+      <summary class="backup-summary">${summary}</summary>
+      <div class="backup-head">${heading}</div>
+      <p class="hint">${blocked ? t.storageBlockedWhy : t.keepACopyWhy}</p>
+      <!-- Kept in every state: seven days of iOS inactivity is the specific
+           way this list disappears, and it does not stop being true because
+           the panel is resting. -->
+      <p class="hint">${t.backupNote}</p>
+      ${!blocked && html`<p class="hint">${t.importMerges}</p>`}
       <div class="backup-actions">
         <button type="button" class="btn-secondary" data-act="export">
-          ${lang.t().exportCount(entryCount)}
+          ${t.exportCount(entryCount)}
         </button>
-        <button type="button" class="btn-secondary" data-act="import">${lang.t().importFile}</button>
+        <button type="button" class="btn-secondary" data-act="import">${t.importFile}</button>
         <input type="file" accept="application/json,.json" data-act="file" hidden />
       </div>
       ${message && html`<p class="hint backup-message">${message}</p>`}
     </details>
+  `
+}
+
+/**
+ * The first screen anyone sees.
+ *
+ * An empty list previously meant three empty groups and a hint — technically
+ * complete, and no reason to believe the product would do anything useful. It
+ * now says what to do, what comes back, and what the three groups are for,
+ * because that last one is the product's central idea and the hardest to guess.
+ */
+function firstRun(): Html {
+  const t = lang.t()
+  const group = (kind: SeedKind, note: string) => html`
+    <div class="firstrun-group firstrun-group--${KIND_CLASS[kind]}">
+      <div class="firstrun-groupname">${lang.kindLabel(kind)}</div>
+      <div class="firstrun-groupnote">${note}</div>
+    </div>
+  `
+  return html`
+    <section class="firstrun">
+      <div class="firstrun-lead">
+        <h2>${t.startHere}</h2>
+        <p class="firstrun-big">${t.emptyListBegin}</p>
+        <p class="hint">${t.emptyListHow}</p>
+        <div class="firstrun-actions">
+          <button type="button" class="btn-primary" data-act="add-wines">${t.addWines}</button>
+          <button type="button" class="btn-secondary" data-act="import">${t.importBackup}</button>
+          <input type="file" accept="application/json,.json" data-act="file" hidden />
+        </div>
+      </div>
+
+      <div class="firstrun-panel">
+        <div class="label">${t.whatYouGetBack}</div>
+        <p class="firstrun-quote">${t.exampleReason}</p>
+        <p class="hint">${t.everyExplained}</p>
+      </div>
+
+      <div class="firstrun-panel">
+        <div class="label">${t.threePlaces}</div>
+        <div class="firstrun-groups">
+          ${group('like', t.kindLikeNote)}
+          ${group('dislike', t.kindDislikeNote)}
+          ${group('skip', t.kindSkipNote)}
+        </div>
+        <p class="hint">${t.moveAnyTime}</p>
+      </div>
+
+      <p class="hint firstrun-foot">${t.staysInBrowser}</p>
+    </section>
   `
 }
 
@@ -190,6 +264,7 @@ export class MyWines extends StoreElement {
   }
 
   connectedCallback(): void {
+    delegate(this, 'click', '[data-act="add-wines"]', () => openAddWines())
     delegate(this, 'click', '[data-act="export"]', () => this.#export())
     delegate(this, 'click', '[data-act="import"]', () => {
       this.querySelector<HTMLInputElement>('[data-act="file"]')?.click()
@@ -264,6 +339,16 @@ export class MyWines extends StoreElement {
     // lines along with skipsRevealed and the *Total props: there is no longer
     // an asynchronous gap for them to describe.
     const t = lang.t()
+
+    // Nothing saved at all is its own screen, not the three groups rendered
+    // empty three times over.
+    if (entries.length === 0) {
+      mount(this, html`${firstRun()}${backup(0, nag, this.#message)}`)
+      setProp<HTMLDetailsElement, 'open'>(
+        this, '[data-backup]', 'open', nag || this.#message !== null)
+      return
+    }
+
     mount(this, html`
       <div class="mywines-summary">
         <!--

@@ -41,6 +41,32 @@ export const en = {
   savedShaping: (saved: number, shaping: number) =>
     `${saved} saved · ${shaping} shaping results`,
   emptyGroup: 'Empty group',
+  startHere: 'Start here',
+  emptyListBegin: 'Your list is empty. Three wines is enough to begin.',
+  emptyListHow:
+    'Type the names of wines you have drunk and had an opinion about — as you ' +
+    'remember them, not as the catalogue spells them.',
+  importBackup: 'Import a backup file',
+  whatYouGetBack: 'What you get back',
+  exampleReason: '"Shares Syrah with your Duas Quintas. Same region."',
+  everyExplained:
+    'Every suggestion is explained in a sentence built from your own list. ' +
+    'Nothing is ranked by a number you cannot see.',
+  threePlaces: 'Every wine you save goes in one of three places',
+  moveAnyTime: 'You can move a wine between them at any time.',
+  staysInBrowser: 'Your list stays in this browser. Nothing is sent anywhere.',
+  keepACopy: 'Keep a copy',
+  keepACopyWhy:
+    'Your list is in this browser and nowhere else — that is the whole privacy ' +
+    'promise, and its one cost.',
+  importMerges: 'Importing merges into what you already have. Nothing is replaced.',
+  worthDoingNow: 'Worth doing now',
+  noBackupYet: (n: number) => `${n} wines, no backup yet`,
+  notNow: 'Not now',
+  nothingCanBeSaved: 'Nothing can be saved',
+  storageBlockedWhy:
+    'This browser will not let the page store anything — usually private ' +
+    'browsing, or storage blocked for this site.',
 
   // ----------------------------------------------------------- my wines
   likedEmpty: 'Add wines you have drunk and liked — not ones you are thinking of buying.',
@@ -134,6 +160,37 @@ export const en = {
   batchSummary: (liked: number, steered: number) => `${liked} liked, ${steered} steered clear`,
   batchSkipped: (n: number) => `, ${n} never recommended`,
   catalogUnreachable: (reason: string) => `Could not reach the SAQ catalog: ${reason}`,
+  stepName: '1 · Name them',
+  stepCheck: '2 · Check the matches',
+  closeWithoutSaving: 'Close without saving',
+  reviewHeading: 'Check what the catalogue found',
+  reviewTally: (matched: number, ambiguous: number, missing: number) =>
+    [
+      matched > 0 && `${matched} matched cleanly.`,
+      ambiguous > 0 && `${ambiguous} need${ambiguous === 1 ? 's' : ''} a decision.`,
+      missing > 0 && `${missing} found nothing.`,
+    ].filter(Boolean).join(' '),
+  linesWillSave: (lines: number, saving: number) => `${lines} lines · ${saving} will be saved`,
+  colYouTyped: 'You typed',
+  colMatch: 'Catalogue match',
+  colFileIn: 'File it in',
+  otherMatches: (n: number) => `${n} other match${n === 1 ? '' : 'es'}`,
+  needsDecision: 'Needs a decision',
+  manyMatch: (n: number) => `${n} wines match that name. Which one did you drink?`,
+  pickOrDrop: 'Pick one, or drop the line',
+  showingOf: (shown: number, total: number) => `Showing ${shown} of ${total} matches, closest first.`,
+  noneDropLine: 'None of these — drop this line',
+  keepsTheRest: (n: number) => `Keeps the other ${n}`,
+  foundNothing: (n: number) => `Found nothing — ${n} line${n === 1 ? '' : 's'}`,
+  notSavedNotThrown: 'Not saved, not thrown away',
+  editTheText: 'Edit the text',
+  dropIt: 'Drop it',
+  foundNothingWhy:
+    'Producers the SAQ does not carry, and vintages it has sold out of, will not ' +
+    'be found. Nothing is wrong with your list.',
+  backToText: 'Back to the text',
+  tally: (like: number, dislike: number, skip: number) =>
+    `${like} more like this · ${dislike} less · ${skip} hidden`,
 
   // ------------------------------------------------------------ branches
   branchTitle: 'Which branch?',
@@ -174,9 +231,36 @@ export const en = {
   filterSummary: (colour: string, price: string, branch: string) =>
     `${colour} · ${price} · in stock at ${branch}`,
   thisBranch: 'this branch',
+  narrowTheShelf: 'Narrow the shelf',
+  winesFit: (n: number) => `${n} wines fit your filters`,
+  thinBand: 'That is a thin band — widen it a little for a better ranking.',
+  searchTheseWines: (n: number) => `Search these ${n} wines`,
+  resetFilters: 'Reset to all colours, any price',
+  branchSearchPlaceholder: 'Name or street',
+  lastTime: 'last time',
+  whichShop: 'Which shop are you standing in?',
+  winesReadyNoBranch: (n: number) => `${n} wines ready. No branch yet.`,
 
   // -------------------------------------------------------------- prompt
   promptTitle: 'Prompt',
+  secondOpinion: 'Get a second opinion',
+  promptExplain: (branch: string) =>
+    `This writes up your taste and what is on the shelf at ${branch} as plain ` +
+    `text. Paste it into any AI chat and argue with it.`,
+  topN: (n: number) => `Top ${n}`,
+  allN: (n: number) => `All ${n}`,
+  characters: (n: number) => `${n} characters`,
+  stepCopy: 'Step 1 — copy',
+  stepPaste: 'Step 2 — paste in a chat',
+  copySummary: 'Copy the summary',
+  copiedChars: (n: number) => `Copied — ${n} characters`,
+  nowOpenChat: 'Now open a chat and paste it in.',
+  onClipboard: 'It is on your clipboard. Ask which of these you would actually enjoy, and why.',
+  copyAgain: 'Copy again',
+  clipboardRefused:
+    'This browser would not let the page copy for you. The text is selectable — ' +
+    'take it by hand.',
+  selectInstead: 'Select the text instead',
   close: 'Close',
   promptMeta: (wines: number, chars: number) => `${wines} wines available · ${chars} characters`,
   copy: 'Copy',

@@ -75,7 +75,23 @@ const NUMERIC = /^\d+$/
  * arbitrary bottle then feeds that bottle into the taste profile. Returning
  * the list lets the caller show what else it could have been.
  */
-export async function searchWines(name: string, limit = CANDIDATE_LIMIT): Promise<Wine[]> {
+export interface SearchResult {
+  /** The candidates themselves, best first, capped at `limit`. */
+  wines: Wine[]
+  /**
+   * How many the catalog matched in total, which is usually far more than
+   * were returned.
+   *
+   * This is the number that tells a visitor their typed name was a grape
+   * rather than a bottle — "340 wines match that" — and the response has
+   * carried it all along; `parseProducts` simply threw it away.
+   */
+  total: number
+}
+
+export async function searchWines(
+  name: string, limit = CANDIDATE_LIMIT,
+): Promise<SearchResult> {
   const json = await query({
     phrase: name,
     filter: [{ attribute: 'categories', eq: view().categories.all }],
@@ -83,9 +99,14 @@ export async function searchWines(name: string, limit = CANDIDATE_LIMIT): Promis
     page: 1,
   })
   const wines = parseProducts(json)
+  const total = Number(json?.data?.productSearch?.total_count ?? wines.length)
   // A numeric phrase is a SKU, not a name: demand identity even here, so a
   // caller that reaches for the wrong function cannot get a substitution.
-  return NUMERIC.test(name) ? wines.filter(w => w.sku === name) : wines
+  if (NUMERIC.test(name)) {
+    const exact = wines.filter(w => w.sku === name)
+    return { wines: exact, total: exact.length }
+  }
+  return { wines, total: Number.isFinite(total) ? total : wines.length }
 }
 
 /**
@@ -119,7 +140,7 @@ export async function resolveSku(sku: string): Promise<Wine | null> {
  */
 export async function resolveWineName(name: string): Promise<Wine | null> {
   if (NUMERIC.test(name)) return resolveSku(name)
-  return (await searchWines(name, 1))[0] ?? null
+  return (await searchWines(name, 1)).wines[0] ?? null
 }
 
 export type WineColour = 'all' | 'red' | 'white' | 'rose' | 'orange'

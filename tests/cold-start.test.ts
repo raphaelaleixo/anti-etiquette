@@ -129,11 +129,34 @@ describe('searchWines vs resolveSku', () => {
     expect(variables.size).toBeGreaterThan(1)
   })
 
+  it('reports how many matched in total, not just how many came back', async () => {
+    // The response has always carried total_count; parseProducts threw it away.
+    // It is the number that tells a visitor their typed name was a grape
+    // rather than a bottle.
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      data: {
+        productSearch: {
+          total_count: 340,
+          items: response('111', '222').data.productSearch.items,
+        },
+      },
+    })))
+    const result = await catalog.searchWines('Pinot Noir')
+    expect(result.wines).toHaveLength(2)
+    expect(result.total).toBe(340)
+  })
+
+  it('falls back to the number returned when the catalog omits a total', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(response('111', '222'))))
+    expect((await catalog.searchWines('Pinot Noir')).total).toBe(2)
+  })
+
   it('returns every candidate the catalog offered, in order', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(JSON.stringify(response('111', '222', '333'))),
     )
-    expect((await catalog.searchWines('Pinot Noir')).map(w => w.sku))
+    expect((await catalog.searchWines('Pinot Noir')).wines.map(w => w.sku))
       .toEqual(['111', '222', '333'])
   })
 
@@ -168,6 +191,6 @@ describe('searchWines vs resolveSku', () => {
     )
     // Reaching for the wrong function must not become a way to get a
     // substitution in through the back door.
-    expect(await catalog.searchWines('12345678')).toEqual([])
+    expect((await catalog.searchWines('12345678')).wines).toEqual([])
   })
 })

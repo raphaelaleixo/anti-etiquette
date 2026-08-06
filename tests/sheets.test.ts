@@ -33,7 +33,15 @@ describe('the branch sheet', () => {
   it('says it is Montréal only', () => {
     openBranchSheet()
     expect($('.sheet-summary').textContent).toContain('Montréal')
-    expect($<HTMLInputElement>('[data-branch-q]').placeholder).toContain('Montréal')
+  })
+
+  it('promises only the fields it can actually search', () => {
+    // An earlier design offered "street, neighbourhood, postal code"; the
+    // branch records carry a name and a street address and nothing else.
+    openBranchSheet()
+    const placeholder = $<HTMLInputElement>('[data-branch-q]').placeholder
+    expect(placeholder).toBe('Name or street')
+    expect(placeholder).not.toMatch(/postal|neighbourhood/i)
   })
 
   /**
@@ -149,7 +157,9 @@ describe('the filter sheet', () => {
   it('shows a debounced count of what the draft would return', async () => {
     openFilterSheet()
     expect($('[data-filter="apply"]').textContent).toContain('Show wines')
-    await vi.waitFor(() => expect($('[data-filter="apply"]').textContent).toContain('Show 42 wines'))
+    // The count rides on the button, so a band is never applied blind.
+    await vi.waitFor(() => expect($('[data-filter="apply"]').textContent).toContain('42'))
+    expect($('[data-filter="apply"]').textContent).toContain('Search these 42 wines')
   })
 
   it('disables applying when the band is empty', async () => {

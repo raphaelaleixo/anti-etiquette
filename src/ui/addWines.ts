@@ -5,7 +5,8 @@ import { dismissAt, chooseCandidate, type Resolution } from '../lib/resolution'
 import * as cellar from '../lib/cellar'
 import * as appState from '../lib/appState'
 import { KINDS, type SeedKind } from '../lib/types'
-import { t, kindLabel } from '../lib/lang'
+import * as lang from '../lib/lang'
+const t = lang.t
 
 /**
  * Adding wines, start to finish, without leaving the sheet.
@@ -51,75 +52,135 @@ function inputStep(text: string): Html {
  * the batch as unmatched rather than dropping it — dropping it is what the ×
  * does, and the two are different intentions.
  */
-function candidatePicker(r: Resolution, i: number): Html | false {
+/**
+ * The alternatives, listed rather than hidden in a select.
+ *
+ * This is the moment the product either earns trust or loses it: "Pinot Noir"
+ * is a grape, not a bottle, and picking the top hit silently is how a stranger's
+ * wine ends up shaping someone's taste. So when the catalog matched far more
+ * than it returned, the row says so and shows the candidates outright.
+ */
+function candidateList(r: Resolution, i: number): Html | false {
   const candidates = r.candidates ?? []
   if (candidates.length < 2) return false
+  const t = lang.t()
+  const total = r.candidateTotal ?? candidates.length
+  const chosen = r.wine === null ? -1 : candidates.findIndex(w => w.sku === r.wine!.sku)
+
   return html`
-    <select
-      class="resolution-alt" data-add="candidate" data-index="${i}"
-      aria-label="${t().whichWine(r.input)}"
-    >
-      ${candidates.map((w, ci) => html`
-        <option value="${ci}">${w.name} · ${money(w.price)}</option>
+    <div class="resolution-alts">
+      ${total > candidates.length && html`
+        <p class="resolution-many">${t.manyMatch(total)}</p>
+      `}
+      <div class="resolution-altlist">
+        ${candidates.map((w, ci) => html`
+          <button
+            type="button"
+            class="${ci === chosen ? 'resolution-alt is-chosen' : 'resolution-alt'}"
+            data-add="candidate" data-index="${i}" data-choice="${ci}"
+            aria-pressed="${ci === chosen ? 'true' : 'false'}"
+          >
+            <span class="resolution-altname">${w.name}</span>
+            <span class="resolution-altmeta">${[w.region, w.country].filter(Boolean).join(', ')}</span>
+            <span class="resolution-altprice">${money(w.price)}</span>
+          </button>
+        `)}
+      </div>
+      <div class="resolution-altfoot">
+        <button type="button" class="resolution-none"
+                data-add="candidate" data-index="${i}" data-choice="-1">
+          ${t.noneDropLine}
+        </button>
+        ${total > candidates.length && html`
+          <span class="hint">${t.showingOf(candidates.length, total)}</span>
+        `}
+      </div>
+    </div>
+  `
+}
+
+/** The three groups, as buttons — the same vocabulary as My wines. */
+function kindPicker(r: Resolution, i: number): Html {
+  return html`
+    <div class="resolution-kinds" role="group" aria-label="${lang.t().whichList(r.wine?.name ?? r.input)}">
+      ${KINDS.map(k => html`
+        <button
+          type="button"
+          class="${k === r.kind ? 'resolution-kind is-on' : 'resolution-kind'}"
+          data-add="kind" data-index="${i}" data-kind="${k}"
+          aria-pressed="${k === r.kind ? 'true' : 'false'}"
+        >${lang.kindLabel(k)}</button>
       `)}
-      <option value="-1">${t().noneOfThese}</option>
-    </select>
+    </div>
   `
 }
 
 function resolutionRow(r: Resolution, i: number): Html {
+  const t = lang.t()
+  const ambiguous = r.wine === null && (r.candidates?.length ?? 0) > 0
+
   if (r.wine === null) {
-    const tried = r.candidates?.length ?? 0
     return html`
       <li class="resolution-row resolution-row--unmatched">
-        <div class="resolution-body">
-          <div class="resolution-name resolution-name--warn">${r.input}</div>
-          <div class="resolution-meta resolution-meta--warn">
-            ${tried === 0 ? t().noMatch : t().nothingChosen}
-          </div>
-          ${candidatePicker(r, i)}
+        <div class="resolution-typed">
+          <span class="resolution-typedlabel">${t.colYouTyped}</span>
+          <span class="resolution-input">${r.input}</span>
         </div>
-        <button
-          type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
-          aria-label="${t().dismissUnmatched(r.input)}"
-        >×</button>
+        <div class="resolution-body">
+          <div class="resolution-name resolution-name--warn">
+            ${ambiguous ? t.needsDecision : t.notSavedNotThrown}
+          </div>
+          ${!ambiguous && html`<p class="hint">${t.foundNothingWhy}</p>`}
+          ${candidateList(r, i)}
+        </div>
+        <div class="resolution-rowactions">
+          <button type="button" class="resolution-dismiss" data-add="edit"
+                  aria-label="${t.editTheText}">${t.editTheText}</button>
+          <button type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
+                  aria-label="${t.dismissUnmatched(r.input)}">${t.dropIt}</button>
+        </div>
       </li>
     `
   }
+
   return html`
     <li class="resolution-row">
+      <div class="resolution-typed">
+        <span class="resolution-typedlabel">${t.colYouTyped}</span>
+        <span class="resolution-input">${r.input}</span>
+      </div>
       <div class="resolution-body">
         <div class="resolution-name">${r.wine.name}</div>
-        <div class="resolution-meta">${t().fromInput(money(r.wine.price), r.input)}</div>
-        ${candidatePicker(r, i)}
-        <select
-          class="resolution-kind" data-add="kind" data-index="${i}"
-          aria-label="${t().whichList(r.wine.name)}"
-        >
-          ${KINDS.map(k => html`<option value="${k}">${kindLabel(k)}</option>`)}
-        </select>
+        <div class="resolution-meta">
+          ${money(r.wine.price)} · ${[r.wine.region, r.wine.country].filter(Boolean).join(', ')}
+        </div>
+        ${candidateList(r, i)}
       </div>
-      <button
-        type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
-        aria-label="${t().dismissMatched(r.wine.name)}"
-      >×</button>
+      <div class="resolution-file">
+        <span class="resolution-typedlabel">${t.colFileIn}</span>
+        ${kindPicker(r, i)}
+      </div>
+      <div class="resolution-rowactions">
+        <button type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
+                aria-label="${t.dismissMatched(r.wine.name)}">×</button>
+      </div>
     </li>
   `
 }
 
 function resolutionStep(batch: Resolution[]): Html {
+  const t = lang.t()
   const matched = batch.filter(r => r.wine !== null)
-  const unmatched = batch.length - matched.length
-  const count = (k: SeedKind) => matched.filter(r => r.kind === k).length
+  const ambiguous = batch.filter(r => r.wine === null && (r.candidates?.length ?? 0) > 0).length
+  const missing = batch.length - matched.length - ambiguous
 
   return html`
     <section class="resolution">
+      <div class="resolution-head">
+        <h2>${t.reviewHeading}</h2>
+        <p class="hint">${t.reviewTally(matched.length, ambiguous, missing)}</p>
+      </div>
       <ul class="resolution-list">${batch.map(resolutionRow)}</ul>
-      <p class="sheet-summary resolution-summary">
-        ${unmatched > 0 && t().linesIgnored(unmatched)}
-        ${t().batchSummary(count('like'), count('dislike'))}
-        ${count('skip') > 0 && t().batchSkipped(count('skip'))}
-      </p>
     </section>
   `
 }
@@ -151,17 +212,12 @@ export function openAddWines(): void {
    * is needed. Anything that re-renders the list must therefore read them back
    * first, or dismissing row 3 silently resets the choices made on rows 1 and 2.
    */
-  function syncKindsFromDom(): void {
-    if (!batch) return
-    for (const el of sheet.body.querySelectorAll<HTMLSelectElement>('[data-add="kind"]')) {
-      const i = Number(el.dataset.index)
-      const value = el.value
-      const row = batch[i]
-      if (row && (value === 'like' || value === 'dislike' || value === 'skip')) {
-        row.kind = value
-      }
-    }
-  }
+  /*
+   * The kind and candidate pickers are buttons now, and every press updates
+   * `batch` immediately, so there is no uncontrolled DOM state to read back
+   * before a re-render. The previous select-based version needed exactly that
+   * and forgetting it silently reset the other rows.
+   */
 
   function renderFoot(): void {
     if (batch === null) {
@@ -174,10 +230,13 @@ export function openAddWines(): void {
       setDisabled('[data-add="lookup"]', busy || n === 0)
       return
     }
-    const matched = batch.filter(r => r.wine !== null).length
+    const kept = batch.filter(r => r.wine !== null)
+    const matched = kept.length
+    const of = (k: SeedKind) => kept.filter(r => r.kind === k).length
     sheet.setFoot(html`
+      <div class="sheet-summary">${t().tally(of('like'), of('dislike'), of('skip'))}</div>
       <div class="sheet-foot-row">
-        <button type="button" class="btn-secondary" data-add="back">${t().back}</button>
+        <button type="button" class="btn-secondary" data-add="back">${t().backToText}</button>
         <button class="btn-primary" data-add="save">
           ${busy ? t().saving : t().save(matched)}
         </button>
@@ -201,26 +260,9 @@ export function openAddWines(): void {
    * so it cannot be interpolated, for the same reason `disabled` cannot. Set
    * the value on markup this function just rendered.
    */
-  function applyKindSelections(): void {
-    if (!batch) return
-    for (const el of sheet.body.querySelectorAll<HTMLSelectElement>('[data-add="kind"]')) {
-      const row = batch[Number(el.dataset.index)]
-      if (row) el.value = row.kind
-    }
-    for (const el of sheet.body.querySelectorAll<HTMLSelectElement>('[data-add="candidate"]')) {
-      const row = batch[Number(el.dataset.index)]
-      if (!row) continue
-      const chosen = row.wine === null
-        ? -1
-        : (row.candidates ?? []).findIndex(w => w.sku === row.wine!.sku)
-      el.value = String(chosen)
-    }
-  }
-
   function renderStep(): void {
     sheet.setTitle(batch === null ? t().addTitle : t().reviewTitle)
     mount(sheet.body, batch === null ? inputStep(text) : resolutionStep(batch))
-    applyKindSelections()
     showError()
     renderFoot()
   }
@@ -234,7 +276,7 @@ export function openAddWines(): void {
     renderFoot()
     try {
       batch = await Promise.all(names.map(async name => {
-        const candidates = await searchWines(name)
+        const { wines: candidates, total } = await searchWines(name)
         return {
           input: name,
           // Best match pre-selected, but the alternatives travel with it so a
@@ -242,6 +284,7 @@ export function openAddWines(): void {
           wine: candidates[0] ?? null,
           kind: 'like' as SeedKind,
           candidates,
+          candidateTotal: total,
         }
       }))
     } catch (e) {
@@ -254,7 +297,6 @@ export function openAddWines(): void {
 
   function save(): void {
     if (!batch) return
-    syncKindsFromDom()
     const items = batch
       .filter((r): r is Resolution & { wine: NonNullable<Resolution['wine']> } => r.wine !== null)
       .map(r => ({ wine: r.wine, kind: r.kind }))
@@ -278,20 +320,31 @@ export function openAddWines(): void {
     renderFoot()
   })
 
-  delegate(sheet.body, 'change', '[data-add="candidate"]', (_e, el) => {
+  delegate(sheet.body, 'click', '[data-add="candidate"]', (_e, el) => {
     if (!batch) return
     const i = Number(el.dataset.index)
-    const row = batch[i]
-    if (!row) return
-    syncKindsFromDom()
     batch = batch.map((r, ri) =>
-      ri === i ? chooseCandidate(r, Number((el as HTMLSelectElement).value)) : r)
+      ri === i ? chooseCandidate(r, Number(el.dataset.choice)) : r)
+    renderStep()
+  })
+
+  delegate(sheet.body, 'click', '[data-add="kind"]', (_e, el) => {
+    if (!batch) return
+    const i = Number(el.dataset.index)
+    const kind = el.dataset.kind
+    if (kind !== 'like' && kind !== 'dislike' && kind !== 'skip') return
+    batch = batch.map((r, ri) => (ri === i ? { ...r, kind } : r))
+    renderStep()
+  })
+
+  // "Edit the text" is Back by another name: the typed lines are still there.
+  delegate(sheet.body, 'click', '[data-add="edit"]', () => {
+    batch = null
     renderStep()
   })
 
   delegate(sheet.body, 'click', '[data-add="dismiss"]', (_e, el) => {
     if (!batch) return
-    syncKindsFromDom()
     batch = dismissAt(batch, Number(el.dataset.index))
     if (batch === null) text = readText()
     renderStep()

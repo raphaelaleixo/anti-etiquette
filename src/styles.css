@@ -778,3 +778,80 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
   .find-columns{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);
     gap:28px;align-items:start;}
 }
+
+/* Review step — three columns on a wide screen, stacked on a phone. */
+.resolution-head{padding-bottom:12px;}
+.resolution-head h2{font-family:var(--display);font-size:20px;margin:0 0 4px;}
+.resolution-row{display:grid;gap:6px 16px;padding:14px 0;
+  border-top:1px solid var(--line);align-items:start;}
+.resolution-typedlabel{display:block;font-family:var(--mono);font-size:10px;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--mute2);
+  margin-bottom:3px;}
+.resolution-input{font-size:14px;color:var(--mute);}
+.resolution-meta{font-size:12px;color:var(--mute2);}
+.resolution-kinds{display:flex;gap:4px;flex-wrap:wrap;}
+.resolution-kind{border:none;border-radius:999px;padding:5px 11px;font-size:12px;
+  background:var(--raise);color:var(--mute);}
+.resolution-kind.is-on{background:var(--accent);color:var(--on-accent);}
+.resolution-alts{margin-top:8px;}
+.resolution-many{margin:0 0 6px;font-size:13px;color:var(--warn);}
+.resolution-altlist{display:flex;flex-direction:column;gap:2px;}
+button.resolution-alt{display:grid;grid-template-columns:1fr auto;gap:0 10px;
+  text-align:left;border:none;border-radius:var(--radius-sm);padding:7px 10px;
+  background:transparent;color:var(--ink);width:100%;}
+button.resolution-alt:hover{background:var(--raise);}
+button.resolution-alt.is-chosen{background:var(--raise2);
+  box-shadow:inset 0 0 0 1px var(--accent);}
+.resolution-altname{font-size:14px;}
+.resolution-altmeta{grid-column:1;font-size:11px;color:var(--mute2);}
+.resolution-altprice{grid-row:1;font-size:13px;font-variant-numeric:tabular-nums;
+  color:var(--mute);}
+.resolution-altfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;
+  margin-top:6px;}
+.resolution-none{border:none;background:none;color:var(--accent-hi);font-size:12px;
+  padding:0;}
+.resolution-rowactions{display:flex;gap:6px;align-items:start;}
+.filter-thin{color:var(--warn);}
+
+@media (min-width: 60rem) {
+  .resolution-row{grid-template-columns:12rem minmax(0,1fr) auto auto;}
+}
+
+/* First run — the screen an empty list gets instead of three empty groups. */
+.firstrun{display:flex;flex-direction:column;gap:22px;padding-top:8px;}
+.firstrun h2{font-family:var(--display);font-size:24px;margin:0 0 6px;}
+.firstrun-big{margin:0 0 6px;font-size:17px;color:var(--ink2);}
+.firstrun-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+.firstrun-actions button{flex:0 1 auto;min-height:46px;padding-inline:20px;}
+.firstrun-panel{border-radius:var(--radius-lg);background:var(--raise);
+  padding:18px 20px;display:flex;flex-direction:column;gap:8px;}
+.firstrun-quote{margin:0;font-family:var(--display);font-size:17px;
+  color:var(--accent-hi);text-wrap:pretty;}
+.firstrun-groups{display:flex;flex-direction:column;gap:10px;margin:4px 0 2px;}
+.firstrun-group{border-radius:var(--radius-md);padding:10px 12px;
+  background:var(--ground);}
+.firstrun-group--liked{background:var(--leaf-fill);}
+.firstrun-groupname{font-family:var(--display);font-size:15px;color:var(--ink2);}
+.firstrun-groupnote{font-size:12px;color:var(--mute2);margin-top:2px;}
+.firstrun-foot{margin-top:2px;}
+
+/* Backup — four states, so the heading carries the state rather than a badge. */
+.backup-head{font-family:var(--display);font-size:17px;color:var(--ink2);
+  margin:8px 0 4px;}
+.backup--blocked .backup-summary{color:var(--warn);}
+
+/* Prompt — two steps, the second inert until the first has happened. */
+.prompt-steps{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;}
+.prompt-step{flex:1 1 12rem;display:flex;flex-direction:column;gap:6px;}
+.prompt-steplabel{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--mute2);}
+.prompt-step.is-pending{opacity:0.55;}
+.prompt-step.is-done .prompt-steplabel{color:var(--leaf);}
+
+@media (min-width: 60rem) {
+  .firstrun{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);
+    gap:22px 28px;align-items:start;}
+  .firstrun-lead{grid-column:1;grid-row:1 / span 2;}
+  .firstrun-foot{grid-column:1 / -1;}
+  .firstrun-groups{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));}
+}

@@ -207,8 +207,8 @@ describe('the prompt footer', () => {
     await searchWith([wine('900')])
 
     const labels = $$('[data-act="prompt-count"]').map(b => b.textContent!.trim())
-    expect(labels).toEqual(['20', '40', 'All'])
-    expect($('[data-act="prompt-count"].active').textContent!.trim()).toBe('20')
+    expect(labels).toEqual(['Top 20', 'Top 40', 'All 1'])
+    expect($('[data-act="prompt-count"].active').textContent!.trim()).toBe('Top 20')
   })
 
   it('changes the included count', async () => {
@@ -216,7 +216,7 @@ describe('the prompt footer', () => {
     await searchWith([wine('900')])
     $$('[data-act="prompt-count"]')[2]!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(appState.getSnapshot().promptCount).toBe(0)
-    expect($('[data-act="prompt-count"].active').textContent!.trim()).toBe('All')
+    expect($('[data-act="prompt-count"].active').textContent!.trim()).toContain('All')
   })
 })
 
@@ -240,22 +240,22 @@ describe('the prompt dialog', () => {
     // The prompt runs to tens of thousands of characters and is the one string
     // here guaranteed to contain quotes.
     const prompt = 'Wines: "Château" <script>window.pwned=1</script>'
-    openPromptDialog(prompt, 42)
+    openPromptDialog(prompt, 'Marché Central')
 
     expect($<HTMLTextAreaElement>('[data-prompt="text"]').value).toBe(prompt)
     expect(document.querySelector('.prompt-dialog script')).toBe(null)
     expect((globalThis as Record<string, unknown>).pwned).toBeUndefined()
   })
 
-  it('reports the catalog size and the prompt length', () => {
-    openPromptDialog('abcde', 1234)
-    expect($('.hint').textContent).toContain('1234 wines available')
-    expect($('.hint').textContent).toContain('5 characters')
+  it('names the branch and the prompt length', () => {
+    openPromptDialog('abcde', 'Marché Central')
+    expect($('.hint').textContent).toContain('Marché Central')
+    expect($('[data-prompt="chars"]').textContent).toContain('5 characters')
   })
 
   it('copies, then moves the brass to Open ChatGPT', async () => {
     stubClipboard(async () => {})
-    openPromptDialog('the prompt', 10)
+    openPromptDialog('the prompt', 'Marché Central')
     expect($('[data-prompt="copy"]').className).toBe('btn-primary')
 
     $<HTMLButtonElement>('[data-prompt="copy"]').click()
@@ -268,16 +268,17 @@ describe('the prompt dialog', () => {
 
   it('falls back to selecting the text when the clipboard refuses', async () => {
     stubClipboard(async () => { throw new Error('denied') })
-    openPromptDialog('the prompt', 10)
+    openPromptDialog('the prompt', 'Marché Central')
     const textarea = $<HTMLTextAreaElement>('[data-prompt="text"]')
     const select = vi.spyOn(textarea, 'select')
 
     $<HTMLButtonElement>('[data-prompt="copy"]').click()
-    await vi.waitFor(() => expect($('[data-prompt="copy"]').textContent).toContain('manually'))
+    await vi.waitFor(() => expect($('[data-prompt="note"]').textContent).toContain('would not let'))
 
-    // The OS copy affordance is one action away. No error dialog to read.
+    // The OS copy affordance is one action away, and the note says why.
     expect(select).toHaveBeenCalled()
     expect(textarea.className).toContain('copy-failed')
+    expect($('[data-prompt="copy"]').textContent).toContain('Select the text')
   })
 
   it('calls writeText synchronously within the click, before any await', () => {
@@ -286,7 +287,7 @@ describe('the prompt dialog', () => {
     // writeText would reintroduce it.
     const order: string[] = []
     stubClipboard(async () => { order.push('writeText') })
-    openPromptDialog('the prompt', 10)
+    openPromptDialog('the prompt', 'Marché Central')
 
     $<HTMLButtonElement>('[data-prompt="copy"]').click()
     order.push('after-click-returns')

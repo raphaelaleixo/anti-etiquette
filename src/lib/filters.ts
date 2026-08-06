@@ -35,9 +35,9 @@ export function colourLabel(colour: WineColour): string {
 
 export const PRICE_PRESETS: ReadonlyArray<{ min: number | null; max: number | null }> = [
   { min: null, max: 15 },
-  { min: 15, max: 30 },
-  { min: 30, max: 60 },
-  { min: 60, max: null },
+  { min: 15, max: 25 },
+  { min: 25, max: 40 },
+  { min: 40, max: null },
 ]
 
 export function presetLabel(p: { min: number | null; max: number | null }): string {

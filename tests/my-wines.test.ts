@@ -33,10 +33,11 @@ describe('the three groups', () => {
     expect(el.querySelector('.mywines-row--skipped .mywines-name')!.textContent).toBe('Wine 333')
   })
 
-  it('shows a hint instead of an empty list', () => {
+  it('shows a first-run screen rather than three empty groups', () => {
     const el = mountList()
     expect(el.querySelectorAll('.mywines-row')).toHaveLength(0)
-    expect(el.textContent).toContain('Add wines you have drunk and liked')
+    expect(el.querySelector('.firstrun')).toBeTruthy()
+    expect(el.querySelector('.mywines-groups')).toBe(null)
   })
 
   it('re-renders when the cellar changes, with nothing wiring it', () => {
@@ -220,8 +221,11 @@ describe('the backup block', () => {
     const el = mountList()
     expect(el.querySelector('.backup-summary')!.textContent)
       .toContain('Saved in this browser only')
-    // The iOS eviction window is the sharp end of this, so it is stated.
-    expect(el.querySelector('.backup .hint')!.textContent).toContain('seven days')
+    expect(el.querySelector('.backup-head')!.textContent).toContain('Keep a copy')
+    // The iOS eviction window is the sharp end of this, so it is stated —
+    // somewhere in the panel, in every state, not only when storage is already
+    // blocked. Asserting on the panel rather than one paragraph.
+    expect(el.querySelector('[data-backup]')!.textContent).toContain('seven days')
   })
 
   it('stays closed and unnagging for a short list', () => {
@@ -231,11 +235,14 @@ describe('the backup block', () => {
     expect(el.querySelector('.backup-summary')!.textContent).not.toContain('back it up')
   })
 
-  it('opens and nags once the list is worth losing', () => {
+  it('opens and changes its whole framing once the list is worth losing', () => {
     for (let i = 0; i < 10; i++) cellar.saveWine(wine(String(100 + i)), 'like')
     const el = mountList()
     expect(el.querySelector<HTMLDetailsElement>('[data-backup]')!.open).toBe(true)
-    expect(el.querySelector('.backup-summary')!.textContent).toContain('back it up')
+    // Not a badge bolted onto the resting state: a different heading, and the
+    // summary says what is actually at stake.
+    expect(el.querySelector('.backup-summary')!.textContent).toContain('10 wines, no backup yet')
+    expect(el.querySelector('.backup-head')!.textContent).toContain('Worth doing now')
   })
 
   it('counts what would be exported', () => {
@@ -330,7 +337,7 @@ describe('exporting', () => {
   it('stops nagging once an export has been taken', () => {
     for (let i = 0; i < 10; i++) cellar.saveWine(wine(String(100 + i)), 'like')
     const el = mountList()
-    expect(el.querySelector('.backup-summary')!.textContent).toContain('back it up')
+    expect(el.querySelector('.backup-summary')!.textContent).toContain('no backup yet')
 
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:stub')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -338,7 +345,8 @@ describe('exporting', () => {
 
     el.querySelector<HTMLButtonElement>('[data-act="export"]')!.click()
 
-    expect(el.querySelector('.backup-summary')!.textContent).not.toContain('back it up')
+    expect(el.querySelector('.backup-summary')!.textContent).not.toContain('no backup yet')
+    expect(el.querySelector('.backup-head')!.textContent).toContain('Keep a copy')
   })
 })
 
@@ -348,12 +356,14 @@ describe('exporting', () => {
  */
 describe('the three groups explain themselves', () => {
   it('names each group by its effect', () => {
+    cellar.saveWine(wine('111'), 'like')
     const el = mountList()
     const titles = [...el.querySelectorAll('.mywines-title')].map(n => n.textContent!.trim())
     expect(titles).toEqual(['More like this', 'Less like this', 'Just hidden'])
   })
 
   it('says what each one does to results', () => {
+    cellar.saveWine(wine('111'), 'like')
     const el = mountList()
     const notes = [...el.querySelectorAll('.mywines-note')].map(n => n.textContent!.trim())
     expect(notes[0]).toContain('towards')
@@ -377,7 +387,56 @@ describe('the three groups explain themselves', () => {
   })
 
   it('keeps every group visible even when empty', () => {
+    cellar.saveWine(wine('111'), 'like')
     const el = mountList()
+    expect(el.querySelectorAll('.mywines-group')).toHaveLength(3)
+  })
+})
+
+
+/**
+ * The first screen anyone sees. Three empty groups were technically complete
+ * and gave no reason to believe the product would do anything useful.
+ */
+describe('first run', () => {
+  it('says what to do first', () => {
+    const el = mountList()
+    expect(el.querySelector('.firstrun h2')!.textContent).toContain('Start here')
+    expect(el.textContent).toContain('Three wines is enough to begin')
+  })
+
+  it('offers both ways in — typing, and a file', () => {
+    const el = mountList()
+    expect(el.querySelector('[data-act="add-wines"]')).toBeTruthy()
+    expect(el.querySelector('[data-act="import"]')).toBeTruthy()
+  })
+
+  it('shows what a suggestion will look like before there is one', () => {
+    const el = mountList()
+    expect(el.querySelector('.firstrun-quote')!.textContent).toContain('Shares Syrah')
+  })
+
+  it('explains the three groups, which are the part nobody can guess', () => {
+    const el = mountList()
+    const names = [...el.querySelectorAll('.firstrun-groupname')].map(n => n.textContent!.trim())
+    expect(names).toEqual(['More like this', 'Less like this', 'Just hidden'])
+    const notes = [...el.querySelectorAll('.firstrun-groupnote')].map(n => n.textContent!.trim())
+    expect(notes[0]).toContain('towards')
+    expect(notes[1]).toContain('away')
+    expect(notes[2]).toContain('No effect')
+  })
+
+  it('opens the add flow from the first-run screen', () => {
+    const el = mountList()
+    el.querySelector<HTMLButtonElement>('[data-act="add-wines"]')!.click()
+    expect(document.querySelector('dialog [data-add="text"]')).toBeTruthy()
+  })
+
+  it('gives way to the groups as soon as anything is saved', () => {
+    const el = mountList()
+    expect(el.querySelector('.firstrun')).toBeTruthy()
+    cellar.saveWine(wine('111'), 'like')
+    expect(el.querySelector('.firstrun')).toBe(null)
     expect(el.querySelectorAll('.mywines-group')).toHaveLength(3)
   })
 })

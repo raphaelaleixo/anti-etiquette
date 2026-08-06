@@ -40,7 +40,7 @@ function row(branch: Branch, selected: boolean, count: number | undefined): Html
 }
 
 export function openBranchSheet(): void {
-  const sheet = openSheet({ title: t().branchTitle, full: true })
+  const sheet = openSheet({ title: t().whichShop, full: true })
   const counts = loadBranchCounts()
   const recentIds = loadRecentBranches()
   let selected = appState.getSnapshot().branch
@@ -48,7 +48,7 @@ export function openBranchSheet(): void {
   mount(sheet.body, html`
     <input
       type="text" class="branch-filter" data-branch-q="1"
-      placeholder="${t().branchFilter(BRANCHES.length)}"
+      placeholder="${t().branchSearchPlaceholder}"
       aria-label="${t().branchFilterLabel}" autocomplete="off"
     />
     <div data-branch-results></div>

@@ -15,6 +15,8 @@ export interface Resolution {
    * alternatives is what turns a wrong guess into a visible choice.
    */
   candidates?: Wine[]
+  /** How many the catalog matched in total, not just how many were offered. */
+  candidateTotal?: number
 }
 
 /**

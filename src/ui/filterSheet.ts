@@ -27,7 +27,7 @@ export function openFilterSheet(): void {
 
   const sheet = openSheet({
     title: t().filtersTitle,
-    cancelLabel: t().reset,
+    cancelLabel: t().resetFilters,
     onClose: () => clearTimeout(timer),
   })
 
@@ -91,11 +91,18 @@ export function openFilterSheet(): void {
   }
 
   function renderFoot(): void {
+    // The apply button carries the count, so the visitor never applies a band
+    // blind — and a thin band says so rather than just returning four wines.
     const label = count === 0 ? t().showNone
-      : count !== null ? t().showCount(count)
+      : count !== null ? t().searchTheseWines(count)
       : t().showWines
+    const thin = count !== null && count > 0 && count < 12
     sheet.setFoot(html`
       <button class="btn-primary" data-filter="apply">${label}</button>
+      ${count !== null && count > 0 && html`
+        <div class="sheet-summary">${t().winesFit(count)}</div>
+      `}
+      ${thin && html`<div class="sheet-summary filter-thin">${t().thinBand}</div>`}
       <div class="sheet-summary">${fullSummary(draft, branch ? branchName(branch) : t().thisBranch)}</div>
     `)
     setProp<HTMLButtonElement, 'disabled'>(
