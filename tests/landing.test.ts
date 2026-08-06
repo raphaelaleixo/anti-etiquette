@@ -46,6 +46,7 @@ describe('the returning-visitor redirect', () => {
 describe('what the landing does not ship', () => {
   it('pulls no app JavaScript', () => {
     // The landing is the URL that gets posted; it should not carry the app.
+    // The language switch is inline and a few lines long, not a bundle.
     expect(landing).not.toContain('/src/ui/')
     expect(landing).not.toMatch(/<script[^>]+src=/)
   })
@@ -162,5 +163,59 @@ describe('the manifest', () => {
 
   it('keeps scope at the root so the landing stays in the installed app', () => {
     expect(manifest.scope).toBe('/')
+  })
+})
+
+
+/**
+ * Both languages ship in the markup and CSS hides the one that is not current.
+ * That is what lets a static page switch language with no request, no
+ * dictionary and no re-render.
+ */
+describe('the language switch', () => {
+  const css = readFileSync('src/landing.css', 'utf8')
+
+  it('carries every string in both languages', () => {
+    const en = (landing.match(/data-lang="en"/g) ?? []).length
+    const fr = (landing.match(/data-lang="fr"/g) ?? []).length
+    expect(en).toBeGreaterThan(15)
+    expect(fr).toBe(en)
+  })
+
+  it('hides the language that is not current, from <html lang>', () => {
+    expect(css).toContain("html[lang='en'] [data-lang]:not([data-lang='en'])")
+    expect(css).toContain("html[lang='fr'] [data-lang]:not([data-lang='fr'])")
+  })
+
+  it('marks the active button from <html lang>, not from a class', () => {
+    // One source of truth: a class the script maintained could drift out of
+    // step with the language actually being displayed.
+    expect(css).toContain("html[lang='en'] .langtoggle button[data-set-lang='en']")
+    expect(landing).not.toMatch(/data-set-lang="[a-z]{2}"[^>]*class="[^"]*active/)
+  })
+
+  it('resolves the language before first paint', () => {
+    // In <head>, not at the end of body: otherwise a French visitor sees a
+    // frame of English and a correction.
+    const head = landing.slice(0, landing.indexOf('</head>'))
+    expect(head).toContain("localStorage.getItem('lang')")
+    expect(head).toContain('navigator.language')
+  })
+
+  it('shares the language key with the app, so a choice holds across both', () => {
+    const appLang = readFileSync('src/lib/lang.ts', 'utf8')
+    expect(appLang).toContain("const KEY = 'lang'")
+    expect(landing).toContain("localStorage.getItem('lang')")
+    expect(landing).toContain("localStorage.setItem('lang'")
+  })
+
+  it('survives a browser that denies storage', () => {
+    const script = landing.slice(landing.indexOf('---------- language'))
+    expect(script).toContain('catch')
+  })
+
+  it('offers a title in both languages', () => {
+    expect(landing).toContain('data-title-en=')
+    expect(landing).toContain('data-title-fr=')
   })
 })
