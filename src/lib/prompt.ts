@@ -17,7 +17,7 @@ function describeWine(w: Wine, withRating = false): string {
 /** Drop later wines that share a name (trimmed, case-insensitive) with an
  * earlier one — e.g. the same wine listed once vintaged and once not, under
  * different SKUs. Keeps the first occurrence, so the best-ranked wins. */
-function dedupeByName(wines: Wine[]): Wine[] {
+function dedupeByName(wines: readonly Wine[]): Wine[] {
   const seen = new Set<string>()
   const result: Wine[] = []
   for (const w of wines) {
@@ -43,9 +43,9 @@ function describeFilters(f: CatalogFilters): string {
 }
 
 export function buildPrompt(
-  seeds: Wine[],
-  dislikes: Wine[],
-  candidates: Wine[],
+  seeds: readonly Wine[],
+  dislikes: readonly Wine[],
+  candidates: readonly Wine[],
   storeName: string,
   filters: CatalogFilters,
 ): string {

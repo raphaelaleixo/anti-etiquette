@@ -82,6 +82,38 @@ export function mount(host: HTMLElement, markup: Html): void {
 }
 
 /**
+ * Money, formatted the one way this app formats it.
+ *
+ * Small enough to inline, which is exactly why it had drifted into four
+ * call sites — the point of naming it is that the next one cannot disagree.
+ */
+export function money(amount: number): string {
+  return `$${amount.toFixed(2)}`
+}
+
+/**
+ * Set a property on markup that was just rendered.
+ *
+ * Boolean attributes — `disabled`, `selected`, `open` — are true whenever they
+ * are *present*, whatever their value, so they cannot be interpolated the way
+ * `aria-current` can. Setting the property afterwards is the fix, and this is
+ * the shape it always takes: query, narrow, assign, tolerate absence.
+ *
+ * Silently doing nothing when the element is missing is deliberate. Callers
+ * run this against markup they rendered a line earlier; a throw here would
+ * turn a cosmetic mismatch into a blank section.
+ */
+export function setProp<E extends Element, K extends keyof E>(
+  root: ParentNode,
+  selector: string,
+  key: K,
+  value: E[K],
+): void {
+  const el = root.querySelector(selector)
+  if (el) (el as unknown as E)[key] = value
+}
+
+/**
  * One listener on the host, matched by selector.
  *
  * Handlers never bind to rows, because a full innerHTML re-render of a section

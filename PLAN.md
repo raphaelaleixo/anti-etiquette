@@ -423,6 +423,28 @@ invariants keep their tests. Run `/simplify` over the diff as a starting point, 
 output as suggestions — the escape-by-default and publish-inside-mutator patterns look like
 indirection worth removing and are not.
 
+**Done.** 141 lines added, 219 removed, across 27 files; 389 tests green throughout, and all eight
+mutation tests still fail exactly the assertions they failed before.
+
+- Widened `hiddenSkus`, `buildProfile`, `buildPrompt` and `TasteProfile.seeds` to `readonly`. The
+  six `[...snapshot.refs]` copies existed only to satisfy mutable parameters that never mutated.
+- `money()` and `setProp()` in `dom.ts`, replacing four hand-rolled price formats and five
+  copies of query-narrow-assign. `setProp` is the boolean-attribute workaround given a name, so
+  the next `disabled`/`selected`/`open` cannot invent a sixth spelling.
+- `tests/helpers.ts`: one `wine()` builder replacing nine that differed only accidentally.
+- **`appState` went from twelve fields to eight.** `results`/`favourites`/`catalog`/`profile`/
+  `searched` are one value, `search: SearchResult | null`, because they only ever meant anything
+  together — `searched: true` with `profile: null` was representable and meaningless. This
+  deleted a test assertion outright: "clears results when the branch changes" needed two
+  assertions when the two could disagree, and needs one now that they cannot.
+- Un-exported three module-internal values; kept exported the types describing public shapes.
+- Replaced plan-relative comments ("Task 7 hydrates these") with code-relative ones, and cut a
+  seven-line justification in markup down to two.
+
+No dead exports were found — 117 exports, all referenced. `saveWine` is called only by tests,
+`saveWines` being what the app uses; it was kept because both are in Task 3's specified API and
+it is the natural single-item form.
+
 ---
 
 ## Verification

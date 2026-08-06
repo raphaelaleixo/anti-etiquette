@@ -8,7 +8,7 @@ const PROFILE: TasteProfile = {
   seeds: [], grapes: {}, regions: [], countries: [], appellations: [],
   tasteTags: [], medianPrice: 20,
 }
-const EMPTY_RESULTS = { results: [], favourites: [], catalog: [], profile: PROFILE }
+const EMPTY_SEARCH = { results: [], favourites: [], catalog: [], profile: PROFILE }
 
 beforeEach(() => {
   storage.removeItem('branch')
@@ -25,7 +25,7 @@ describe('appState publishes like the cellar does', () => {
     ['setMode', () => app.setMode('find')],
     ['setBranch', () => app.setBranch('23112')],
     ['setFilters', () => app.setFilters(DEFAULT_FILTERS)],
-    ['setResults', () => app.setResults(EMPTY_RESULTS)],
+    ['setResults', () => app.setResults(EMPTY_SEARCH)],
     ['setStatus', () => app.setStatus('Searching…')],
     ['setError', () => app.setError('nope')],
     ['clearResults', () => app.clearResults()],
@@ -65,7 +65,7 @@ describe('persistence', () => {
 
   it('clears status when results arrive and when an error is set', () => {
     app.setStatus('Searching…')
-    app.setResults(EMPTY_RESULTS)
+    app.setResults(EMPTY_SEARCH)
     expect(app.getSnapshot().status).toBe('')
 
     app.setStatus('Searching…')

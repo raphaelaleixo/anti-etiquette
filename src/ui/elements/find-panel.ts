@@ -1,4 +1,4 @@
-import { StoreElement, html, mount, delegate, type Html } from '../dom'
+import { StoreElement, html, mount, delegate, money, type Html } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
 import { chipSummary } from '../../lib/filters'
@@ -56,7 +56,7 @@ function favourites(rows: readonly Wine[]): Html | false {
               ${saqLink(wine, 'favourites-name')}
               <div class="favourites-stock">${rating(wine)}</div>
             </div>
-            <div class="favourites-price">$${wine.price.toFixed(2)}</div>
+            <div class="favourites-price">${money(wine.price)}</div>
           </div>
         `)}
       </div>
@@ -79,16 +79,10 @@ function results(rows: readonly ScoredWine[], profile: TasteProfile, total: numb
             <div class="results-body">
               <div class="results-name-row">
                 ${saqLink(scored.wine, 'results-name')}
-                <div class="results-price">$${scored.wine.price.toFixed(2)}</div>
+                <div class="results-price">${money(scored.wine.price)}</div>
               </div>
-              <!--
-                No stock line. buildCatalogFilter already pins
-                availability_front == 'In store' and store_availability_list ==
-                branch, so every row here is in stock at this branch by
-                construction, and the header above already says "N of M in
-                stock". Replacing the deleted count with "at this branch" would
-                just repeat that.
-              -->
+              <!-- No stock line: every row is in stock here by construction
+                   (buildCatalogFilter pins it) and the header says so. -->
               <div class="results-stock">${rating(scored.wine)}</div>
               <p class="reason">${describeMatch(scored, profile)}</p>
             </div>
@@ -149,15 +143,14 @@ export class FindPanel extends StoreElement {
   }
 
   protected render(): void {
-    const { branch, filters, results: ranked, favourites: favs, catalog, profile } =
-      appState.getSnapshot()
-    const hidden = cellar.hiddenSkus([...cellar.getSnapshot().refs])
+    const { branch, filters, search } = appState.getSnapshot()
+    const hidden = cellar.hiddenSkus(cellar.getSnapshot().refs)
     const likedCount = cellar.getSnapshot().liked.length
 
     // Re-filed after a search, the already-rendered rows still hold the wine,
     // so filtering here reflows the list with no further network traffic.
-    const visible = ranked.filter(r => !hidden.has(r.wine.sku))
-    const visibleFavourites = favs.filter(w => !hidden.has(w.sku))
+    const visible = search?.results.filter(r => !hidden.has(r.wine.sku)) ?? []
+    const visibleFavourites = search?.favourites.filter(w => !hidden.has(w.sku)) ?? []
 
     mount(this, html`
       <div class="chip-row">
@@ -171,8 +164,8 @@ export class FindPanel extends StoreElement {
         </button>
       </div>
       ${this.#emptyState(likedCount, branch)}
-      ${profile && favourites(visibleFavourites)}
-      ${profile && results(visible, profile, catalog.length)}
+      ${search && favourites(visibleFavourites)}
+      ${search && results(visible, search.profile, search.catalog.length)}
     `)
   }
 }

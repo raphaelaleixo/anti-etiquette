@@ -1,4 +1,4 @@
-import { html, mount, delegate } from './dom'
+import { html, mount, delegate, setProp } from './dom'
 import { openSheet } from './sheet'
 import { countMatches, type CatalogFilters, type WineColour } from '../lib/catalog'
 import { COLOURS, PRICE_PRESETS, DEFAULT_FILTERS, fullSummary, priceLabel } from '../lib/filters'
@@ -94,8 +94,8 @@ export function openFilterSheet(): void {
       <button class="btn-primary" data-filter="apply">${label}</button>
       <div class="sheet-summary">${fullSummary(draft, branch ? branchName(branch) : 'this branch')}</div>
     `)
-    const apply = sheet.foot.querySelector('[data-filter="apply"]')
-    if (apply instanceof HTMLButtonElement) apply.disabled = count === 0
+    setProp<HTMLButtonElement, 'disabled'>(
+      sheet.foot, '[data-filter="apply"]', 'disabled', count === 0)
   }
 
   function scheduleCount(): void {

@@ -6,15 +6,7 @@ import * as cellar from '../src/lib/cellar'
 import * as appState from '../src/lib/appState'
 import { storage } from '../src/lib/storage'
 import type { Wine } from '../src/lib/types'
-
-function wine(sku: string, over: Partial<Wine> = {}): Wine {
-  return {
-    sku, name: `Wine ${sku}`, urlKey: `w-${sku}`, price: 19.95, inStock: true,
-    country: 'France', region: 'Rhône', appellation: null, grapes: [],
-    vintage: null, tasteTag: null, rating: null, ratingCount: null,
-    availability: [], ...over,
-  }
-}
+import { wine } from './helpers'
 
 const $ = <T extends Element = HTMLElement>(sel: string) => document.querySelector<T>(sel)!
 const $$ = (sel: string) => [...document.querySelectorAll(sel)]

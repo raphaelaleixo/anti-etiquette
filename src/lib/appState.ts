@@ -17,18 +17,29 @@ import type { ScoredWine, TasteProfile, Wine } from './types'
 
 export type Mode = 'find' | 'wines'
 
-export interface AppState {
-  mode: Mode
-  branch: string
-  filters: CatalogFilters
+/**
+ * Everything a completed search produced.
+ *
+ * One value rather than five fields, because the five only ever mean anything
+ * together. As separate fields, `searched: true` alongside `profile: null` was
+ * representable and meaningless; here "a search has completed" *is*
+ * `search !== null`, so the two cannot disagree.
+ */
+export interface SearchResult {
   results: readonly ScoredWine[]
   /** Saved wines that happen to be stocked at this branch. */
   favourites: readonly Wine[]
   /** The branch's whole filtered catalog, kept for the prompt's "N available". */
   catalog: readonly Wine[]
-  profile: TasteProfile | null
-  /** True once a search has completed, which is what swaps the footer. */
-  searched: boolean
+  profile: TasteProfile
+}
+
+export interface AppState {
+  mode: Mode
+  branch: string
+  filters: CatalogFilters
+  /** Null until a search completes; cleared whenever one is invalidated. */
+  search: SearchResult | null
   /** How many ranked wines go into the prompt. 0 means all of them. */
   promptCount: number
   /** Catalog paging, for the header progress bar. */
@@ -86,11 +97,7 @@ let state: AppState = {
   mode: initialMode(),
   branch: readBranch(),
   filters: readFilters(),
-  results: [],
-  favourites: [],
-  catalog: [],
-  profile: null,
-  searched: false,
+  search: null,
   promptCount: 20,
   progress: null,
   status: '',
@@ -134,13 +141,8 @@ export function setFilters(filters: CatalogFilters): void {
   set(filtersEqual(filters, state.filters) ? { filters } : { filters, ...blankResults() })
 }
 
-export function setResults(payload: {
-  results: readonly ScoredWine[]
-  favourites: readonly Wine[]
-  catalog: readonly Wine[]
-  profile: TasteProfile
-}): void {
-  set({ ...payload, searched: true, status: '', error: null, progress: null })
+export function setResults(search: SearchResult): void {
+  set({ search, status: '', error: null, progress: null })
 }
 
 export function setStatus(status: string, progress: AppState['progress'] = null): void {
@@ -155,17 +157,8 @@ export function setPromptCount(promptCount: number): void {
   set({ promptCount })
 }
 
-function blankResults() {
-  return {
-    results: [] as readonly ScoredWine[],
-    favourites: [] as readonly Wine[],
-    catalog: [] as readonly Wine[],
-    profile: null,
-    searched: false,
-    status: '',
-    error: null,
-    progress: null,
-  }
+function blankResults(): Partial<AppState> {
+  return { search: null, status: '', error: null, progress: null }
 }
 
 export function clearResults(): void {

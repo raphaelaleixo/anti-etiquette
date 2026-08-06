@@ -1,4 +1,4 @@
-import { StoreElement, html, mount, delegate, type Html } from '../dom'
+import { StoreElement, html, mount, delegate, setProp, type Html } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
 import { transitionTo } from '../../lib/viewTransition'
@@ -10,7 +10,7 @@ import { branchName } from '../../lib/branches'
 import { runSearch } from '../../lib/search'
 
 /** How many ranked wines to offer the model. 0 means all of them. */
-export const PROMPT_COUNTS = [20, 40, 0] as const
+const PROMPT_COUNTS = [20, 40, 0] as const
 
 function formatCount(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n)
@@ -38,7 +38,8 @@ export class AppFoot extends StoreElement {
           void runSearch()
           break
         case 'prompt':
-          openPromptDialog(this.#buildPrompt(), appState.getSnapshot().catalog.length)
+          openPromptDialog(
+            this.#buildPrompt(), appState.getSnapshot().search?.catalog.length ?? 0)
           break
         case 'prompt-count':
           appState.setPromptCount(Number(el.dataset.count))
@@ -49,15 +50,16 @@ export class AppFoot extends StoreElement {
   }
 
   #buildPrompt(): string {
-    const { catalog, profile, promptCount, filters, branch } = appState.getSnapshot()
+    const { search, promptCount, filters, branch } = appState.getSnapshot()
     const snap = cellar.getSnapshot()
-    if (!profile) return ''
-    const hidden = cellar.hiddenSkus([...snap.refs])
-    const rankable = catalog.filter(w => !hidden.has(w.sku))
-    const ranked = rankWines(rankable, profile, promptCount === 0 ? rankable.length : promptCount)
+    if (!search) return ''
+    const hidden = cellar.hiddenSkus(snap.refs)
+    const rankable = search.catalog.filter(w => !hidden.has(w.sku))
+    const ranked = rankWines(
+      rankable, search.profile, promptCount === 0 ? rankable.length : promptCount)
     return buildPrompt(
-      [...snap.liked],
-      [...snap.disliked],
+      snap.liked,
+      snap.disliked,
       ranked.map(r => r.wine),
       branch ? branchName(branch) : '',
       filters,
@@ -88,7 +90,7 @@ export class AppFoot extends StoreElement {
   }
 
   protected render(): void {
-    const { mode, branch, status, searched, profile } = appState.getSnapshot()
+    const { mode, branch, status, search } = appState.getSnapshot()
     const liked = cellar.getSnapshot().liked.length
 
     if (mode === 'wines') {
@@ -99,7 +101,7 @@ export class AppFoot extends StoreElement {
       return
     }
 
-    if (searched && profile) {
+    if (search) {
       mount(this, this.#promptBox())
       return
     }
@@ -109,10 +111,7 @@ export class AppFoot extends StoreElement {
     `)
     // `disabled` is a boolean attribute — present means true whatever the
     // value — so it cannot be interpolated. Set on markup just rendered.
-    const button = this.querySelector('button')
-    if (button instanceof HTMLButtonElement) {
-      // Task 11 replaces this with a real empty state that says why.
-      button.disabled = !branch || liked === 0 || status !== ''
-    }
+    setProp<HTMLButtonElement, 'disabled'>(
+      this, 'button', 'disabled', !branch || liked === 0 || status !== '')
   }
 }

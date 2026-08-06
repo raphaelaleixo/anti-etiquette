@@ -3,21 +3,7 @@ import * as catalog from '../src/lib/catalog'
 import * as cellar from '../src/lib/cellar'
 import { hydrateMissing, pending } from '../src/lib/hydrate'
 import { storage } from '../src/lib/storage'
-import type { CellarEntry } from '../src/lib/cellar'
-import type { Wine } from '../src/lib/types'
-
-function wine(sku: string, over: Partial<Wine> = {}): Wine {
-  return {
-    sku, name: `Wine ${sku}`, urlKey: `w-${sku}`, price: 20, inStock: true,
-    country: 'France', region: null, appellation: null, grapes: [],
-    vintage: null, tasteTag: null, rating: null, ratingCount: null,
-    availability: [], ...over,
-  }
-}
-
-function entry(sku: string, over: Partial<CellarEntry> = {}): CellarEntry {
-  return { sku, kind: 'like', addedAt: 1, wine: null, wineFetchedAt: 0, ...over }
-}
+import { wine, entry } from './helpers'
 
 beforeEach(() => {
   storage.removeItem('cellar.v2')

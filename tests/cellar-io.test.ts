@@ -4,21 +4,7 @@ import {
   recordExport, lastExportAt, shouldSuggestExport,
 } from '../src/lib/cellarIo'
 import { storage } from '../src/lib/storage'
-import type { CellarEntry } from '../src/lib/cellar'
-import type { Wine } from '../src/lib/types'
-
-function wine(sku: string, over: Partial<Wine> = {}): Wine {
-  return {
-    sku, name: `Wine ${sku}`, urlKey: `w-${sku}`, price: 20, inStock: true,
-    country: 'France', region: null, appellation: null, grapes: [],
-    vintage: null, tasteTag: null, rating: null, ratingCount: null,
-    availability: [], ...over,
-  }
-}
-
-function entry(sku: string, over: Partial<CellarEntry> = {}): CellarEntry {
-  return { sku, kind: 'like', addedAt: 1000, wine: null, wineFetchedAt: 0, ...over }
-}
+import { wine, entry } from './helpers'
 
 const NOW = Date.UTC(2026, 7, 5, 12, 0, 0)
 

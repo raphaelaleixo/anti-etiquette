@@ -4,7 +4,7 @@
  * Deliberately plain: layout, rhythm and responsive behaviour, with the visual
  * design (the Organic palette, Caprasimo/Figtree, the bottle mark) to be
  * layered on top later. Everything here is either a structural rule or one of
- * Task 10's stated requirements — both colour schemes, reduced motion, no CDN.
+ * the page's stated requirements: both colour schemes, reduced motion, no CDN.
  *
  * System fonts throughout for now, so the page ships no network requests at
  * all. When the real typefaces land they must be self-hosted, not linked from

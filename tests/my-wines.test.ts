@@ -3,16 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineElements } from '../src/ui/shell'
 import * as cellar from '../src/lib/cellar'
 import { storage } from '../src/lib/storage'
-import type { Wine } from '../src/lib/types'
-
-function wine(sku: string, over: Partial<Wine> = {}): Wine {
-  return {
-    sku, name: `Wine ${sku}`, urlKey: `w-${sku}`, price: 20, inStock: true,
-    country: 'France', region: 'Rhône', appellation: null, grapes: [],
-    vintage: null, tasteTag: null, rating: null, ratingCount: null,
-    availability: [], ...over,
-  }
-}
+import { wine } from './helpers'
 
 defineElements()
 

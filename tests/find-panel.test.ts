@@ -8,15 +8,7 @@ import { runSearch } from '../src/lib/search'
 import { openPromptDialog } from '../src/ui/promptDialog'
 import { storage } from '../src/lib/storage'
 import type { Wine } from '../src/lib/types'
-
-function wine(sku: string, over: Partial<Wine> = {}): Wine {
-  return {
-    sku, name: `Wine ${sku}`, urlKey: `w-${sku}`, price: 20, inStock: true,
-    country: 'France', region: 'Rhône', appellation: null, grapes: ['Syrah'],
-    vintage: null, tasteTag: null, rating: null, ratingCount: null,
-    availability: [], ...over,
-  }
-}
+import { wine } from './helpers'
 
 const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s)!
 const $$ = (s: string) => [...document.querySelectorAll(s)]

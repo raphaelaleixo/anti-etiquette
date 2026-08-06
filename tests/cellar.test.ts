@@ -2,29 +2,10 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { storage } from '../src/lib/storage'
 import * as cellar from '../src/lib/cellar'
 import type { CellarEntry } from '../src/lib/cellar'
-import type { SeedRef, Wine } from '../src/lib/types'
+import type { SeedRef } from '../src/lib/types'
+import { wine } from './helpers'
 
 const KEY = 'cellar.v2'
-
-function wine(sku: string, over: Partial<Wine> = {}): Wine {
-  return {
-    sku,
-    name: `Wine ${sku}`,
-    urlKey: `wine-${sku}`,
-    price: 20,
-    inStock: true,
-    country: 'France',
-    region: null,
-    appellation: null,
-    grapes: ['Syrah'],
-    vintage: null,
-    tasteTag: null,
-    rating: null,
-    ratingCount: null,
-    availability: [],
-    ...over,
-  }
-}
 
 function seed(entries: Array<Partial<CellarEntry> & { sku: string }>): void {
   storage.setItem(KEY, JSON.stringify(

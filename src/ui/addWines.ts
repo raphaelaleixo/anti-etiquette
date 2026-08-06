@@ -1,4 +1,4 @@
-import { html, mount, delegate, type Html } from './dom'
+import { html, mount, delegate, money, setProp, type Html } from './dom'
 import { openSheet } from './sheet'
 import { searchWines } from '../lib/catalog'
 import { dismissAt, chooseCandidate, type Resolution } from '../lib/resolution'
@@ -70,7 +70,7 @@ function candidatePicker(r: Resolution, i: number): Html | false {
       aria-label="Which wine ${r.input} means"
     >
       ${candidates.map((w, ci) => html`
-        <option value="${ci}">${w.name} · $${w.price.toFixed(2)}</option>
+        <option value="${ci}">${w.name} · ${money(w.price)}</option>
       `)}
       <option value="-1">None of these</option>
     </select>
@@ -100,7 +100,7 @@ function resolutionRow(r: Resolution, i: number): Html {
     <li class="resolution-row">
       <div class="resolution-body">
         <div class="resolution-name">${r.wine.name}</div>
-        <div class="resolution-meta">$${r.wine.price.toFixed(2)} · from "${r.input}"</div>
+        <div class="resolution-meta">${money(r.wine.price)} · from "${r.input}"</div>
         ${candidatePicker(r, i)}
         <select
           class="resolution-kind" data-add="kind" data-index="${i}"
@@ -198,8 +198,7 @@ export function openAddWines(): void {
   }
 
   function setDisabled(selector: string, value: boolean): void {
-    const el = sheet.foot.querySelector(selector)
-    if (el instanceof HTMLButtonElement) el.disabled = value
+    setProp<HTMLButtonElement, 'disabled'>(sheet.foot, selector, 'disabled', value)
   }
 
   function readText(): string {

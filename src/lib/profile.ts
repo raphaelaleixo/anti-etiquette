@@ -13,7 +13,7 @@ function uniqueNonNull(values: Array<string | null>): string[] {
   return [...new Set(values.filter((v): v is string => v !== null))]
 }
 
-export function buildProfile(seeds: Wine[]): TasteProfile {
+export function buildProfile(seeds: readonly Wine[]): TasteProfile {
   const grapes: Record<string, number> = {}
   for (const seed of seeds) {
     for (const grape of new Set(seed.grapes)) {

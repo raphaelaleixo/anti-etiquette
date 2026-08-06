@@ -1,4 +1,4 @@
-import { html, mount, delegate, type Html } from './dom'
+import { html, mount, delegate, setProp, type Html } from './dom'
 import { openSheet } from './sheet'
 import {
   BRANCHES, fold, loadRecentBranches, loadBranchCounts, type Branch,
@@ -91,8 +91,8 @@ export function openBranchSheet(): void {
       </button>
       <div class="sheet-summary">Montréal branches only — ${BRANCHES.length} of them.</div>
     `)
-    const button = sheet.foot.querySelector('[data-branch-confirm]')
-    if (button instanceof HTMLButtonElement) button.disabled = branch === undefined
+    setProp<HTMLButtonElement, 'disabled'>(
+      sheet.foot, '[data-branch-confirm]', 'disabled', branch === undefined)
   }
 
   // Only the results list re-renders as the user types; the input they are

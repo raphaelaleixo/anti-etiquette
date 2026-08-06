@@ -5,15 +5,7 @@ import * as appState from '../src/lib/appState'
 import { runSearch } from '../src/lib/search'
 import { storage } from '../src/lib/storage'
 import type { Wine } from '../src/lib/types'
-
-function wine(sku: string, over: Partial<Wine> = {}): Wine {
-  return {
-    sku, name: `Wine ${sku}`, urlKey: `w-${sku}`, price: 20, inStock: true,
-    country: 'France', region: 'Rhône', appellation: null, grapes: ['Syrah'],
-    vintage: null, tasteTag: null, rating: null, ratingCount: null,
-    availability: [], ...over,
-  }
-}
+import { wine } from './helpers'
 
 beforeEach(() => {
   storage.removeItem('cellar.v2')
@@ -72,7 +64,7 @@ describe('there is no stock phase', () => {
     await runSearch()
 
     expect(fetchSpy).not.toHaveBeenCalled() // the one call is the stubbed catalog
-    expect(appState.getSnapshot().results.length).toBeGreaterThan(0)
+    expect(appState.getSnapshot().search!.results.length).toBeGreaterThan(0)
   })
 })
 
@@ -87,9 +79,9 @@ describe('a completed search', () => {
     await runSearch()
 
     const snap = appState.getSnapshot()
-    expect(snap.searched).toBe(true)
-    expect(snap.profile).not.toBe(null)
-    expect(snap.catalog).toHaveLength(2)
+    expect(snap.search).not.toBe(null)
+    expect(snap.search!.profile).not.toBe(null)
+    expect(snap.search!.catalog).toHaveLength(2)
     expect(snap.status).toBe('')
   })
 
@@ -100,13 +92,13 @@ describe('a completed search', () => {
 
     await runSearch()
 
-    expect(appState.getSnapshot().results.map(r => r.wine.sku)).toEqual(['902'])
+    expect(appState.getSnapshot().search!.results.map(r => r.wine.sku)).toEqual(['902'])
   })
 
   it('surfaces saved wines that are stocked here', async () => {
     stubCatalog([wine('111'), wine('900')])
     await runSearch()
-    expect(appState.getSnapshot().favourites.map(w => w.sku)).toEqual(['111'])
+    expect(appState.getSnapshot().search!.favourites.map(w => w.sku)).toEqual(['111'])
   })
 
   it('remembers the branch and its result count for the picker', async () => {
@@ -156,7 +148,7 @@ describe('a search superseded by a newer one', () => {
     await first
 
     const snap = appState.getSnapshot()
-    expect(snap.catalog.map(w => w.sku)).toEqual(['902'])
+    expect(snap.search!.catalog.map(w => w.sku)).toEqual(['902'])
   })
 
   it('does not report an error from the abandoned search', async () => {
@@ -189,7 +181,7 @@ describe('when the catalog fails', () => {
     const snap = appState.getSnapshot()
     expect(snap.error).toContain('network down')
     expect(snap.status).toBe('')
-    expect(snap.searched).toBe(false)
+    expect(snap.search).toBe(null)
   })
 })
 
@@ -202,22 +194,23 @@ describe('changing branch or filters invalidates results', () => {
   })
 
   it('clears results when the branch changes', () => {
-    expect(appState.getSnapshot().searched).toBe(true)
+    expect(appState.getSnapshot().search).not.toBe(null)
     appState.setBranch('23113')
-    expect(appState.getSnapshot().searched).toBe(false)
-    expect(appState.getSnapshot().results).toHaveLength(0)
+    // One assertion now, not two: "no search" and "no results" used to be
+    // separate fields that could disagree, and cannot any more.
+    expect(appState.getSnapshot().search).toBe(null)
   })
 
   it('keeps results when the filters are applied unchanged', () => {
     // Opening the sheet to check what is set, then applying it, must not throw
     // away a search.
     appState.setFilters({ ...appState.getSnapshot().filters })
-    expect(appState.getSnapshot().searched).toBe(true)
+    expect(appState.getSnapshot().search).not.toBe(null)
   })
 
   it('clears results when the filters actually change', () => {
     appState.setFilters({ ...appState.getSnapshot().filters, colour: 'white' })
-    expect(appState.getSnapshot().searched).toBe(false)
+    expect(appState.getSnapshot().search).toBe(null)
   })
 })
 
@@ -272,7 +265,7 @@ describe('opportunistic refresh', () => {
 
     await runSearch()
 
-    expect(appState.getSnapshot().profile!.medianPrice).toBe(60)
+    expect(appState.getSnapshot().search!.profile!.medianPrice).toBe(60)
   })
 
   it('does not add catalog wines to the saved list', async () => {

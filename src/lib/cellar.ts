@@ -40,7 +40,7 @@ export interface CellarSnapshot {
   liked: readonly Wine[]
   disliked: readonly Wine[]
   skipped: readonly Wine[]
-  /** Entries with no cached wine — Task 7 hydrates these and renders them explicitly. */
+  /** Entries with no cached wine — `hydrate.ts` fills these, and they render explicitly. */
   unresolved: readonly CellarEntry[]
   /** Set when a write failed. The list in memory is still correct. */
   error: string | null
@@ -310,7 +310,7 @@ export function replaceAll(next: CellarEntry[]): void {
  * is the whole point of the third kind — a skip removes one bottle, it does
  * not argue against everything resembling it.
  */
-export function hiddenSkus(refs: SeedRef[]): Set<string> {
+export function hiddenSkus(refs: readonly SeedRef[]): Set<string> {
   return new Set(
     refs.filter(r => r.kind === 'dislike' || r.kind === 'skip').map(r => r.sku),
   )

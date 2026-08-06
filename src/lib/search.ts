@@ -62,8 +62,8 @@ export async function runSearch(): Promise<void> {
     cellar.refreshWines(catalog)
     const refreshedLiked = cellar.getSnapshot().liked
 
-    const profile = buildProfile([...refreshedLiked])
-    const hidden = cellar.hiddenSkus([...cellar.getSnapshot().refs])
+    const profile = buildProfile(refreshedLiked)
+    const hidden = cellar.hiddenSkus(cellar.getSnapshot().refs)
     const ranked = rankWines(catalog.filter(w => !hidden.has(w.sku)), profile, RESULT_COUNT)
 
     const seedSkus = new Set(profile.seeds.map(s => s.sku))

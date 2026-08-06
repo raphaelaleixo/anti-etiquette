@@ -1,4 +1,4 @@
-import { StoreElement, html, mount, delegate, type Html } from '../dom'
+import { StoreElement, html, mount, delegate, setProp, type Html } from '../dom'
 import * as cellar from '../../lib/cellar'
 import type { CellarEntry } from '../../lib/cellar'
 import {
@@ -282,7 +282,7 @@ export class MyWines extends StoreElement {
     // `open` is a boolean attribute, so it is set rather than interpolated.
     // Opened only when there is something to say — a block that springs open
     // on every render is the kind of prompt people learn to close unread.
-    const details = this.querySelector('[data-backup]')
-    if (details instanceof HTMLDetailsElement) details.open = nag || this.#message !== null
+    setProp<HTMLDetailsElement, 'open'>(
+      this, '[data-backup]', 'open', nag || this.#message !== null)
   }
 }

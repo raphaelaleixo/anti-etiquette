@@ -42,7 +42,7 @@ export function filtersEqual(a: CatalogFilters, b: CatalogFilters): boolean {
   return a.colour === b.colour && a.priceMin === b.priceMin && a.priceMax === b.priceMax
 }
 
-export function colourLabel(colour: WineColour): string {
+function colourLabel(colour: WineColour): string {
   return COLOURS.find(c => c.value === colour)?.label ?? colour
 }
 

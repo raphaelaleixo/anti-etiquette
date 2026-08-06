@@ -76,8 +76,8 @@ export async function hydrateMissing(): Promise<HydrateResult> {
       // resolveSku demands `found.sku === sku`, so a delisted SKU comes back
       // null rather than as whatever the relevance ranker liked best. Without
       // that check this function is the exact path by which a stranger's
-      // bottle joins the liked list. Task 11 split the function in two; this
-      // is the half that must never guess.
+      // bottle joins the liked list. `searchWines` is the half that may guess;
+      // this is the half that must not.
       return { sku: entry.sku, wine: await resolveSku(entry.sku), failed: false }
     } catch {
       return { sku: entry.sku, wine: null as Wine | null, failed: true }

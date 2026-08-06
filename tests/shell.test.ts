@@ -4,21 +4,14 @@ import { defineElements } from '../src/ui/shell'
 import * as appState from '../src/lib/appState'
 import * as cellar from '../src/lib/cellar'
 import { storage } from '../src/lib/storage'
-import type { TasteProfile, Wine } from '../src/lib/types'
+import type { TasteProfile } from '../src/lib/types'
+import { wine } from './helpers'
 
 const PROFILE: TasteProfile = {
   seeds: [], grapes: {}, regions: [], countries: [], appellations: [],
   tasteTags: [], medianPrice: 20,
 }
-const EMPTY_RESULTS = { results: [], favourites: [], catalog: [], profile: PROFILE }
-
-function wine(sku: string): Wine {
-  return {
-    sku, name: `Wine ${sku}`, urlKey: `w-${sku}`, price: 20, inStock: true,
-    country: 'France', region: null, appellation: null, grapes: [],
-    vintage: null, tasteTag: null, rating: null, ratingCount: null, availability: [],
-  }
-}
+const EMPTY_SEARCH = { results: [], favourites: [], catalog: [], profile: PROFILE }
 
 defineElements()
 
@@ -149,7 +142,7 @@ describe('app-status', () => {
     appState.setStatus('Loading page 2 of 9…')
     expect(el.querySelector('.status')!.textContent).toContain('Loading page 2 of 9')
 
-    appState.setResults(EMPTY_RESULTS)
+    appState.setResults(EMPTY_SEARCH)
     expect(el.querySelector('.status')).toBe(null)
   })
 

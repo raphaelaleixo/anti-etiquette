@@ -20,7 +20,7 @@ export interface Wine {
 
 export interface TasteProfile {
   /** The resolved seed wines themselves — reasons.ts names them. */
-  seeds: Wine[]
+  seeds: readonly Wine[]
   /** grape name -> how many seed wines contain it */
   grapes: Record<string, number>
   regions: string[]

@@ -125,7 +125,7 @@ export interface CatalogFilters {
   priceMax: number | null
 }
 
-export const CATEGORY_BY_COLOUR: Record<WineColour, string> = {
+const CATEGORY_BY_COLOUR: Record<WineColour, string> = {
   all: 'products/wine',
   red: 'products/wine/red-wine',
   white: 'products/wine/white-wine',
