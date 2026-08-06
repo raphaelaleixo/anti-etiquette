@@ -22,16 +22,27 @@ const THIN_SAMPLE = 5
  * as the best wine in the shop. Thin samples are additionally dimmed so the
  * eye discounts them without having to do the arithmetic.
  */
-function rating(wine: Wine): Html | false {
-  if (wine.rating === null) return false
+function rating(wine: Wine): Html {
+  const t = lang.t()
+  if (wine.rating === null) return html`<span class="rating rating--none">${t.noRating}</span>`
   const thin = wine.ratingCount !== null && wine.ratingCount < THIN_SAMPLE
   return html`
     <span class="${thin ? 'rating rating--thin' : 'rating'}">
-      <span class="rating-score">${wine.rating}</span>
-      <span class="rating-outof">/100</span>
-      ${wine.ratingCount !== null && html`<span class="rating-count"> (${wine.ratingCount})</span>`}
+      <span class="rating-score">${t.ratingOf(wine.rating)}</span>
+      ${wine.ratingCount !== null && html`
+        <span class="rating-count">
+          ${thin ? t.fromFewReviews(wine.ratingCount) : t.fromReviews(wine.ratingCount)}
+        </span>
+      `}
     </span>
   `
+}
+
+/** Region, country and grapes — the facts, under the reason that used them. */
+function provenance(wine: Wine): string {
+  const place = [wine.region, wine.country].filter(Boolean).join(', ')
+  const grapes = wine.grapes.join(', ')
+  return [place, grapes].filter(Boolean).join(' · ')
 }
 
 function saqLink(wine: Wine, className: string): Html {
@@ -68,28 +79,42 @@ function favourites(rows: readonly Wine[]): Html | false {
   `
 }
 
-function results(rows: readonly ScoredWine[], profile: TasteProfile, total: number): Html | false {
+function results(
+  rows: readonly ScoredWine[], profile: TasteProfile, total: number, seedCount: number,
+): Html | false {
   if (rows.length === 0) return false
   return html`
     <section class="results-section">
       <div class="results-head">
-        <div class="label">${lang.t().bestMatches}</div>
+        <div class="results-title">
+          ${lang.t().bestMatches}
+          <span class="results-against">${lang.t().rankedAgainst(seedCount)}</span>
+        </div>
         <div class="results-count">${lang.t().resultCount(rows.length, total)}</div>
       </div>
       <div class="results-list">
         ${rows.map((scored, i) => html`
-          <div class="results-row" style="--i:${i}">
+          <div class="results-row" style="--i:${i}" data-sku="${scored.wine.sku}">
             <div class="results-rank">${i + 1}</div>
             <div class="results-body">
+              <!--
+                The reason leads. It is the only thing on this row that could
+                not be copied off a price tag, and it is the product's claim to
+                being useful rather than arbitrary.
+              -->
+              <p class="reason">${describeMatch(scored, profile)}</p>
               <div class="results-name-row">
                 ${saqLink(scored.wine, 'results-name')}
                 <div class="results-price">${money(scored.wine.price)}</div>
               </div>
-              <!-- No stock line: every row is in stock here by construction
-                   (buildCatalogFilter pins availability to the branch) and the
-                   header above already says so. -->
+              <div class="results-meta">${provenance(scored.wine)}</div>
               <div class="results-stock">${rating(scored.wine)}</div>
-              <p class="reason">${describeMatch(scored, profile)}</p>
+              <div class="results-actions">
+                <button type="button" class="results-act" data-find="less"
+                        data-sku="${scored.wine.sku}">${lang.t().lessLikeThis}</button>
+                <button type="button" class="results-act" data-find="hide"
+                        data-sku="${scored.wine.sku}">${lang.t().hide}</button>
+              </div>
             </div>
           </div>
         `)}
@@ -110,6 +135,15 @@ export class FindPanel extends StoreElement {
       if (el.dataset.find === 'branch') openBranchSheet()
       else if (el.dataset.find === 'filters') openFilterSheet()
       else if (el.dataset.find === 'add') openAddWines()
+      else if (el.dataset.find === 'less' || el.dataset.find === 'hide') {
+        const sku = el.dataset.sku
+        const wine = appState.getSnapshot().search?.results
+          .find(r => r.wine.sku === sku)?.wine
+        // There is no "more like this" here on purpose: the profile is built
+        // from wines the visitor has actually drunk, and filing a suggestion
+        // as liked would feed the ranking its own output.
+        if (wine) cellar.saveWine(wine, el.dataset.find === 'less' ? 'dislike' : 'skip')
+      }
     })
     super.connectedCallback()
   }
@@ -164,7 +198,7 @@ export class FindPanel extends StoreElement {
       </div>
       ${this.#emptyState(likedCount, branch)}
       ${search && favourites(visibleFavourites)}
-      ${search && results(visible, search.profile, search.catalog.length)}
+      ${search && results(visible, search.profile, search.catalog.length, likedCount)}
     `)
   }
 }

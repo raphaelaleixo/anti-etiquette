@@ -23,19 +23,38 @@ export const en = {
   language: 'Language',
 
   // -------------------------------------------------------------- kinds
-  kindLike: 'Liked',
-  kindDislike: 'Steer clear',
-  kindSkip: "Don't recommend",
+  //
+  // Named by what they do to results rather than by how the visitor feels.
+  // "Liked / Steer clear / Don't recommend" described the gesture; these
+  // describe the consequence, which is the part that was not obvious.
+  kindLike: 'More like this',
+  kindDislike: 'Less like this',
+  kindSkip: 'Just hidden',
+  kindLikeNote: 'Pulls results towards wines like these.',
+  kindDislikeNote: 'Pushes results away from wines like these.',
+  kindSkipNote: 'Kept out of results. No effect on your taste.',
+  moveTo: (group: string) => `Move to ${group}`,
+  justHideIt: 'Just hide it',
+  remove: 'Remove',
+  show: 'Show',
+  andMore: (n: number) => `+ ${n} more`,
+  savedShaping: (saved: number, shaping: number) =>
+    `${saved} saved · ${shaping} shaping results`,
+  emptyGroup: 'Empty group',
 
   // ----------------------------------------------------------- my wines
   likedEmpty: 'Add wines you have drunk and liked — not ones you are thinking of buying.',
-  dislikedEmpty: 'Wines to steer away from. Just as useful as the ones you like.',
+  dislikedEmpty: 'Add a wine you did not enjoy and results will move away from it.',
   skippedNote:
     'Kept out of your results and left out of the prompt entirely. Unlike ' +
     '"Steer clear", these say nothing about your taste — no similar wine is ' +
     'pushed away on their account.',
-  unresolvedSku: (sku: string) => `SKU ${sku}`,
-  unresolvedNote: "couldn't look this up",
+  unresolvedSku: (sku: string) => `${sku}`,
+  unresolvedTitle: 'No longer in the catalogue',
+  // Deliberately makes no claim about the taste profile: an entry with no
+  // cached wine is excluded from buildProfile, so "it still counts towards
+  // your taste" would be false.
+  unresolvedNote: 'Saved before, not found today.',
   removeSku: (sku: string) => `Remove SKU ${sku}`,
   actionsFor: (name: string) => `Actions for ${name}`,
   removeFromList: 'Remove from my wines',
@@ -72,8 +91,16 @@ export const en = {
     'anything once it knows which shelf it is reading.',
   favouritesHere: (n: number) =>
     n === 1 ? 'One of your wines is here' : `${n} of your wines are here`,
-  bestMatches: 'Best matches here',
-  resultCount: (shown: number, total: number) => `${shown} of ${total} in stock`,
+  bestMatches: 'Best matches',
+  rankedAgainst: (n: number) => `ranked against your ${n} wines`,
+  resultCount: (shown: number, total: number) => `${shown} shown · ${total} fit your filters`,
+  lessLikeThis: 'Less like this',
+  hide: 'Hide',
+  noRating: 'No community rating yet',
+  ratingOf: (score: number) => `${score} / 100`,
+  fromReviews: (n: number) => `from ${n} reviews`,
+  fromFewReviews: (n: number) => `from ${n} reviews — too few to lean on`,
+  changeScope: 'Change scope',
 
   // ------------------------------------------------------------- search
   fetchingCatalog: "Fetching this branch's catalog…",

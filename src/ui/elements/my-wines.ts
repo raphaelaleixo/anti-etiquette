@@ -90,6 +90,7 @@ function row(entry: CellarEntry, index: number): Html {
         <span class="mywines-rule" aria-hidden="true"></span>
         <div class="mywines-body">
           <div class="mywines-name">${lang.t().unresolvedSku(entry.sku)}</div>
+          <div class="mywines-region">${lang.t().unresolvedTitle}</div>
           <div class="mywines-region">${lang.t().unresolvedNote}</div>
         </div>
         <button
@@ -222,8 +223,36 @@ export class MyWines extends StoreElement {
     super.connectedCallback()
   }
 
+  /**
+   * One group column.
+   *
+   * The three groups are the product's central idea and were previously named
+   * for the visitor's feeling — Liked, Steer clear, Don't recommend. They are
+   * now named for what they do to results, and each carries a line saying so,
+   * because the consequence was the part nobody could infer.
+   */
+  #group(kind: SeedKind, entries: CellarEntry[], emptyHint: string): Html {
+    const t = lang.t()
+    const note = kind === 'like' ? t.kindLikeNote
+      : kind === 'dislike' ? t.kindDislikeNote
+      : t.kindSkipNote
+    return html`
+      <section class="mywines-group mywines-group--${KIND_CLASS[kind]}">
+        <div class="mywines-head">
+          <div class="mywines-title">${lang.kindLabel(kind)}</div>
+          <div class="mywines-count">${entries.length}</div>
+        </div>
+        <p class="mywines-note">${note}</p>
+        ${entries.length === 0
+          ? html`<p class="hint">${emptyHint}</p>`
+          : list(entries)}
+      </section>
+    `
+  }
+
   protected render(): void {
-    const { entries } = cellar.getSnapshot()
+    const snap = cellar.getSnapshot()
+    const { entries } = snap
     const nag = !isPersistent() || shouldSuggestExport(entries.length, Date.now())
     const of = (kind: SeedKind) => entries.filter(e => e.kind === kind)
     const liked = of('like')
@@ -234,38 +263,23 @@ export class MyWines extends StoreElement {
     // no longer disagree. That is what deletes the three "Loading N more…"
     // lines along with skipsRevealed and the *Total props: there is no longer
     // an asynchronous gap for them to describe.
+    const t = lang.t()
     mount(this, html`
-      <section class="mywines-group">
-        <div class="mywines-head">
-          <span class="mywines-badge mywines-badge--good" aria-hidden="true">✓</span>
-          <div class="mywines-title">${lang.t().kindLike}</div>
-          <div class="mywines-count">${liked.length}</div>
-        </div>
-        ${liked.length === 0
-          ? html`<p class="hint">${lang.t().likedEmpty}</p>`
-          : list(liked)}
-      </section>
+      <div class="mywines-summary">
+        <!--
+          The second number is snapshot.liked, which excludes entries with no
+          cached wine — those are saved but shape nothing, because buildProfile
+          never sees them. Using the group's own length here would have
+          overstated it by exactly the wines the app cannot look up.
+        -->
+        ${t.savedShaping(entries.length, snap.liked.length)}
+      </div>
 
-      <section class="mywines-group mywines-group--disliked">
-        <div class="mywines-head">
-          <span class="mywines-badge mywines-badge--bad" aria-hidden="true">✕</span>
-          <div class="mywines-title mywines-title--quiet">${lang.t().kindDislike}</div>
-          <div class="mywines-count">${disliked.length}</div>
-        </div>
-        ${disliked.length === 0
-          ? html`<p class="hint">${lang.t().dislikedEmpty}</p>`
-          : list(disliked)}
-      </section>
-
-      <details class="mywines-group mywines-group--skipped">
-        <summary class="mywines-head">
-          <span class="mywines-badge mywines-badge--quiet" aria-hidden="true">–</span>
-          <div class="mywines-title mywines-title--quiet">${lang.t().kindSkip}</div>
-          <div class="mywines-count">${skipped.length}</div>
-        </summary>
-        <p class="hint">${lang.t().skippedNote}</p>
-        ${skipped.length > 0 && list(skipped)}
-      </details>
+      <div class="mywines-groups">
+        ${this.#group('like', liked, t.likedEmpty)}
+        ${this.#group('dislike', disliked, t.dislikedEmpty)}
+        ${this.#group('skip', skipped, t.skippedNote)}
+      </div>
 
       ${backup(entries.length, nag, this.#message)}
     `)

@@ -25,19 +25,30 @@ export const fr: Messages = {
   language: 'Langue',
 
   // -------------------------------------------------------------- kinds
-  kindLike: 'Aimés',
-  kindDislike: 'À éviter',
-  kindSkip: 'Ne pas proposer',
+  kindLike: 'Plus comme ça',
+  kindDislike: 'Moins comme ça',
+  kindSkip: 'Simplement masqués',
+  kindLikeNote: 'Rapproche les résultats des vins comme ceux-ci.',
+  kindDislikeNote: 'Éloigne les résultats des vins comme ceux-ci.',
+  kindSkipNote: 'Écartés des résultats. Aucun effet sur vos goûts.',
+  moveTo: group => `Déplacer vers « ${group} »`,
+  justHideIt: 'Simplement masquer',
+  remove: 'Retirer',
+  show: 'Afficher',
+  andMore: n => `+ ${n} de plus`,
+  savedShaping: (saved, shaping) => `${saved} gardés · ${shaping} influencent les résultats`,
+  emptyGroup: 'Groupe vide',
 
   // ----------------------------------------------------------- my wines
   likedEmpty: 'Ajoutez des vins que vous avez bus et aimés — pas ceux que vous pensez acheter.',
-  dislikedEmpty: 'Des vins à éviter. Aussi utiles que ceux que vous aimez.',
+  dislikedEmpty: 'Ajoutez un vin que vous n’avez pas aimé et les résultats s’en éloigneront.',
   skippedNote:
     'Écartés de vos résultats et absents du texte pour l’IA. Contrairement ' +
     'à « À éviter », ceux-ci ne disent rien de vos goûts : aucun vin semblable ' +
     'n’est écarté à cause d’eux.',
-  unresolvedSku: sku => `Code ${sku}`,
-  unresolvedNote: 'introuvable au catalogue',
+  unresolvedSku: sku => `${sku}`,
+  unresolvedTitle: 'Absent du catalogue',
+  unresolvedNote: 'Gardé auparavant, introuvable aujourd’hui.',
   removeSku: sku => `Retirer le code ${sku}`,
   actionsFor: name => `Actions pour ${name}`,
   removeFromList: 'Retirer de mes vins',
@@ -74,7 +85,15 @@ export const fr: Messages = {
   favouritesHere: n =>
     n === 1 ? 'Un de vos vins est ici' : `${n} de vos vins sont ici`,
   bestMatches: 'Meilleures correspondances',
-  resultCount: (shown, total) => `${shown} sur ${total}`,
+  rankedAgainst: n => `classés selon vos ${n} vins`,
+  resultCount: (shown, total) => `${shown} affichés · ${total} correspondent à vos filtres`,
+  lessLikeThis: 'Moins comme ça',
+  hide: 'Masquer',
+  noRating: 'Pas encore de note',
+  ratingOf: score => `${score} / 100`,
+  fromReviews: n => `d’après ${n} avis`,
+  fromFewReviews: n => `d’après ${n} avis — trop peu pour s’y fier`,
+  changeScope: 'Changer la portée',
 
   // ------------------------------------------------------------- search
   fetchingCatalog: 'Lecture du catalogue de cette succursale…',

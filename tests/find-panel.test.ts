@@ -85,8 +85,11 @@ describe('results', () => {
   it('heads the list with how many of the branch total are shown', async () => {
     mountPanel()
     await searchWith(Array.from({ length: 30 }, (_, i) => wine(String(900 + i))))
-    // RESULT_COUNT is 10.
-    expect($('.results-count').textContent).toContain('10 of 30 in stock')
+    // RESULT_COUNT is 10. "fit your filters" rather than "in stock": every
+    // row is in stock by construction, so the number that carries information
+    // is how many the filter admitted.
+    expect($('.results-count').textContent).toContain('10 shown')
+    expect($('.results-count').textContent).toContain('30 fit your filters')
   })
 
   /**
@@ -107,8 +110,15 @@ describe('the rating', () => {
     mountPanel()
     await searchWith([wine('900', { rating: 100, ratingCount: 3 })])
     // A bare "100" would read as the best wine in the shop.
-    expect($('.rating').textContent).toContain('100')
-    expect($('.rating').textContent).toContain('(3)')
+    expect($('.rating').textContent).toContain('100 / 100')
+    expect($('.rating').textContent).toContain('3 reviews')
+  })
+
+  it('says outright when a sample is too thin to lean on', async () => {
+    mountPanel()
+    await searchWith([wine('900', { rating: 100, ratingCount: 3 })])
+    // Dimming alone asks the reader to do the arithmetic. This says it.
+    expect($('.rating').textContent).toContain('too few to lean on')
   })
 
   it('dims a thin sample', async () => {
@@ -123,10 +133,12 @@ describe('the rating', () => {
     expect($('.rating').className).not.toContain('rating--thin')
   })
 
-  it('renders nothing when there is no rating', async () => {
+  it('says there is no rating rather than leaving a gap', async () => {
+    // An empty space reads as a missing value or a bug; "no rating yet" is a
+    // fact about the wine and does not imply it is bad.
     mountPanel()
     await searchWith([wine('900', { rating: null })])
-    expect(document.querySelector('.rating')).toBe(null)
+    expect($('.rating--none').textContent).toContain('No community rating yet')
   })
 })
 
@@ -280,5 +292,68 @@ describe('the prompt dialog', () => {
     order.push('after-click-returns')
 
     expect(order).toEqual(['writeText', 'after-click-returns'])
+  })
+})
+
+/**
+ * The design's row actions, and the one it deliberately does not have.
+ */
+describe('acting on a result', () => {
+  it('pushes results away from a wine', async () => {
+    mountPanel()
+    await searchWith([wine('900'), wine('901')])
+
+    $('[data-find="less"][data-sku="900"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+
+    expect(cellar.getSnapshot().refs).toContainEqual({ sku: '900', kind: 'dislike' })
+    // And it leaves the results immediately, without another search.
+    expect($$('.results-row')).toHaveLength(1)
+  })
+
+  it('hides a wine without saying anything about taste', async () => {
+    mountPanel()
+    await searchWith([wine('900'), wine('901')])
+
+    $('[data-find="hide"][data-sku="900"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+
+    expect(cellar.getSnapshot().refs).toContainEqual({ sku: '900', kind: 'skip' })
+  })
+
+  it('offers no way to file a suggestion as liked', async () => {
+    // Filing a recommendation as liked would feed the ranking its own output,
+    // and the visitor has not drunk the bottle. The profile is built only from
+    // wines they have.
+    mountPanel()
+    await searchWith([wine('900')])
+
+    expect(document.querySelector('[data-find="more"]')).toBe(null)
+    expect($('.results-actions').textContent).not.toMatch(/more like this/i)
+  })
+})
+
+describe('the reason leads the row', () => {
+  it('comes before the name in the document', async () => {
+    mountPanel()
+    await searchWith([wine('900', { grapes: ['Syrah'] })])
+
+    const body = $('.results-body')
+    const kids = [...body.children]
+    expect(kids.findIndex(k => k.classList.contains('reason')))
+      .toBeLessThan(kids.findIndex(k => k.classList.contains('results-name-row')))
+  })
+
+  it('shows provenance and grapes under it', async () => {
+    mountPanel()
+    await searchWith([wine('900', { region: 'Douro', country: 'Portugal', grapes: ['Syrah', 'Touriga'] })])
+    expect($('.results-meta').textContent).toContain('Douro, Portugal')
+    expect($('.results-meta').textContent).toContain('Syrah, Touriga')
+  })
+
+  it('says what the ranking was built from', async () => {
+    mountPanel()
+    await searchWith([wine('900')])
+    expect($('.results-against').textContent).toContain('ranked against your 1 wines')
   })
 })

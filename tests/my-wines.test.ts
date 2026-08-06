@@ -70,11 +70,24 @@ describe('no loading gap', () => {
     const el = mountList()
 
     const row = el.querySelector('.mywines-row--unresolved')!
-    expect(row.textContent).toContain('SKU 10237458')
-    expect(row.textContent).toContain("couldn't look this up")
+    expect(row.textContent).toContain('10237458')
+    expect(row.textContent).toContain('No longer in the catalogue')
 
     row.querySelector<HTMLButtonElement>('[data-act="remove"]')!.click()
     expect(cellar.getSnapshot().entries).toHaveLength(0)
+  })
+
+  it('does not claim an unresolved wine still shapes your taste', () => {
+    // It does not: buildProfile is fed `liked`, which filters wine !== null.
+    // A draft of the design said "it still counts towards your taste", which
+    // would have been a comforting sentence that happened to be false.
+    cellar.replaceAll([{ sku: '10237458', kind: 'like', addedAt: 1, wine: null, wineFetchedAt: 0 }])
+    const el = mountList()
+
+    const row = el.querySelector('.mywines-row--unresolved')!
+    expect(row.textContent).not.toMatch(/still counts|towards your taste|compte toujours/i)
+    // And the shaping count agrees: nothing is shaping anything.
+    expect(cellar.getSnapshot().liked).toHaveLength(0)
   })
 })
 
@@ -326,5 +339,45 @@ describe('exporting', () => {
     el.querySelector<HTMLButtonElement>('[data-act="export"]')!.click()
 
     expect(el.querySelector('.backup-summary')!.textContent).not.toContain('back it up')
+  })
+})
+
+/**
+ * The groups are named for what they do to results, not for how the visitor
+ * feels — the consequence was the part nobody could infer.
+ */
+describe('the three groups explain themselves', () => {
+  it('names each group by its effect', () => {
+    const el = mountList()
+    const titles = [...el.querySelectorAll('.mywines-title')].map(n => n.textContent!.trim())
+    expect(titles).toEqual(['More like this', 'Less like this', 'Just hidden'])
+  })
+
+  it('says what each one does to results', () => {
+    const el = mountList()
+    const notes = [...el.querySelectorAll('.mywines-note')].map(n => n.textContent!.trim())
+    expect(notes[0]).toContain('towards')
+    expect(notes[1]).toContain('away')
+    expect(notes[2]).toContain('No effect on your taste')
+  })
+
+  it('distinguishes wines saved from wines shaping results', () => {
+    // An unresolved entry is saved but shapes nothing, and a hidden one is
+    // saved on purpose to shape nothing. One number could not say both.
+    cellar.saveWine(wine('111'), 'like')
+    cellar.saveWine(wine('222'), 'skip')
+    cellar.replaceAll([
+      ...cellar.getSnapshot().entries,
+      { sku: '333', kind: 'like', addedAt: 3, wine: null, wineFetchedAt: 0 },
+    ])
+    const el = mountList()
+
+    expect(el.querySelector('.mywines-summary')!.textContent)
+      .toContain('3 saved · 1 shaping results')
+  })
+
+  it('keeps every group visible even when empty', () => {
+    const el = mountList()
+    expect(el.querySelectorAll('.mywines-group')).toHaveLength(3)
   })
 })

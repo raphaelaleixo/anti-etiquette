@@ -725,3 +725,56 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
   display:flex;align-items:center;justify-content:center;}
 .langtoggle button.active{background:var(--wine);color:var(--on-accent);}
 .langtoggle button:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
+
+/* ═══════════════════════════════════════════════════════════ Screens design */
+
+/*
+ * Desktop is a first-class layout, not a stretched phone.
+ *
+ * The shell was a 30rem column centred in whatever window it was given, which
+ * is right in a shop aisle and wasteful at a desk — and building the list is a
+ * keyboard task people do at a desk.
+ */
+@media (min-width: 60rem) {
+  .shell { max-width: 72rem; }
+  .shell-body { padding-inline: 32px; }
+  .shell-head { padding-inline: 32px; }
+  .shell-foot { padding-inline: 32px; }
+}
+
+/* My wines — a summary line, then the three groups */
+.mywines-summary{font-size:13px;color:var(--mute2);padding-bottom:14px;}
+.mywines-groups{display:flex;flex-direction:column;gap:26px;}
+
+/* The three groups sit side by side once there is room: the distinction is
+   then spatial and does not need re-explaining on every visit. */
+@media (min-width: 60rem) {
+  .mywines-groups{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:24px;align-items:start;}
+  .mywines-group + .mywines-group{margin-top:0;}
+}
+
+.mywines-note{margin:0 0 10px;font-size:12px;line-height:1.4;color:var(--mute2);
+  text-wrap:pretty;}
+.mywines-group--skipped{opacity:0.82;}
+
+/* Results — the reason leads, so it takes the display face and the accent. */
+.results-title{font-family:var(--display);font-size:19px;color:var(--ink);}
+.results-against{font-family:var(--ui);font-size:12px;color:var(--mute2);
+  margin-left:8px;}
+.results-row .reason{font-family:var(--display);font-size:16px;line-height:1.35;
+  color:var(--accent-hi);margin:0 0 6px;}
+.results-meta{font-size:12px;color:var(--mute2);}
+.results-actions{display:flex;gap:8px;margin-top:8px;}
+.results-act{border:none;border-radius:999px;padding:5px 12px;font-size:12px;
+  background:var(--raise);color:var(--mute);}
+.results-act:hover{background:var(--raise2);color:var(--ink2);}
+.rating--none{color:var(--mute2);font-style:italic;}
+.rating-count{margin-left:6px;}
+
+@media (min-width: 60rem) {
+  .results-list{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:0 28px;}
+  .find-columns{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);
+    gap:28px;align-items:start;}
+}
