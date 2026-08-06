@@ -385,13 +385,13 @@ serves: fuzzy **name** search wants candidates; exact **SKU** hydration wants an
 the unmatched-line handling, which currently discards the whole batch including successful
 matches and doesn't restore the typed text (`ResolutionTable.tsx:73`, `App.tsx:279`).
 
-## Task 12 — Migration, opportunistic refresh, docs
+## Task 12 — Opportunistic refresh and docs
 
-`scripts/export-firebase.ts`, run once, in the existing `build-stores.ts` idiom: plain `fetch`
-against `<db>/seeds.json` (RTDB's REST endpoint, readable under current rules). **Do not** add a
-Firebase read path to the app — that reships the SDK being deleted. Resolve each SKU, **assert
-`found.sku === sku`**, report mismatches to stderr rather than writing them, emit a cellar
-document, import it through the app's own button, delete the script.
+**Migration dropped.** The plan assumed this fork replaced the private app. It does not — the
+private app stays in use, so there is nothing to migrate and `scripts/export-firebase.ts` was
+deleted along with the `tsx` devDependency it needed. The instruction it was written to satisfy —
+*do not add a Firebase read path to the app* — is now satisfied by there being no Firebase code
+anywhere, which `tests/no-dependencies.test.ts` enforces.
 
 `search()` already downloads the branch's whole catalog; intersect with saved SKUs and
 `refreshWines` for **zero extra requests**, before `buildProfile`. No TTL, no refetch-on-load —

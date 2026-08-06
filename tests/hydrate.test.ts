@@ -166,8 +166,8 @@ describe('a lookup that fails outright', () => {
 
 describe('concurrency', () => {
   it('never has more than four lookups in flight', async () => {
-    // Uncapped, a migration import would fire one request per saved wine in a
-    // single burst — the exact thing dropping the stock endpoint deleted.
+    // Uncapped, importing a long list would fire one request per saved wine in
+    // a single burst — the exact thing dropping the stock endpoint deleted.
     let inFlight = 0
     let peak = 0
     vi.spyOn(catalog, 'resolveSku').mockImplementation(async sku => {

@@ -12,16 +12,16 @@ import type { Wine } from './types'
  * (`App.tsx:113`), so opening the page cost one request per saved bottle. Here
  * a record is written when the wine is added and kept until something replaces
  * it, so the only entries left are the ones that genuinely never resolved:
- * migrated, imported, or a lookup that failed at the time.
+ * imported from another device, or a lookup that failed at the time.
  */
 
 /**
  * Concurrency cap.
  *
- * Usually irrelevant — the list is empty. It matters exactly once, after a
- * migration import, where an uncapped `Promise.all` would fire one request per
- * saved wine at the catalog in a single burst. Deleting that burst from search
- * was one of the wins of dropping the stock endpoint; it would be careless to
+ * Usually irrelevant — the list is empty. It matters when someone imports a
+ * long list, where an uncapped `Promise.all` would fire one request per saved
+ * wine at the catalog in a single burst. Deleting that burst from search was
+ * one of the wins of dropping the stock endpoint; it would be careless to
  * reintroduce it here.
  */
 const CONCURRENCY = 4

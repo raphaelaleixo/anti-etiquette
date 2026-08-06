@@ -48,8 +48,7 @@ export function start(): void {
   watchOtherTabs()
 
   // Returns without touching the network on virtually every load: a wine is
-  // cached when it is added, so only migrated or imported entries are ever
-  // missing one. Failures are the user's list being briefly incomplete, not
+  // cached when it is added, so only imported entries are ever missing one. Failures are the user's list being briefly incomplete, not
   // something to interrupt them over.
   void hydrateMissing().catch(() => {})
 

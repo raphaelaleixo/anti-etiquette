@@ -68,7 +68,6 @@ index.html          landing page
 app/index.html      the app shell (static markup; elements upgrade in place)
 src/lib/            the brain — framework-agnostic, transferred intact
 src/ui/             rendering toolkit, custom elements, sheets
-scripts/            one-off migration; not part of the build
 ```
 
 ### The data model
@@ -95,8 +94,8 @@ memory, publishes, and surfaces on the snapshot instead of throwing.
 
 Because a wine's full record is stored when it is added, opening the app
 normally makes **no network requests at all** — `hydrate.ts` only resolves
-entries with no cached record, which after a migration or an import is the only
-time there are any.
+entries with no cached record, which after an import is the only time there
+are any.
 
 ### The three kinds
 
@@ -135,23 +134,17 @@ has wines keeps both.
 
 Adding the page to your Home Screen exempts it from the iOS eviction window.
 
-## Migrating from the private version
+## Relationship to the private version
 
-`scripts/export-firebase.ts` reads the old Realtime Database over plain REST,
-resolves each SKU, and writes a cellar document:
+This began as a fork of a private, two-person app backed by Firebase. That app
+still exists and still runs; this is not a replacement for it and shares no
+data with it. There is no migration path between the two, by choice — reading
+the old database would mean shipping the Firebase SDK that dropping it saved
+most of 117 KB to remove.
 
-```bash
-npm run export-firebase -- https://<project>-default-rtdb.firebaseio.com cellar-export.json
-```
-
-Import that file through the app's own Import button, then **delete the
-script**. It is a migration, not a feature — the app has no Firebase read path
-and must not gain one.
-
-Any SKU whose lookup returns a *different* wine is reported and not written.
-The catalogue endpoint has no SKU lookup, so a delisted SKU still returns
-whatever the relevance ranker liked best; migrating without that check is how a
-stranger's bottle ends up in your list under the name of a wine that was yours.
+What carried over is the code that does the thinking: catalogue access,
+parsing, scoring, the taste profile, the reason strings and the prompt. What
+did not is everything that assumed a server.
 
 ## Legal
 
