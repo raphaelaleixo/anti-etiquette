@@ -20,12 +20,20 @@
   --ink: #221417;
   --ink-quiet: #5d4a4c;
   --line: rgba(34, 20, 23, 0.14);
-  --field: #6d1f2c;
-  --field-ink: #f5ead8;
-  --field-quiet: #c98d97;
+  /*
+   * The page chrome — header and footer. Light makes it a wine field; dark
+   * puts it on the ground with a divider instead, because a wine block on an
+   * espresso ground reads as a smudge rather than a band. Same design, and
+   * the difference is why these are tokens rather than one colour.
+   */
+  --chrome: #6d1f2c;
+  --chrome-ink: #f5ead8;
+  --chrome-quiet: #c98d97;
+  --chrome-line: transparent;
   --accent: #b4532f;
   --accent-ink: #fffaf2;
   --accent-soft: #f0d9cd;
+  --accent-soft-ink: #8c491a;
   --leaf-fill: #dcddc2;
   --leaf-ink: #37402a;
 
@@ -50,12 +58,14 @@
     --ink: #f4ebdd;
     --ink-quiet: #c2b8a9;
     --line: rgba(244, 235, 221, 0.15);
-    --field: #5e1a25;
-    --field-ink: #f4ebdd;
-    --field-quiet: #d59aa3;
+    --chrome: #1a1512;
+    --chrome-ink: #f4ebdd;
+    --chrome-quiet: #c2b8a9;
+    --chrome-line: rgba(244, 235, 221, 0.15);
     --accent: #8e2436;
     --accent-ink: #f4ebdd;
     --accent-soft: #3d1721;
+    --accent-soft-ink: #e79aa6;
     --leaf-fill: #2c3324;
     --leaf-ink: #dbe3c6;
   }
@@ -150,8 +160,9 @@ a { color: inherit; }
 .brand-label::after { rotate: 45deg; }
 
 .site-head {
-  background: var(--field);
-  color: var(--field-ink);
+  background: var(--chrome);
+  color: var(--chrome-ink);
+  border-block-end: 1px solid var(--chrome-line);
   padding: 0.9rem var(--gap);
   display: flex;
   align-items: center;
@@ -162,8 +173,8 @@ a { color: inherit; }
 
 
 .site-nav { display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 1.6rem); }
-.site-nav a { text-decoration: none; color: var(--field-quiet); }
-.site-nav a:hover { color: var(--field-ink); }
+.site-nav a { text-decoration: none; color: var(--chrome-quiet); }
+.site-nav a:hover { color: var(--chrome-ink); }
 
 /* ------------------------------------------------------------------ buttons */
 
@@ -230,12 +241,29 @@ main { display: block; }
   margin-block-start: 1.1rem;
 }
 
-/* Reserves the hero image's box without shipping an image yet. */
+/*
+ * Hero art.
+ *
+ * The design slots a photograph here — "a shelf of bottles, or a bottle with
+ * no label". There is no photograph, and an empty panel on a shipped page
+ * reads as a bug rather than as a space reserved. So the mark stands in at
+ * size: it is already a bottle with its label crossed out, it needs no asset,
+ * and it degrades to nothing on narrow screens where the copy should lead.
+ *
+ * Swap in the photo when there is one and delete the .hero-mark rule.
+ */
 .hero-figure {
   aspect-ratio: 21 / 23;
   border-radius: 1.75rem;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.hero-mark {
+  --mark: min(15rem, 42vw);
+  filter: saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94);
 }
 @media (max-width: 56rem) {
   .hero-figure { display: none; }
@@ -276,7 +304,7 @@ main { display: block; }
   block-size: 2.75rem;
   border-radius: 999px;
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-soft-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,7 +335,7 @@ main { display: block; }
   justify-content: space-between;
 }
 .privacy h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); margin-block-end: 0.5rem; }
-.privacy p { max-inline-size: 52ch; }
+.privacy p { max-inline-size: 52ch; color: var(--leaf-ink); }
 .privacy-nots {
   list-style: none;
   margin: 0;
@@ -318,23 +346,28 @@ main { display: block; }
 }
 .privacy-nots li { display: flex; align-items: center; gap: 0.55rem; }
 
-/* The struck-through square: the design's "not this" mark, drawn in CSS. */
+/*
+ * The struck-through square: the design's "not this" mark, drawn in CSS.
+ * A white tile with a near-black cross in both schemes — it sits on the sage
+ * fill, not on the page, so it does not follow the ground.
+ */
 .not-mark {
   inline-size: 1.75rem;
   block-size: 1.75rem;
   flex: none;
   border-radius: 0.5rem;
-  background: var(--surface);
+  background: #fff;
   position: relative;
+  overflow: hidden;
 }
 .not-mark::before,
 .not-mark::after {
   content: '';
   position: absolute;
   inset-inline: 0.2rem;
-  inset-block-start: calc(50% - 1px);
-  block-size: 2px;
-  background: var(--ink);
+  inset-block-start: calc(50% - 1.5px);
+  block-size: 3px;
+  background: #201e1d;
 }
 .not-mark::before { rotate: 45deg; }
 .not-mark::after { rotate: -45deg; }
@@ -356,8 +389,9 @@ main { display: block; }
 /* ------------------------------------------------------------------- footer */
 
 .site-foot {
-  background: var(--field);
-  color: var(--field-ink);
+  background: var(--chrome);
+  color: var(--chrome-ink);
+  border-block-start: 1px solid var(--chrome-line);
   padding: clamp(2rem, 5vw, 2.75rem) var(--gap);
   display: flex;
   flex-wrap: wrap;
@@ -370,7 +404,7 @@ main { display: block; }
 .foot-brand .brand-mark { --mark: 2.6rem; }
 .foot-brand .brand-name { font-size: 1.4rem; }
 .foot-note {
-  color: var(--field-quiet);
+  color: var(--chrome-quiet);
   font-size: 0.95rem;
   max-inline-size: 46ch;
   flex: 1 1 22rem;
