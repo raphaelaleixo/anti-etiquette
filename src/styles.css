@@ -11,55 +11,71 @@
 }
 
 /*
- * Organic, dark. The tokens are re-pointed rather than re-designed, so the
- * warmth survives: an espresso ground instead of a cool near-black, warm
- * off-white type instead of grey, and wine red where brass used to be.
+ * The Screens palette.
  *
- * The old `--brass` was doing two jobs — a fill with dark ink on top, and a
- * text colour — which a single value could get away with because brass is
- * light. Wine red is dark, so it cannot: it works as a fill under cream ink,
- * and fails as text on this ground. Hence the split into `--accent` (fill),
- * `--on-accent` (ink over it) and `--accent-hi` (text and focus rings).
+ * A warm near-neutral ramp — every surface is hue 70 at chroma 0.008, every
+ * text tone hue 85 — with one terracotta accent doing all the pointing. It
+ * replaces the Organic wine-and-espresso scheme wholesale; this is a different
+ * design, not a retune of that one.
+ *
+ * Type does the work the colour is not doing: monospace for anything
+ * structural (labels, prices, counts, controls) and Georgia for anything
+ * written (headings, and the reason sentence the whole product turns on). The
+ * split is legible at a glance and needs no third colour.
+ *
+ * Corners are 3px. Not pills: at this density a pill reads as a tag, and
+ * almost everything here is a control or a row rather than a label.
  */
 :root{
   color-scheme:dark;
-  --ground:#1a1512; --raise:#241e19; --raise2:#2f2721;
-  /* The tab switch's selected segment goes darker than the ground, not
-     lighter — it reads as a well rather than a raised chip. */
-  --sink:#100d0b;
-  --ink:#f4ebdd; --ink2:#f9f4ed;
-  --mute:#c2b8a9; --mute2:#a1978a;
-  --line:rgba(244,235,221,0.15); --line2:rgba(244,235,221,0.28);
 
-  --accent:#8e2436; --accent-600:#a52c40; --on-accent:#f4ebdd;
-  --accent-hi:#d97f8e;
-  --wine:#5e1a25; --wine-300:#d59aa3;
+  /* surfaces — hue 70, chroma 0.008 */
+  /* Hex, not oklch, so the landing and the meta theme-color can agree
+     on one literal — a test compares them across files. */
+  --ground:#0e0c09;
+  --panel:#15120f;
+  --raise:#1c1916;
+  --raise2:#211e1b;
+  --sink:#0a0806;
+  --line:#2b2825;
+  --line2:#37342f;
 
-  /* Sage: a fill for the liked list, not just a marker. */
-  --leaf:#94a874; --leaf-fill:#2c3324; --leaf-ink:#dbe3c6;
+  /* text — hue 85 */
+  --ink2:#f4f1ec;
+  --ink:#c6c4be;
+  --mute:#9b9891;
+  --mute2:#7d7a74;
 
-  --warn:#e0a45c; --bad:#d97f8e;
+  /* one accent, doing all the pointing */
+  --accent:#ea856b;
+  /* The header sits a step above the ground rather than on it. */
+  --chrome:#191613;
+  --accent-600:#d5735a;
+  --accent-hi:#f0a08c;
+  --accent-soft:#150a08;
+  --on-accent:#0e0c09;
 
   /*
-   * Caprasimo and Figtree are the system's faces. They are declared but not
-   * fetched: the design links them from Google Fonts, and a page whose whole
-   * argument is "nothing is sent anywhere" cannot announce each visit to a
-   * font CDN. Self-host the files and these stacks light up with no other
-   * change.
+   * The liked group is marked by a tinted surface, not by a second hue — the
+   * sage of the previous design is gone. `--leaf`, `--wine` and `--bad` all
+   * ended up pointing at this same accent, which is three names for one colour
+   * and three chances to pick the wrong one.
    */
-  --display:"Caprasimo",ui-serif,Georgia,serif;
-  --ui:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  --marked:#171310;
+  --warn:#d9a05c;
 
-  --radius-sm:8px; --radius-md:16px; --radius-lg:28px;
+  --display:Georgia,"Iowan Old Style","Times New Roman",serif;
+  --ui:ui-monospace,Menlo,"SF Mono",monospace;
+  --mono:ui-monospace,Menlo,"SF Mono",monospace;
 
-  /* Elevation on a dark ground is ambient darkness, not a tinted drop. */
+  --radius-sm:2px; --radius-md:3px; --radius-lg:5px;
+
   --shadow-sm:0 1px 2px rgba(0,0,0,0.5);
   --shadow-md:0 6px 18px -6px rgba(0,0,0,0.65);
   --shadow-lg:0 28px 60px -22px rgba(0,0,0,0.8);
 }
 
-body{margin:0;background:#120e0c;color:var(--ink);font-family:var(--ui);
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);
      -webkit-font-smoothing:antialiased;}
 a{color:var(--accent-hi);text-decoration:none;}
 a:hover{color:var(--ink2);}
@@ -97,7 +113,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 }
 .hint{color:var(--mute);font-size:.9rem;margin-top:.2rem;}
 .warn{color:var(--warn);}
-.error{color:var(--bad);}
+.error{color:var(--accent);}
 .status{color:var(--mute);}
 .price{font-variant-numeric:tabular-nums;margin-left:.5rem;}
 .mywines-group + .mywines-group{margin-top:1.6rem;}
@@ -122,14 +138,14 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 }
 
 /* Favourites — promoted card */
-.favourites-card{border-radius:var(--radius-lg);background:var(--leaf-fill);
+.favourites-card{border-radius:var(--radius-lg);background:var(--marked);
     box-shadow:var(--shadow-sm);overflow:hidden;}
 .favourites-head{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;}
-.favourites-dot{width:8px;height:8px;border-radius:50%;background:var(--leaf);flex:none;}
+.favourites-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;}
 .favourites-title{font-family:var(--display);font-size:19px;color:var(--ink);}
 .favourites-list{display:flex;flex-direction:column;}
 .favourites-row{display:flex;gap:12px;padding:11px 16px;
-    border-top:1px solid rgba(244,235,221,0.12);align-items:baseline;}
+    border-top:1px solid var(--line);align-items:baseline;}
 .favourites-body{flex:1;min-width:0;}
 .favourites-name{display:block;font-size:15px;color:var(--ink2);line-height:1.25;}
 .favourites-stock{font-size:12px;color:var(--mute2);margin-top:2px;}
@@ -145,7 +161,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .results-row{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line);}
 /* A filled disc rather than a bare numeral: the ranking is the point of this
    list, and at 12px of mono on a warm ground it was barely there. */
-.results-rank{width:26px;height:26px;flex:none;border-radius:999px;
+.results-rank{width:26px;height:26px;flex:none;border-radius:var(--radius-md);
     background:var(--accent);color:var(--on-accent);
     font-family:var(--display);font-size:13px;line-height:1;
     display:flex;align-items:center;justify-content:center;}
@@ -199,20 +215,20 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
     transition-behavior:allow-discrete;}
 .prompt-dialog:not([open]){opacity:0;scale:0.96;}
 .prompt-dialog[open]{@starting-style{opacity:0;scale:0.96;}}
-.prompt-dialog::backdrop{background:rgba(10,7,6,0);
+.prompt-dialog::backdrop{background:rgba(6,5,4,0);
     transition:background-color 200ms ease,display 200ms allow-discrete,
                overlay 200ms allow-discrete;}
 .prompt-dialog[open]::backdrop{
-    background:rgba(10,7,6,0.72);
-    @starting-style{background:rgba(10,7,6,0);}}
+    background:rgba(6,5,4,0.78);
+    @starting-style{background:rgba(6,5,4,0);}}
 
 @media (prefers-reduced-motion: reduce){
   .prompt-dialog, .prompt-dialog:not([open]){opacity:1;scale:1;}
 }
 .prompt-dialog textarea{width:100%;font-family:var(--mono);font-size:.8rem;
     box-sizing:border-box;min-height:16rem;user-select:text;}
-.prompt-dialog textarea.copy-failed{box-shadow:inset 0 0 0 2px var(--bad);
-    outline:2px solid var(--bad);outline-offset:1px;}
+.prompt-dialog textarea.copy-failed{box-shadow:inset 0 0 0 2px var(--accent);
+    outline:2px solid var(--accent);outline-offset:1px;}
 .prompt-dialog-footer{display:flex;gap:10px;margin-top:12px;}
 /* .prompt-link is an <a>, not a <button> — it needs the flex centring and
    text-decoration reset that a real button gets for free, plus an explicit
@@ -228,7 +244,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
    heading without shrinking the tap area. */
 .icon-close{width:44px;height:44px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:22px;line-height:1;background:rgba(244,235,221,0.05);
+    font-size:22px;line-height:1;background:rgba(244,241,236,0.05);
     border:none;padding:0;margin:-6px -6px -6px 0;}
 
 /* My wines — liked vs steer clear */
@@ -236,8 +252,8 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .mywines-head{display:flex;align-items:center;gap:8px;padding-bottom:6px;}
 .mywines-badge{width:22px;height:22px;border-radius:50%;font-size:12px;
     font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
-.mywines-badge--good{background:var(--leaf);color:var(--ground);}
-.mywines-badge--bad{box-shadow:inset 0 0 0 1.5px var(--wine-300);color:var(--wine-300);}
+.mywines-badge--good{background:var(--accent);color:var(--ground);}
+.mywines-badge--bad{box-shadow:inset 0 0 0 1.5px var(--accent-hi);color:var(--accent-hi);}
 .mywines-title{font-family:var(--display);font-size:20px;color:var(--ink);}
 .mywines-title--quiet{color:var(--ink);}
 .mywines-count{font-size:13px;color:var(--mute2);}
@@ -247,7 +263,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
    glance in shop lighting, which a hairline did not. */
 .mywines-row{display:flex;gap:11px;align-items:center;padding:11px 14px;
     border-radius:var(--radius-md);margin-bottom:8px;}
-.mywines-row--liked{background:var(--leaf-fill);}
+.mywines-row--liked{background:var(--marked);}
 .mywines-row--disliked{border:1px dashed var(--line2);}
 .mywines-row--skipped{border:1px dashed var(--line);}
 /* The rule is gone; the fill carries the meaning now. */
@@ -257,18 +273,18 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .mywines-row--disliked .mywines-name{color:var(--mute);}
 .mywines-region{font-size:12px;color:var(--mute2);margin-top:2px;}
 /* Inside the sage fill the neutral mute goes muddy; sage ink stays legible. */
-.mywines-row--liked .mywines-region{color:var(--leaf-ink);opacity:0.75;}
+.mywines-row--liked .mywines-region{color:var(--ink);opacity:0.75;}
 .mywines-row--liked .mywines-name{color:var(--ink2);}
 .mywines-remove{width:44px;height:44px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:19px;background:rgba(244,235,221,0.05);border:none;padding:0;}
+    font-size:19px;background:rgba(244,241,236,0.05);border:none;padding:0;}
 
 /* Per-row actions. One quiet control rather than a re-file dropdown next to a
    remove button — neither is a primary action, and together they crowded the
    name they act on. */
 .mywines-menu-btn{width:44px;height:44px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:19px;line-height:1;background:rgba(244,235,221,0.05);
+    font-size:19px;line-height:1;background:rgba(244,241,236,0.05);
     border:none;padding:0;}
 .mywines-menu-btn:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
 
@@ -297,7 +313,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
     padding:10px;border:none;background:none;border-radius:9px;
     font:inherit;font-size:15px;color:var(--ink2);text-align:left;}
 .wine-menu-item[aria-pressed="true"]{color:var(--accent-hi);}
-.wine-menu-item--danger{color:var(--bad);margin-top:4px;
+.wine-menu-item--danger{color:var(--accent);margin-top:4px;
     border-top:1px solid var(--line);border-radius:0 0 9px 9px;}
 .wine-menu-tick{width:1rem;flex:none;font-size:12px;}
 @media (hover:hover){.wine-menu-item:hover{background:var(--raise2);}}
@@ -346,10 +362,10 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
             display:flex;flex-direction:column;gap:18px;}
 .shell-fade{height:26px;margin-top:-26px;position:sticky;bottom:0;z-index:2;
             pointer-events:none;
-            background:linear-gradient(180deg,rgba(26,21,18,0) 0%,var(--ground) 90%);}
+            background:linear-gradient(180deg,rgba(14,12,9,0) 0%,var(--ground) 90%);}
 .shell-foot{position:sticky;bottom:0;z-index:3;
             border-top:1px solid var(--line);
-            background:rgba(36,30,25,0.92);backdrop-filter:blur(12px);
+            background:rgba(25,22,19,0.92);backdrop-filter:blur(12px);
             padding:12px 16px calc(12px + env(safe-area-inset-bottom));
             display:flex;gap:12px;align-items:stretch;}
 
@@ -367,7 +383,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 
 /* Mode switch */
 .modeswitch{display:flex;gap:4px;padding:4px;background:var(--raise);
-            border-radius:999px;position:relative;}
+            border-radius:var(--radius-md);position:relative;}
 
 /* The sliding pill. A pseudo-element, so it stays out of the DOM and the
    accessibility tree. Track padding is 4px and the gap is 4px, so each
@@ -375,7 +391,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
    width plus the gap lands it exactly on the second segment. No measuring. */
 .modeswitch::before{content:'';position:absolute;
     inset-block:4px;inset-inline-start:4px;inline-size:calc(50% - 6px);
-    border-radius:999px;background:var(--sink);
+    border-radius:var(--radius-md);background:var(--sink);
     box-shadow:none;
     translate:0;
     /* Its own transition name so it slides *during* the view transition.
@@ -392,7 +408,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
     animation-timing-function:cubic-bezier(0.32,0.72,0,1);}
 
 .modeswitch button{flex:1;height:40px;margin:0;border:none;background:none;
-                    border-radius:999px;font-size:15px;color:var(--mute2);
+                    border-radius:var(--radius-md);font-size:15px;color:var(--mute2);
                     display:flex;align-items:center;justify-content:center;
                     cursor:pointer;position:relative;z-index:1;
                     transition:color 160ms ease;}
@@ -400,12 +416,12 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .modeswitch button.active{font-family:var(--display);color:var(--ink);}
 
 /* Buttons */
-.btn-primary{flex:1;min-height:52px;border:none;border-radius:999px;
+.btn-primary{flex:1;min-height:52px;border:none;border-radius:var(--radius-md);
              background:var(--accent);color:var(--on-accent);font-size:17px;
              font-family:var(--display);letter-spacing:-0.005em;
              transition:background-color 160ms ease,color 160ms ease,
                         scale 100ms ease;}
-.btn-secondary{flex:1;min-height:52px;border:none;border-radius:999px;
+.btn-secondary{flex:1;min-height:52px;border:none;border-radius:var(--radius-md);
                background:transparent;color:var(--ink);font-size:16px;
                font-family:var(--display);
                box-shadow:inset 0 0 0 1px var(--line2);}
@@ -415,11 +431,11 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 
 /* Chips — open the branch / filter sheets */
 .chip-row{display:flex;gap:8px;}
-.chip{border-radius:999px;height:46px;border:none;border-radius:12px;background:var(--raise);
+.chip{border-radius:var(--radius-md);height:46px;border:none;border-radius:12px;background:var(--raise);
       color:var(--ink2);display:flex;align-items:center;gap:8px;
       padding:0 14px;font-size:15px;font:inherit;cursor:pointer;}
 .chip-branch{flex:1;min-width:0;justify-content:flex-start;}
-.chip-dot{width:7px;height:7px;border-radius:50%;background:var(--leaf);flex:none;}
+.chip-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none;}
 .chip-branch-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
                    white-space:nowrap;text-align:left;}
 .chip-change{font-size:13px;color:var(--mute2);flex:none;}
@@ -438,12 +454,12 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
        max-height:100dvh;height:100dvh;margin:0;
        transition-property:display,overlay;transition-duration:240ms;
        transition-behavior:allow-discrete;}
-.sheet::backdrop{background:rgba(10,7,6,0);
+.sheet::backdrop{background:rgba(6,5,4,0);
        transition:background-color 240ms ease,display 240ms allow-discrete,
                   overlay 240ms allow-discrete;}
 .sheet[open]::backdrop{
-       background:rgba(10,7,6,0.72);
-       @starting-style{background:rgba(10,7,6,0);}}
+       background:rgba(6,5,4,0.78);
+       @starting-style{background:rgba(6,5,4,0);}}
 .sheet-inner{position:absolute;inset:auto 0 0 0;max-height:calc(100dvh - 96px);
              border-radius:24px 24px 0 0;background:var(--raise);
              box-shadow:0 -20px 50px -20px rgba(0,0,0,0.9),inset 0 1px 0 var(--line2);
@@ -476,7 +492,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .sheet-summary{font-size:12px;color:var(--mute2);text-align:center;margin:0;}
 
 /* Branch sheet */
-input.branch-filter{border-radius:999px;height:46px;background:var(--sink);}
+input.branch-filter{border-radius:var(--radius-md);height:46px;background:var(--sink);}
 .branch-group{display:flex;flex-direction:column;}
 .label--brass{color:var(--accent-hi);padding-bottom:6px;}
 .branch-row{display:flex;gap:11px;align-items:center;padding:10px 0;
@@ -495,7 +511,7 @@ input.branch-filter{border-radius:999px;height:46px;background:var(--sink);}
 /* Filter sheet */
 .filtersheet-section{display:flex;flex-direction:column;gap:10px;}
 .filtersheet-pills{display:flex;flex-wrap:wrap;gap:8px;}
-.pill{height:44px;padding:0 18px;border-radius:999px;font-size:15px;
+.pill{height:44px;padding:0 18px;border-radius:var(--radius-md);font-size:15px;
       color:var(--mute);background:none;border:none;font:inherit;
       box-shadow:inset 0 0 0 1px var(--line2);display:flex;align-items:center;
       justify-content:center;}
@@ -514,9 +530,9 @@ input.branch-filter{border-radius:999px;height:46px;background:var(--sink);}
                               padding:0;height:auto;font-size:17px;
                               color:var(--ink2);font-variant-numeric:tabular-nums;}
 .filtersheet-note{display:flex;gap:9px;align-items:flex-start;padding:12px 14px;
-                   border-radius:12px;background:rgba(244,235,221,0.04);}
+                   border-radius:12px;background:rgba(244,241,236,0.04);}
 .filtersheet-note div{font-size:13px;line-height:1.45;color:var(--mute);}
-.filtersheet-dot{width:7px;height:7px;border-radius:50%;background:var(--leaf);
+.filtersheet-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
                   flex:none;margin-top:6px;}
 
 /* Add-wines sheet */
@@ -562,7 +578,7 @@ input.branch-filter{border-radius:999px;height:46px;background:var(--sink);}
                      font-size:19px;line-height:1;color:var(--mute2);
                      background:none;border:none;padding:0;}
 .resolution-dismiss:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
-@media (hover:hover){.resolution-dismiss:hover{color:var(--bad);}}
+@media (hover:hover){.resolution-dismiss:hover{color:var(--accent);}}
 
 /* ---- Mode transition -------------------------------------------------
    The header holds the mode switch itself, so it must stay put while the
@@ -671,43 +687,16 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
 .resolution-alt{margin-top:6px;font-size:13px;padding:8px 10px;}
 
 /*
- * The mark — variant 4c, "X inside the label".
+ * The mark.
  *
- * Black bottle, white label, red X clipped to the label's edges: the cross
- * happens on the label rather than over the bottle, so the silhouette stays
- * whole at every size and red goes back to meaning wine. Drawn in CSS exactly
- * as the design draws it, which means no asset to ship, no request to make,
- * and it scales by changing one number.
- *
- * The cream tile is deliberate on a dark ground — it is what lets the same
- * mark sit on either theme without a second version.
+ * The Screens design reduces it to a single accent dot beside the wordmark.
+ * The Organic bottle — black glass, white label, red X clipped inside it —
+ * was drawn in CSS here and is gone with the design that asked for it. Kept
+ * as one rule rather than an element tree, because that is all it now is.
  */
-.mark{--mark:34px;
-  inline-size:var(--mark);block-size:var(--mark);flex:none;position:relative;
-  border-radius:calc(var(--mark) * 0.283);background:#f6efe4;overflow:hidden;}
-/* neck */
-.mark::before{content:'';position:absolute;
-  inset-inline-start:calc(var(--mark) * 0.435);inset-block-start:calc(var(--mark) * 0.13);
-  inline-size:calc(var(--mark) * 0.13);block-size:calc(var(--mark) * 0.348);
-  border-radius:calc(var(--mark) * 0.043) calc(var(--mark) * 0.043) 0 0;
-  background:#201e1d;}
-/* shoulders and body */
-.mark::after{content:'';position:absolute;
-  inset-inline-start:calc(var(--mark) * 0.261);inset-block-start:calc(var(--mark) * 0.391);
-  inline-size:calc(var(--mark) * 0.478);block-size:calc(var(--mark) * 0.609);
-  border-radius:calc(var(--mark) * 0.152) calc(var(--mark) * 0.152) 0 0;
-  background:#201e1d;}
-/* the label, and the X clipped inside it */
-.mark-label{position:absolute;
-  inset-inline-start:calc(var(--mark) * 0.304);inset-block-start:calc(var(--mark) * 0.522);
-  inline-size:calc(var(--mark) * 0.391);block-size:calc(var(--mark) * 0.37);
-  border-radius:calc(var(--mark) * 0.043);background:#fff;overflow:hidden;z-index:1;}
-.mark-label::before,
-.mark-label::after{content:'';position:absolute;
-  inset-inline:calc(var(--mark) * 0.065);inset-block-start:calc(var(--mark) * 0.148);
-  block-size:calc(var(--mark) * 0.074);background:var(--wine);}
-.mark-label::before{rotate:-45deg;}
-.mark-label::after{rotate:45deg;}
+.mark{inline-size:12px;block-size:12px;flex:none;border-radius:50%;
+  background:var(--accent);}
+.mark-label{display:none;}
 
 /* Header lockup: brand on the left, controls pushed to the right. */
 .head-row{display:flex;align-items:center;gap:10px;}
@@ -717,13 +706,13 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
 
 /* FR/EN switch. Two buttons rather than one toggle: with two languages a
    single control cannot say whether its label is the state or the action. */
-.langtoggle{display:flex;gap:2px;padding:2px;border-radius:999px;
+.langtoggle{display:flex;gap:2px;padding:2px;border-radius:var(--radius-md);
   background:var(--raise);flex:none;}
 .langtoggle button{min-width:34px;height:28px;padding:0 8px;border:none;
-  border-radius:999px;background:none;color:var(--mute2);
+  border-radius:var(--radius-md);background:none;color:var(--mute2);
   font-family:var(--display);font-size:12px;line-height:1;
   display:flex;align-items:center;justify-content:center;}
-.langtoggle button.active{background:var(--wine);color:var(--on-accent);}
+.langtoggle button.active{background:var(--accent);color:var(--on-accent);}
 .langtoggle button:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
 
 /* ═══════════════════════════════════════════════════════════ Screens design */
@@ -766,7 +755,7 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
   color:var(--accent-hi);margin:0 0 6px;}
 .results-meta{font-size:12px;color:var(--mute2);}
 .results-actions{display:flex;gap:8px;margin-top:8px;}
-.results-act{border:none;border-radius:999px;padding:5px 12px;font-size:12px;
+.results-act{border:none;border-radius:var(--radius-md);padding:5px 12px;font-size:12px;
   background:var(--raise);color:var(--mute);}
 .results-act:hover{background:var(--raise2);color:var(--ink2);}
 .rating--none{color:var(--mute2);font-style:italic;}
@@ -790,7 +779,7 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
 .resolution-input{font-size:14px;color:var(--mute);}
 .resolution-meta{font-size:12px;color:var(--mute2);}
 .resolution-kinds{display:flex;gap:4px;flex-wrap:wrap;}
-.resolution-kind{border:none;border-radius:999px;padding:5px 11px;font-size:12px;
+.resolution-kind{border:none;border-radius:var(--radius-md);padding:5px 11px;font-size:12px;
   background:var(--raise);color:var(--mute);}
 .resolution-kind.is-on{background:var(--accent);color:var(--on-accent);}
 .resolution-alts{margin-top:8px;}
@@ -830,7 +819,7 @@ button.resolution-alt.is-chosen{background:var(--raise2);
 .firstrun-groups{display:flex;flex-direction:column;gap:10px;margin:4px 0 2px;}
 .firstrun-group{border-radius:var(--radius-md);padding:10px 12px;
   background:var(--ground);}
-.firstrun-group--liked{background:var(--leaf-fill);}
+.firstrun-group--liked{background:var(--marked);}
 .firstrun-groupname{font-family:var(--display);font-size:15px;color:var(--ink2);}
 .firstrun-groupnote{font-size:12px;color:var(--mute2);margin-top:2px;}
 .firstrun-foot{margin-top:2px;}
@@ -846,7 +835,7 @@ button.resolution-alt.is-chosen{background:var(--raise2);
 .prompt-steplabel{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;
   text-transform:uppercase;color:var(--mute2);}
 .prompt-step.is-pending{opacity:0.55;}
-.prompt-step.is-done .prompt-steplabel{color:var(--leaf);}
+.prompt-step.is-done .prompt-steplabel{color:var(--accent);}
 
 @media (min-width: 60rem) {
   .firstrun{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);
@@ -855,3 +844,108 @@ button.resolution-alt.is-chosen{background:var(--raise2);
   .firstrun-foot{grid-column:1 / -1;}
   .firstrun-groups{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));}
 }
+
+/* ══════════════════════════════════════════════ Screens — type and surfaces */
+
+/*
+ * The type split is the design's main device: monospace for anything
+ * structural, Georgia for anything written. Sizes come from the document —
+ * mono is small and tight (10–14px, line-height 1), Georgia is large and set
+ * for reading.
+ */
+body{font-family:var(--ui);font-size:14px;line-height:1.5;}
+
+h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:0;}
+h1{font-size:30px;line-height:1.15;}
+h2{font-size:24px;line-height:1.1;}
+h3{font-size:20px;line-height:1.25;}
+
+/* Small caps labels, everywhere a thing needs naming rather than saying. */
+.label{font-family:var(--mono);font-weight:500;font-size:11px;line-height:1;
+  letter-spacing:0.14em;text-transform:uppercase;color:var(--mute2);}
+
+.hint{font-family:var(--ui);font-size:12px;line-height:1.5;color:var(--mute);}
+
+/* Controls are rectangles, not pills, and monospace so they read as controls. */
+.btn-primary,.btn-secondary{font-family:var(--ui);font-weight:500;font-size:13px;
+  letter-spacing:0.02em;border-radius:var(--radius-md);min-height:44px;}
+.btn-primary{background:var(--accent);color:var(--on-accent);}
+.btn-secondary{background:transparent;color:var(--ink2);
+  box-shadow:inset 0 0 0 1px var(--line2);}
+
+.chip{font-family:var(--ui);font-size:12px;border-radius:var(--radius-md);
+  background:var(--raise);}
+
+/* Header — a rule under it, nothing else. */
+.shell-head{border-bottom:1px solid var(--line);background:var(--chrome);}
+.head-brand{align-items:baseline;gap:10px;}
+.head-row .label{font-family:var(--display);font-size:18px;color:var(--ink2);
+  letter-spacing:0;text-transform:none;}
+.head-about{font-family:var(--ui);font-size:11px;}
+
+/* Tab switch — a rule and a bar, rather than a sliding pill in a track. */
+.modeswitch{background:transparent;padding:0;gap:0;border-radius:0;
+  border-bottom:1px solid var(--line);}
+.modeswitch::before{inset-block:auto 0;block-size:2px;inset-inline-start:0;
+  inline-size:50%;background:var(--accent);border-radius:0;}
+.modeswitch[data-mode="find"]::before{translate:100%;}
+.modeswitch button{height:38px;border-radius:0;font-family:var(--ui);
+  font-size:12px;letter-spacing:0.06em;text-transform:uppercase;}
+.modeswitch button.active{font-family:var(--ui);font-weight:500;color:var(--ink2);}
+
+/* Language switch — the same rectangle vocabulary. */
+.langtoggle{background:var(--panel);border-radius:var(--radius-md);padding:1px;}
+.langtoggle button{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;
+  border-radius:2px;height:24px;min-width:30px;}
+.langtoggle button.active{background:var(--accent);color:var(--on-accent);}
+
+/* My wines — columns headed by a mono label and a count. */
+.mywines-summary{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--mute2);}
+.mywines-group{border-top:1px solid var(--line);padding-top:12px;}
+.mywines-head{align-items:baseline;}
+.mywines-title{font-family:var(--display);font-size:20px;color:var(--ink2);}
+.mywines-count{font-family:var(--mono);font-size:12px;color:var(--mute2);
+  margin-left:auto;}
+.mywines-note{font-family:var(--ui);font-size:12px;color:var(--accent-hi);}
+.mywines-row{border-radius:var(--radius-md);padding:10px 12px;}
+.mywines-row--liked{background:var(--marked);
+  box-shadow:inset 0 0 0 1px #33241e;}
+.mywines-row--disliked,.mywines-row--skipped{background:transparent;
+  box-shadow:inset 0 0 0 1px var(--line);border:none;}
+.mywines-name{font-size:14px;}
+.mywines-region{font-family:var(--mono);font-size:11px;}
+
+/* Results — the reason is the largest thing, and the only serif on the row. */
+.results-title{font-family:var(--display);font-size:24px;}
+.results-against,.results-count{font-family:var(--mono);font-size:11px;
+  letter-spacing:0.06em;color:var(--mute2);}
+.results-row .reason{font-family:var(--display);font-size:19px;line-height:1.35;
+  color:var(--ink2);}
+.results-rank{inline-size:22px;block-size:22px;border-radius:var(--radius-sm);
+  background:transparent;color:var(--mute2);font-family:var(--mono);
+  font-size:11px;box-shadow:inset 0 0 0 1px var(--line);}
+.results-name{font-family:var(--ui);font-size:14px;color:var(--ink);}
+.results-price{font-family:var(--mono);font-weight:500;font-size:22px;
+  color:var(--ink2);}
+.results-meta,.rating{font-family:var(--mono);font-size:11px;color:var(--mute2);}
+.results-act{font-family:var(--ui);font-size:11px;border-radius:var(--radius-md);
+  box-shadow:inset 0 0 0 1px var(--line);background:transparent;}
+
+/* Review step and first run inherit the same vocabulary. */
+.resolution-kind,.resolution-alt{border-radius:var(--radius-md);}
+.resolution-kind{font-family:var(--ui);font-size:11px;}
+.resolution-altprice{font-family:var(--mono);}
+.firstrun-quote{font-family:var(--display);font-size:19px;color:var(--ink2);}
+.firstrun-panel{background:var(--panel);border-radius:var(--radius-lg);
+  box-shadow:inset 0 0 0 1px var(--line);}
+.firstrun-group{border-radius:var(--radius-md);background:var(--ground);
+  box-shadow:inset 0 0 0 1px var(--line);}
+.firstrun-group--liked{background:var(--marked);}
+.firstrun-groupname{font-family:var(--display);font-size:16px;}
+.firstrun-groupnote{font-family:var(--ui);font-size:11px;}
+
+.backup{border-top:1px solid var(--line);}
+.backup-summary,.backup-head{font-family:var(--display);}
+.backup-summary{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;}

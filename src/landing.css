@@ -7,43 +7,46 @@
  * take it, but they would have to take it together. The mark is drawn in CSS,
  * so the page still ships no images.
  *
- * Caprasimo and Figtree are declared but not fetched. The design links them
- * from Google Fonts, and a page whose whole argument is "nothing is sent
- * anywhere" cannot open by telling a third party you opened it — there is a
- * test asserting zero third-party requests. Self-host the files and the stacks
- * light up with no other change.
+ * There is no webfont at all: Georgia for prose, the platform monospace for
+ * everything structural. Nothing to fetch, nothing to self-host, and the
+ * "nothing is sent anywhere" claim needs no asterisk.
  */
 
 :root {
   color-scheme: dark;
 
-  --ground: #1a1512;
-  --surface: #241e19;
-  --ink: #f4ebdd;
-  --ink-quiet: #c2b8a9;
-  --line: rgba(244, 235, 221, 0.15);
+  --ground: #0e0c09;
+  --surface: #15120f;
+  --ink: #f4f1ec;
+  --ink-quiet: #9b9891;
+  --line: #2b2825;
   /*
    * The page chrome — header and footer. They sit on the ground with a
    * divider rather than being a wine field: a wine block on an espresso
    * ground reads as a smudge rather than a band.
    */
-  --chrome: #1a1512;
-  --chrome-ink: #f4ebdd;
-  --chrome-quiet: #c2b8a9;
-  --chrome-line: rgba(244, 235, 221, 0.15);
-  --accent: #8e2436;
-  --accent-ink: #f4ebdd;
-  --accent-soft: #3d1721;
-  --accent-soft-ink: #e79aa6;
-  --leaf-fill: #2c3324;
-  --leaf-ink: #dbe3c6;
+  --chrome: #0e0c09;
+  --chrome-ink: #f4f1ec;
+  --chrome-quiet: #9b9891;
+  --chrome-line: #2b2825;
+  --accent: #ea856b;
+  --accent-ink: #0e0c09;
+  --accent-soft: #150a08;
+  --accent-soft-ink: #f0a08c;
+  --leaf-fill: #15120f;
+  --leaf-ink: #c6c4be;
 
   --gap: clamp(1.5rem, 4vw, 2.75rem);
   --measure: 62ch;
 
-  /* Declared, not fetched. See the note in src/styles.css. */
-  --display: "Caprasimo", ui-serif, Georgia, serif;
-  --ui: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /*
+   * No webfont. The design sets prose in Georgia and everything structural in
+   * the platform's monospace — both already present everywhere, so there is
+   * nothing to fetch and nothing to self-host. The privacy claim gets to stay
+   * true without a build step.
+   */
+  --display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --ui: ui-monospace, Menlo, "SF Mono", monospace;
 }
 
 
@@ -55,7 +58,7 @@ body {
   margin: 0;
   background: var(--ground);
   color: var(--ink);
-  font: 16px/1.55 var(--ui);
+  font: 14px/1.55 var(--ui);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -74,66 +77,20 @@ a { color: inherit; }
 /* ------------------------------------------------------------------ chrome */
 
 .brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
-.brand-name { font-family: var(--display); font-size: 1.15rem; letter-spacing: -0.01em; }
+.brand-name { font-family: var(--display); font-size: 1.15rem; letter-spacing: 0; }
 
 /*
- * Mark 4c — black bottle, white label, red X clipped to the label's edges.
- * Drawn in CSS exactly as the design draws it: no asset, no request, and it
- * scales by changing --mark alone. The cream tile is what lets one mark sit on
- * either ground.
+ * The mark, as the Screens design has it: one accent dot beside the wordmark.
+ * The Organic bottle drawing went with the design that asked for it.
  */
 .brand-mark {
-  --mark: 2rem;
-  inline-size: var(--mark);
-  block-size: var(--mark);
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
   flex: none;
-  position: relative;
-  border-radius: calc(var(--mark) * 0.283);
-  background: #f6efe4;
-  overflow: hidden;
+  border-radius: 50%;
+  background: var(--accent);
 }
-.brand-mark::before {
-  content: '';
-  position: absolute;
-  inset-inline-start: calc(var(--mark) * 0.435);
-  inset-block-start: calc(var(--mark) * 0.13);
-  inline-size: calc(var(--mark) * 0.13);
-  block-size: calc(var(--mark) * 0.348);
-  border-radius: calc(var(--mark) * 0.043) calc(var(--mark) * 0.043) 0 0;
-  background: #201e1d;
-}
-.brand-mark::after {
-  content: '';
-  position: absolute;
-  inset-inline-start: calc(var(--mark) * 0.261);
-  inset-block-start: calc(var(--mark) * 0.391);
-  inline-size: calc(var(--mark) * 0.478);
-  block-size: calc(var(--mark) * 0.609);
-  border-radius: calc(var(--mark) * 0.152) calc(var(--mark) * 0.152) 0 0;
-  background: #201e1d;
-}
-.brand-label {
-  position: absolute;
-  inset-inline-start: calc(var(--mark) * 0.304);
-  inset-block-start: calc(var(--mark) * 0.522);
-  inline-size: calc(var(--mark) * 0.391);
-  block-size: calc(var(--mark) * 0.37);
-  border-radius: calc(var(--mark) * 0.043);
-  background: #fff;
-  overflow: hidden;
-  z-index: 1;
-}
-.brand-label::before,
-.brand-label::after {
-  content: '';
-  position: absolute;
-  inset-inline: calc(var(--mark) * 0.065);
-  inset-block-start: calc(var(--mark) * 0.148);
-  block-size: calc(var(--mark) * 0.074);
-  background: #6d1f2c;
-}
-.brand-label::before { rotate: -45deg; }
-.brand-label::after { rotate: 45deg; }
+.brand-label { display: none; }
 
 .site-head {
   background: var(--chrome);
@@ -155,14 +112,16 @@ a { color: inherit; }
 /* ------------------------------------------------------------------ buttons */
 
 .btn {
+  border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.7rem 1.35rem;
-  border-radius: 999px;
   font: inherit;
-  font-family: var(--display);
+  font-family: var(--ui);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
   text-decoration: none;
   border: 1px solid transparent;
 }
@@ -220,27 +179,11 @@ main { display: block; }
 /*
  * Hero art.
  *
- * The design slots a photograph here — "a shelf of bottles, or a bottle with
- * no label". There is no photograph, and an empty panel on a shipped page
- * reads as a bug rather than as a space reserved. So the mark stands in at
- * size: it is already a bottle with its label crossed out, it needs no asset,
- * and it degrades to nothing on narrow screens where the copy should lead.
- *
- * Swap in the photo when there is one and delete the .hero-mark rule.
+ * The design slots a photograph here and none exists. The Organic bottle
+ * drawing stood in for it; the Screens mark is a dot, which cannot carry a
+ * hero, so the panel is empty again and hidden below the two-column breakpoint
+ * rather than shown as a blank rectangle.
  */
-.hero-figure {
-  aspect-ratio: 21 / 23;
-  border-radius: 1.75rem;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
-.hero-mark {
-  --mark: min(15rem, 42vw);
-  filter: saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94);
-}
 @media (max-width: 56rem) {
   .hero-figure { display: none; }
 }
@@ -278,7 +221,7 @@ main { display: block; }
 .step-num {
   inline-size: 2.75rem;
   block-size: 2.75rem;
-  border-radius: 999px;
+  border-radius: 3px;
   background: var(--accent-soft);
   color: var(--accent-soft-ink);
   display: flex;
@@ -377,7 +320,6 @@ main { display: block; }
 }
 .foot-brand { display: flex; align-items: center; gap: 0.7rem; }
 
-.foot-brand .brand-mark { --mark: 2.6rem; }
 .foot-brand .brand-name { font-size: 1.4rem; }
 .foot-note {
   color: var(--chrome-quiet);
@@ -407,8 +349,8 @@ html[lang='fr'] [data-lang]:not([data-lang='fr']) {
 .langtoggle {
   display: inline-flex;
   gap: 2px;
-  padding: 2px;
-  border-radius: 999px;
+  padding: 1px;
+  border-radius: 3px;
   background: var(--surface);
   flex: none;
 }
@@ -417,11 +359,11 @@ html[lang='fr'] [data-lang]:not([data-lang='fr']) {
   block-size: 1.75rem;
   padding-inline: 0.5rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: 2px;
   background: none;
   color: var(--ink-quiet);
   font: inherit;
-  font-family: var(--display);
+  font-family: var(--ui);
   font-size: 0.8rem;
   line-height: 1;
   cursor: pointer;

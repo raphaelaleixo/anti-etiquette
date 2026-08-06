@@ -71,11 +71,15 @@ describe('what the landing does not ship', () => {
     }
   })
 
-  it('declares the design faces so self-hosting is the only step left', () => {
+  it('needs no webfont at all', () => {
+    // The design sets prose in Georgia and everything structural in the
+    // platform monospace. Both ship with every OS, so there is nothing to
+    // fetch and nothing to self-host — the privacy claim needs no asterisk.
     for (const path of ['src/landing.css', 'src/styles.css']) {
       const css = readFileSync(path, 'utf8')
-      expect(css, path).toContain('Caprasimo')
-      expect(css, path).toContain('Figtree')
+      expect(css, path).toContain('Georgia')
+      expect(css, path).toContain('ui-monospace')
+      expect(css, path).not.toMatch(/@font-face|Caprasimo|Figtree/)
     }
   })
 })
