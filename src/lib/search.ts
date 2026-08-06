@@ -4,6 +4,7 @@ import { rankWines } from './score'
 import * as cellar from './cellar'
 import * as appState from './appState'
 import { rememberBranch, rememberBranchCount } from './branches'
+import { t } from './lang'
 
 /** How many ranked wines the results list shows. */
 const RESULT_COUNT = 10
@@ -38,12 +39,12 @@ export async function runSearch(): Promise<void> {
   const stale = () => mine !== generation
 
   appState.clearResults()
-  appState.setStatus("Fetching this branch's catalog…")
+  appState.setStatus(t().fetchingCatalog)
 
   try {
     const catalog = await fetchBranchCatalog(branch, filters, (done, total) => {
       if (stale()) return
-      appState.setStatus(`Fetching catalog… page ${done} of ${total}`, { done, total })
+      appState.setStatus(t().fetchingPage(done, total), { done, total })
     })
     if (stale()) return
 
@@ -73,6 +74,6 @@ export async function runSearch(): Promise<void> {
     appState.setResults({ results: ranked, favourites, catalog, profile })
   } catch (e) {
     if (stale()) return
-    appState.setError(`Search failed: ${e instanceof Error ? e.message : String(e)}`)
+    appState.setError(t().searchFailed(e instanceof Error ? e.message : String(e)))
   }
 }

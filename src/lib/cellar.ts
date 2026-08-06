@@ -1,4 +1,5 @@
 import { storage, onExternalChange } from './storage'
+import { getCatalogLang } from './catalog'
 import type { SeedKind, SeedRef, Wine } from './types'
 
 /**
@@ -30,6 +31,20 @@ export interface CellarEntry {
   /** Last known record. Null means never resolved, or the cache failed validation. */
   wine: Wine | null
   wineFetchedAt: number
+  /**
+   * The catalog language the record was fetched in.
+   *
+   * Not bookkeeping: `score.ts` matches grapes, regions and appellations by
+   * exact string, and the two indexes disagree — "Cabernet sauvignon" against
+   * "Cabernet-sauvignon", "California" against "Californie". A profile built
+   * from English records scored against a French catalog intersects on
+   * nothing but price, and says so nowhere. Treating the language as part of
+   * the cache key turns that silent degradation into an ordinary cache miss,
+   * which `hydrate.ts` already knows how to fill.
+   *
+   * Absent on records written before this existed; those re-fetch once.
+   */
+  wineLang?: string
   /** A resolve found nothing. Suppresses a retry on every subsequent load. */
   unresolvedAt?: number
 }
@@ -109,6 +124,7 @@ export function parseEntry(raw: unknown): CellarEntry | null {
   const sku = str(r.sku)
   if (sku === null || sku === '') return null // no sku, nothing to keep
   const unresolvedAt = num(r.unresolvedAt)
+  const wineLang = str(r.wineLang)
   return {
     sku,
     kind: toKind(r.kind),
@@ -116,6 +132,7 @@ export function parseEntry(raw: unknown): CellarEntry | null {
     wine: toWine(r.wine),
     wineFetchedAt: num(r.wineFetchedAt) ?? 0,
     ...(unresolvedAt === null ? {} : { unresolvedAt }),
+    ...(wineLang === null ? {} : { wineLang }),
   }
 }
 
@@ -186,7 +203,7 @@ function build(): CellarSnapshot {
     liked: winesOf('like'),
     disliked: winesOf('dislike'),
     skipped: winesOf('skip'),
-    unresolved: entries.filter(e => e.wine === null),
+    unresolved: entries.filter(e => e.wine === null || e.wineLang !== getCatalogLang()),
     error,
   }
 }
@@ -237,15 +254,16 @@ export function watchOtherTabs(): () => void {
 function upsert(current: CellarEntry[], wine: Wine, kind: SeedKind): CellarEntry[] {
   const now = Date.now()
   const at = current.findIndex(e => e.sku === wine.sku)
+  const wineLang = getCatalogLang()
   if (at === -1) {
-    return [...current, { sku: wine.sku, kind, addedAt: now, wine, wineFetchedAt: now }]
+    return [...current, { sku: wine.sku, kind, addedAt: now, wine, wineFetchedAt: now, wineLang }]
   }
   const next = [...current]
   const prev = next[at]!
   // Keep the original addedAt: re-filing a wine is not re-adding it, and the
   // list is insertion-ordered.
   const { unresolvedAt: _dropped, ...rest } = prev
-  next[at] = { ...rest, kind, wine, wineFetchedAt: now }
+  next[at] = { ...rest, kind, wine, wineFetchedAt: now, wineLang }
   return next
 }
 
@@ -273,13 +291,14 @@ export function removeSeed(sku: string): void {
  */
 export function refreshWines(wines: Wine[]): void {
   const bySku = new Map(wines.map(w => [w.sku, w]))
+  const wineLang = getCatalogLang()
   mutate(current => {
     const now = Date.now()
     return current.map(e => {
       const found = bySku.get(e.sku)
       if (!found) return e
       const { unresolvedAt: _dropped, ...rest } = e
-      return { ...rest, wine: found, wineFetchedAt: now }
+      return { ...rest, wine: found, wineFetchedAt: now, wineLang }
     })
   })
 }

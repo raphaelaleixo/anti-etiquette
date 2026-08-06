@@ -1,3 +1,4 @@
+import { getCatalogLang } from '../src/lib/catalog'
 import type { CellarEntry } from '../src/lib/cellar'
 import type { Wine } from '../src/lib/types'
 
@@ -33,9 +34,19 @@ export function wine(sku: string, over: Partial<Wine> = {}): Wine {
   }
 }
 
-/** A cellar entry with no cached wine — the state hydration exists to fill. */
+/**
+ * A cellar entry, defaulting to no cached wine — the state hydration fills.
+ *
+ * When a wine *is* supplied, the entry is stamped with the current catalog
+ * language, because that is what saving one actually does. Without it every
+ * fixture would look like a pre-`wineLang` record and read as stale, which is
+ * correct behaviour but not what most tests mean to set up. Pass `wineLang`
+ * explicitly to test the mismatch.
+ */
 export function entry(sku: string, over: Partial<CellarEntry> = {}): CellarEntry {
-  return { sku, kind: 'like', addedAt: 1, wine: null, wineFetchedAt: 0, ...over }
+  const e: CellarEntry = { sku, kind: 'like', addedAt: 1, wine: null, wineFetchedAt: 0, ...over }
+  if (e.wine !== null && e.wineLang === undefined) e.wineLang = getCatalogLang()
+  return e
 }
 
 /** Keys the app writes, cleared between tests so state cannot leak across them. */

@@ -5,7 +5,8 @@ import {
   serialize, filename, parseDocument, merge, recordExport, shouldSuggestExport,
 } from '../../lib/cellarIo'
 import { isPersistent } from '../../lib/storage'
-import { KIND_LABEL, KINDS, type SeedKind } from '../../lib/types'
+import * as lang from '../../lib/lang'
+import { KINDS, type SeedKind } from '../../lib/types'
 
 /**
  * The saved list: three groups, a per-row action menu, and nothing else.
@@ -46,7 +47,7 @@ function closePopoverFrom(el: Element): void {
 function menu(entry: CellarEntry, name: string): Html {
   const id = `wine-menu-${entry.sku}`
   return html`
-    <button class="mywines-menu-btn" popovertarget="${id}" aria-label="Actions for ${name}">⋮</button>
+    <button class="mywines-menu-btn" popovertarget="${id}" aria-label="${lang.t().actionsFor(name)}">⋮</button>
     <div id="${id}" popover="auto" class="wine-menu">
       <div class="wine-menu-head">${name}</div>
       ${KINDS.map(k => html`
@@ -59,7 +60,7 @@ function menu(entry: CellarEntry, name: string): Html {
           aria-pressed="${k === entry.kind ? 'true' : 'false'}"
         >
           <span class="wine-menu-tick" aria-hidden="true">${k === entry.kind ? '✓' : ''}</span>
-          ${KIND_LABEL[k]}
+          ${lang.kindLabel(k)}
         </button>
       `)}
       <button
@@ -69,7 +70,7 @@ function menu(entry: CellarEntry, name: string): Html {
         data-sku="${entry.sku}"
       >
         <span class="wine-menu-tick" aria-hidden="true"></span>
-        Remove from my wines
+        ${lang.t().removeFromList}
       </button>
     </div>
   `
@@ -88,15 +89,15 @@ function row(entry: CellarEntry, index: number): Html {
       <li class="mywines-row mywines-row--unresolved" style="${stagger}">
         <span class="mywines-rule" aria-hidden="true"></span>
         <div class="mywines-body">
-          <div class="mywines-name">SKU ${entry.sku}</div>
-          <div class="mywines-region">couldn't look this up</div>
+          <div class="mywines-name">${lang.t().unresolvedSku(entry.sku)}</div>
+          <div class="mywines-region">${lang.t().unresolvedNote}</div>
         </div>
         <button
           type="button"
           class="mywines-menu-btn"
           data-act="remove"
           data-sku="${entry.sku}"
-          aria-label="Remove SKU ${entry.sku}"
+          aria-label="${lang.t().removeSku(entry.sku)}"
         >✕</button>
       </li>
     `
@@ -132,19 +133,14 @@ function backup(entryCount: number, nag: boolean, message: string | null): Html 
   return html`
     <details class="backup" data-backup>
       <summary class="backup-summary">
-        Saved in this browser only${nag ? ' · back it up' : ''}
+        ${lang.t().backupSummary}${nag ? lang.t().backupNag : ''}
       </summary>
-      <p class="hint">
-        Nothing here is sent anywhere, which also means nothing here is anywhere
-        else. Clearing site data removes it. On an iPhone, Safari drops it after
-        seven days without a visit — adding this page to your Home Screen keeps
-        it around.
-      </p>
+      <p class="hint">${lang.t().backupNote}</p>
       <div class="backup-actions">
         <button type="button" class="btn-secondary" data-act="export">
-          Export ${entryCount} wine${entryCount === 1 ? '' : 's'}
+          ${lang.t().exportCount(entryCount)}
         </button>
-        <button type="button" class="btn-secondary" data-act="import">Import a file</button>
+        <button type="button" class="btn-secondary" data-act="import">${lang.t().importFile}</button>
         <input type="file" accept="application/json,.json" data-act="file" hidden />
       </div>
       ${message && html`<p class="hint backup-message">${message}</p>`}
@@ -157,7 +153,7 @@ export class MyWines extends StoreElement {
   #message: string | null = null
 
   protected sources() {
-    return [cellar.subscribe]
+    return [cellar.subscribe, lang.subscribe]
   }
 
   #export(): void {
@@ -171,7 +167,7 @@ export class MyWines extends StoreElement {
     a.click()
     URL.revokeObjectURL(url)
     recordExport(now)
-    this.#message = `Exported ${entries.length} wine${entries.length === 1 ? '' : 's'}.`
+    this.#message = lang.t().exported(entries.length)
     this.render()
   }
 
@@ -187,9 +183,8 @@ export class MyWines extends StoreElement {
     // that already has three wines, and replacing would destroy them.
     cellar.replaceAll(merge(cellar.getSnapshot().entries, result.entries))
     const added = cellar.getSnapshot().entries.length - before
-    const skipped = result.skipped > 0 ? ` ${result.skipped} unreadable entr${result.skipped === 1 ? 'y was' : 'ies were'} skipped.` : ''
-    this.#message =
-      `Imported ${result.entries.length} — ${added} new, ${result.entries.length - added} already here.${skipped}`
+    const skipped = result.skipped > 0 ? lang.t().importSkipped(result.skipped) : ''
+    this.#message = lang.t().imported(result.entries.length, added) + skipped
     this.render()
   }
 
@@ -243,36 +238,32 @@ export class MyWines extends StoreElement {
       <section class="mywines-group">
         <div class="mywines-head">
           <span class="mywines-badge mywines-badge--good" aria-hidden="true">✓</span>
-          <div class="mywines-title">Liked</div>
+          <div class="mywines-title">${lang.t().kindLike}</div>
           <div class="mywines-count">${liked.length}</div>
         </div>
         ${liked.length === 0
-          ? html`<p class="hint">Add wines you have drunk and liked — not ones you are thinking of buying.</p>`
+          ? html`<p class="hint">${lang.t().likedEmpty}</p>`
           : list(liked)}
       </section>
 
       <section class="mywines-group mywines-group--disliked">
         <div class="mywines-head">
           <span class="mywines-badge mywines-badge--bad" aria-hidden="true">✕</span>
-          <div class="mywines-title mywines-title--quiet">Steer clear</div>
+          <div class="mywines-title mywines-title--quiet">${lang.t().kindDislike}</div>
           <div class="mywines-count">${disliked.length}</div>
         </div>
         ${disliked.length === 0
-          ? html`<p class="hint">Wines to steer away from. Just as useful as the ones you like.</p>`
+          ? html`<p class="hint">${lang.t().dislikedEmpty}</p>`
           : list(disliked)}
       </section>
 
       <details class="mywines-group mywines-group--skipped">
         <summary class="mywines-head">
           <span class="mywines-badge mywines-badge--quiet" aria-hidden="true">–</span>
-          <div class="mywines-title mywines-title--quiet">Don't recommend</div>
+          <div class="mywines-title mywines-title--quiet">${lang.t().kindSkip}</div>
           <div class="mywines-count">${skipped.length}</div>
         </summary>
-        <p class="hint">
-          Kept out of your results and left out of the prompt entirely. Unlike
-          "Steer clear", these say nothing about your taste — no similar wine is
-          pushed away on their account.
-        </p>
+        <p class="hint">${lang.t().skippedNote}</p>
         ${skipped.length > 0 && list(skipped)}
       </details>
 

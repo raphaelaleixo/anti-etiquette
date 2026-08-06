@@ -1,9 +1,13 @@
 import { html, mount, delegate, setProp } from './dom'
 import { openSheet } from './sheet'
 import { countMatches, type CatalogFilters, type WineColour } from '../lib/catalog'
-import { COLOURS, PRICE_PRESETS, DEFAULT_FILTERS, fullSummary, priceLabel } from '../lib/filters'
+import {
+  COLOURS, PRICE_PRESETS, DEFAULT_FILTERS, fullSummary, priceLabel,
+  colourLabel, presetLabel,
+} from '../lib/filters'
 import { branchName } from '../lib/branches'
 import * as appState from '../lib/appState'
+import { t } from '../lib/lang'
 
 const DEBOUNCE_MS = 300
 
@@ -22,8 +26,8 @@ export function openFilterSheet(): void {
   let requestId = 0
 
   const sheet = openSheet({
-    title: 'Filters',
-    cancelLabel: 'Reset',
+    title: t().filtersTitle,
+    cancelLabel: t().reset,
     onClose: () => clearTimeout(timer),
   })
 
@@ -41,20 +45,20 @@ export function openFilterSheet(): void {
     const activePreset = PRICE_PRESETS.find(p => p.min === draft.priceMin && p.max === draft.priceMax)
     mount(sheet.body, html`
       <div class="filtersheet-section">
-        <div class="label">Colour</div>
+        <div class="label">${t().colour}</div>
         <div class="filtersheet-pills">
           ${COLOURS.map(c => html`
             <button
               type="button"
-              class="${draft.colour === c.value ? 'pill pill--brass' : 'pill'}"
-              data-filter="colour" data-value="${c.value}"
-            >${c.label}</button>
+              class="${draft.colour === c ? 'pill pill--brass' : 'pill'}"
+              data-filter="colour" data-value="${c}"
+            >${colourLabel(c)}</button>
           `)}
         </div>
       </div>
       <div class="filtersheet-section">
         <div class="filtersheet-pricehead">
-          <div class="label">Price</div>
+          <div class="label">${t().price}</div>
           <div class="filtersheet-priceband" data-filter-band>${priceLabel(draft)}</div>
         </div>
         <div class="filtersheet-pills">
@@ -63,17 +67,17 @@ export function openFilterSheet(): void {
               type="button"
               class="${p === activePreset ? 'pill pill--brass' : 'pill'}"
               data-filter="preset" data-min="${p.min ?? ''}" data-max="${p.max ?? ''}"
-            >${p.label}</button>
+            >${presetLabel(p)}</button>
           `)}
         </div>
         <div class="filtersheet-numbers">
           <label class="filtersheet-numberbox">
-            <span class="label">Min</span>
-            <input type="number" min="0" inputmode="numeric" data-filter="min" placeholder="Any" />
+            <span class="label">${t().min}</span>
+            <input type="number" min="0" inputmode="numeric" data-filter="min" placeholder="${t().any}" />
           </label>
           <label class="filtersheet-numberbox">
-            <span class="label">Max</span>
-            <input type="number" min="0" inputmode="numeric" data-filter="max" placeholder="Any" />
+            <span class="label">${t().max}</span>
+            <input type="number" min="0" inputmode="numeric" data-filter="max" placeholder="${t().any}" />
           </label>
         </div>
       </div>
@@ -87,12 +91,12 @@ export function openFilterSheet(): void {
   }
 
   function renderFoot(): void {
-    const label = count === 0 ? 'No wines in this band'
-      : count !== null ? `Show ${count} wines`
-      : 'Show wines'
+    const label = count === 0 ? t().showNone
+      : count !== null ? t().showCount(count)
+      : t().showWines
     sheet.setFoot(html`
       <button class="btn-primary" data-filter="apply">${label}</button>
-      <div class="sheet-summary">${fullSummary(draft, branch ? branchName(branch) : 'this branch')}</div>
+      <div class="sheet-summary">${fullSummary(draft, branch ? branchName(branch) : t().thisBranch)}</div>
     `)
     setProp<HTMLButtonElement, 'disabled'>(
       sheet.foot, '[data-filter="apply"]', 'disabled', count === 0)

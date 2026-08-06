@@ -1,6 +1,7 @@
 import { StoreElement, html, mount, delegate } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
+import * as lang from '../../lib/lang'
 import { transitionTo } from '../../lib/viewTransition'
 import type { Mode } from '../../lib/appState'
 
@@ -16,7 +17,7 @@ export class ModeSwitch extends StoreElement {
   protected sources() {
     // The count comes from the cellar, the selected tab from appState, so this
     // element genuinely needs both.
-    return [appState.subscribe, cellar.subscribe]
+    return [appState.subscribe, cellar.subscribe, lang.subscribe]
   }
 
   connectedCallback(): void {
@@ -53,12 +54,12 @@ export class ModeSwitch extends StoreElement {
         data-mode="wines"
         class="${mode === 'wines' ? 'active' : ''}"
         aria-current="${current('wines')}"
-      >My wines · ${count}</button>
+      >${lang.t().myWinesTab(count)}</button>
       <button
         data-mode="find"
         class="${mode === 'find' ? 'active' : ''}"
         aria-current="${current('find')}"
-      >Find a wine</button>
+      >${lang.t().findTab}</button>
     `)
   }
 }

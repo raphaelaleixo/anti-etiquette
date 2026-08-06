@@ -1,6 +1,7 @@
 import { StoreElement, html, mount, delegate, setProp, type Html } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
+import * as lang from '../../lib/lang'
 import { transitionTo } from '../../lib/viewTransition'
 import { openAddWines } from '../addWines'
 import { openPromptDialog } from '../promptDialog'
@@ -22,7 +23,7 @@ function formatCount(n: number): string {
  */
 export class AppFoot extends StoreElement {
   protected sources() {
-    return [appState.subscribe, cellar.subscribe]
+    return [appState.subscribe, cellar.subscribe, lang.subscribe]
   }
 
   connectedCallback(): void {
@@ -72,16 +73,16 @@ export class AppFoot extends StoreElement {
     return html`
       <div class="prompt-actions">
         <button class="btn-primary" data-act="prompt">
-          Prompt <span class="btn-note">${formatCount(length)}</span>
+          ${lang.t().promptTitle} <span class="btn-note">${formatCount(length)}</span>
         </button>
         <div class="prompt-include">
-          <span>Include</span>
+          <span>${lang.t().include}</span>
           <div class="prompt-include-seg" data-active="${PROMPT_COUNTS.indexOf(promptCount as 20 | 40 | 0)}">
             ${PROMPT_COUNTS.map(n => html`
               <button
                 type="button" class="${promptCount === n ? 'active' : ''}"
                 data-act="prompt-count" data-count="${n}"
-              >${n === 0 ? 'All' : n}</button>
+              >${n === 0 ? lang.t().includeAll : n}</button>
             `)}
           </div>
         </div>
@@ -95,8 +96,8 @@ export class AppFoot extends StoreElement {
 
     if (mode === 'wines') {
       mount(this, html`
-        <button class="btn-secondary" data-act="add-wines">＋ Add wines</button>
-        <button class="btn-primary" data-act="go-find">Find a wine →</button>
+        <button class="btn-secondary" data-act="add-wines">${lang.t().addWines}</button>
+        <button class="btn-primary" data-act="go-find">${lang.t().goFind}</button>
       `)
       return
     }
@@ -107,7 +108,7 @@ export class AppFoot extends StoreElement {
     }
 
     mount(this, html`
-      <button class="btn-primary" data-act="search">Find wines I'd like here</button>
+      <button class="btn-primary" data-act="search">${lang.t().searchButton}</button>
     `)
     // `disabled` is a boolean attribute — present means true whatever the
     // value — so it cannot be interpolated. Set on markup just rendered.

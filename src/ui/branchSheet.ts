@@ -4,6 +4,7 @@ import {
   BRANCHES, fold, loadRecentBranches, loadBranchCounts, type Branch,
 } from '../lib/branches'
 import * as appState from '../lib/appState'
+import { t } from '../lib/lang'
 
 /**
  * The branch picker.
@@ -31,7 +32,7 @@ function row(branch: Branch, selected: boolean, count: number | undefined): Html
       <span class="branch-body">
         <span class="branch-name">${branch.name}</span>
         <span class="branch-address">
-          ${branch.address}${count === undefined ? '' : ` · ${count} in stock`}
+          ${branch.address}${count === undefined ? '' : t().inStockAt(count)}
         </span>
       </span>
     </button>
@@ -39,7 +40,7 @@ function row(branch: Branch, selected: boolean, count: number | undefined): Html
 }
 
 export function openBranchSheet(): void {
-  const sheet = openSheet({ title: 'Which branch?', full: true })
+  const sheet = openSheet({ title: t().branchTitle, full: true })
   const counts = loadBranchCounts()
   const recentIds = loadRecentBranches()
   let selected = appState.getSnapshot().branch
@@ -47,8 +48,8 @@ export function openBranchSheet(): void {
   mount(sheet.body, html`
     <input
       type="text" class="branch-filter" data-branch-q="1"
-      placeholder="Filter ${BRANCHES.length} Montréal branches"
-      aria-label="Filter branches" autocomplete="off"
+      placeholder="${t().branchFilter(BRANCHES.length)}"
+      aria-label="${t().branchFilterLabel}" autocomplete="off"
     />
     <div data-branch-results></div>
   `)
@@ -70,14 +71,14 @@ export function openBranchSheet(): void {
     mount(results, html`
       ${recent.length > 0 && html`
         <div class="branch-group">
-          <div class="label label--brass">Recent</div>
+          <div class="label label--brass">${t().recent}</div>
           ${recent.map(b => row(b, b.id === selected, counts[b.id]))}
         </div>
       `}
       <div class="branch-group">
-        <div class="label">All branches · A–Z</div>
+        <div class="label">${t().allBranches}</div>
         ${all.length === 0
-          ? html`<p class="hint">No Montréal branch matches that.</p>`
+          ? html`<p class="hint">${t().noBranchMatch}</p>`
           : all.map(b => row(b, b.id === selected, counts[b.id]))}
       </div>
     `)
@@ -87,9 +88,9 @@ export function openBranchSheet(): void {
     const branch = BRANCHES.find(b => b.id === selected)
     sheet.setFoot(html`
       <button class="btn-primary" data-branch-confirm="1">
-        ${branch ? `Use ${branch.name}` : 'Use branch'}
+        ${branch ? t().useBranch(branch.name) : t().useBranchEmpty}
       </button>
-      <div class="sheet-summary">Montréal branches only — ${BRANCHES.length} of them.</div>
+      <div class="sheet-summary">${t().montrealOnly(BRANCHES.length)}</div>
     `)
     setProp<HTMLButtonElement, 'disabled'>(
       sheet.foot, '[data-branch-confirm]', 'disabled', branch === undefined)

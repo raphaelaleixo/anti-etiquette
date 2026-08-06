@@ -1,4 +1,5 @@
 import type { CatalogFilters, WineColour } from './catalog'
+import { t } from './lang'
 
 /**
  * Filter state and its pure presentation logic.
@@ -14,20 +15,37 @@ export const DEFAULT_FILTERS: CatalogFilters = {
   priceMax: 30,
 }
 
-export const COLOURS: Array<{ value: WineColour; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'red', label: 'Red' },
-  { value: 'white', label: 'White' },
-  { value: 'rose', label: 'Rosé' },
-  { value: 'orange', label: 'Orange' },
+/**
+ * The colours and bands are data; their labels are language.
+ *
+ * Keeping the values here and the words in the message bundle means adding a
+ * colour is a one-line change in one file, and translating one is a one-line
+ * change in another — rather than both being the same line.
+ */
+export const COLOURS: readonly WineColour[] = ['all', 'red', 'white', 'rose', 'orange']
+
+const COLOUR_KEY = {
+  all: 'colourAll', red: 'colourRed', white: 'colourWhite',
+  rose: 'colourRose', orange: 'colourOrange',
+} as const
+
+export function colourLabel(colour: WineColour): string {
+  return t()[COLOUR_KEY[colour]]
+}
+
+export const PRICE_PRESETS: ReadonlyArray<{ min: number | null; max: number | null }> = [
+  { min: null, max: 15 },
+  { min: 15, max: 30 },
+  { min: 30, max: 60 },
+  { min: 60, max: null },
 ]
 
-export const PRICE_PRESETS: Array<{ label: string; min: number | null; max: number | null }> = [
-  { label: 'Under $15', min: null, max: 15 },
-  { label: '$15–30', min: 15, max: 30 },
-  { label: '$30–60', min: 30, max: 60 },
-  { label: '$60+', min: 60, max: null },
-]
+export function presetLabel(p: { min: number | null; max: number | null }): string {
+  if (p.min === null && p.max !== null) return t().priceUnder(p.max)
+  if (p.min !== null && p.max === null) return t().priceOver(p.min)
+  if (p.min !== null && p.max !== null) return t().priceBetween(p.min, p.max)
+  return t().anyPrice
+}
 
 /**
  * Whether two filter sets would produce the same search.
@@ -42,24 +60,19 @@ export function filtersEqual(a: CatalogFilters, b: CatalogFilters): boolean {
   return a.colour === b.colour && a.priceMin === b.priceMin && a.priceMax === b.priceMax
 }
 
-function colourLabel(colour: WineColour): string {
-  return COLOURS.find(c => c.value === colour)?.label ?? colour
-}
-
 export function priceLabel(f: CatalogFilters): string {
-  if (f.priceMin !== null && f.priceMax !== null) return `$${f.priceMin} – $${f.priceMax}`
-  if (f.priceMin !== null) return `$${f.priceMin}+`
-  if (f.priceMax !== null) return `Up to $${f.priceMax}`
-  return 'Any price'
+  if (f.priceMin !== null && f.priceMax !== null) return t().priceRange(f.priceMin, f.priceMax)
+  if (f.priceMin !== null) return t().priceFrom(f.priceMin)
+  if (f.priceMax !== null) return t().priceUpTo(f.priceMax)
+  return t().anyPrice
 }
 
 /** Short summary for the collapsed filter chip — accurate without opening it. */
 export function chipSummary(f: CatalogFilters): string {
-  const colour = f.colour === 'all' ? 'All' : colourLabel(f.colour)
-  return `${colour} · ${priceLabel(f)}`
+  return `${colourLabel(f.colour)} · ${priceLabel(f)}`
 }
 
 export function fullSummary(f: CatalogFilters, branchName: string): string {
-  const colour = f.colour === 'all' ? 'All colours' : colourLabel(f.colour)
-  return `${colour} · ${priceLabel(f)} · in stock at ${branchName}`
+  const colour = f.colour === 'all' ? t().allColours : colourLabel(f.colour)
+  return t().filterSummary(colour, priceLabel(f), branchName)
 }

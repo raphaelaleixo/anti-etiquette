@@ -4,6 +4,7 @@ import * as cellar from '../../lib/cellar'
 import { productUrl } from '../../lib/catalog'
 import { chipSummary } from '../../lib/filters'
 import { branchName } from '../../lib/branches'
+import * as lang from '../../lib/lang'
 import { describeMatch } from '../../lib/reasons'
 import { openBranchSheet } from '../branchSheet'
 import { openFilterSheet } from '../filterSheet'
@@ -49,7 +50,7 @@ function favourites(rows: readonly Wine[]): Html | false {
       <div class="favourites-head">
         <span class="favourites-dot" aria-hidden="true"></span>
         <div class="favourites-title">
-          ${rows.length === 1 ? 'One of your wines is here' : `${rows.length} of your wines are here`}
+          ${lang.t().favouritesHere(rows.length)}
         </div>
       </div>
       <div class="favourites-list">
@@ -72,8 +73,8 @@ function results(rows: readonly ScoredWine[], profile: TasteProfile, total: numb
   return html`
     <section class="results-section">
       <div class="results-head">
-        <div class="label">Best matches here</div>
-        <div class="results-count">${rows.length} of ${total} in stock</div>
+        <div class="label">${lang.t().bestMatches}</div>
+        <div class="results-count">${lang.t().resultCount(rows.length, total)}</div>
       </div>
       <div class="results-list">
         ${rows.map((scored, i) => html`
@@ -101,7 +102,7 @@ export class FindPanel extends StoreElement {
   protected sources() {
     // appState for the search itself; cellar so that re-filing a wine reflows
     // the list without another catalog fetch.
-    return [appState.subscribe, cellar.subscribe]
+    return [appState.subscribe, cellar.subscribe, lang.subscribe]
   }
 
   connectedCallback(): void {
@@ -127,20 +128,14 @@ export class FindPanel extends StoreElement {
       <section class="find-empty">
         ${likedCount === 0
           ? html`
-            <h2>First, name a wine or two you've liked.</h2>
-            <p class="hint">
-              Matches are built from wines you already know you enjoy, so there
-              is nothing to go on until there is at least one.
-            </p>
-            <button type="button" class="btn-primary" data-find="add">＋ Add wines</button>
+            <h2>${lang.t().emptyNoWinesTitle}</h2>
+            <p class="hint">${lang.t().emptyNoWinesNote}</p>
+            <button type="button" class="btn-primary" data-find="add">${lang.t().addWines}</button>
           `
           : html`
-            <h2>Now pick your branch.</h2>
-            <p class="hint">
-              Stock differs from one SAQ to the next, so the list is only worth
-              anything once it knows which shelf it is reading.
-            </p>
-            <button type="button" class="btn-primary" data-find="branch">Choose a branch</button>
+            <h2>${lang.t().emptyNoBranchTitle}</h2>
+            <p class="hint">${lang.t().emptyNoBranchNote}</p>
+            <button type="button" class="btn-primary" data-find="branch">${lang.t().chooseBranch}</button>
           `}
       </section>
     `
@@ -160,8 +155,8 @@ export class FindPanel extends StoreElement {
       <div class="chip-row">
         <button type="button" class="chip chip-branch" data-find="branch">
           <span class="chip-dot" aria-hidden="true"></span>
-          <span class="chip-branch-name">${branch ? branchName(branch) : 'Choose a branch'}</span>
-          <span class="chip-change">Change</span>
+          <span class="chip-branch-name">${branch ? branchName(branch) : lang.t().chooseBranch}</span>
+          <span class="chip-change">${lang.t().changeBranch}</span>
         </button>
         <button type="button" class="chip chip-filter" data-find="filters">
           ${chipSummary(filters)}

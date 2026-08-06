@@ -4,7 +4,8 @@ import { searchWines } from '../lib/catalog'
 import { dismissAt, chooseCandidate, type Resolution } from '../lib/resolution'
 import * as cellar from '../lib/cellar'
 import * as appState from '../lib/appState'
-import { KIND_LABEL, KINDS, type SeedKind } from '../lib/types'
+import { KINDS, type SeedKind } from '../lib/types'
+import { t, kindLabel } from '../lib/lang'
 
 /**
  * Adding wines, start to finish, without leaving the sheet.
@@ -19,14 +20,8 @@ import { KIND_LABEL, KINDS, type SeedKind } from '../lib/types'
  * the user's caret with it.
  */
 
-const PLACEHOLDER = 'Château Bonnet\nRiesling Kabinett\nChianti Classico'
-
 function parseNames(text: string): string[] {
   return text.split('\n').map(l => l.trim()).filter(Boolean)
-}
-
-function plural(n: number, word: string): string {
-  return `${n} ${word}${n === 1 ? '' : 's'}`
 }
 
 // ---------------------------------------------------------------- step one
@@ -34,18 +29,13 @@ function plural(n: number, word: string): string {
 function inputStep(text: string): Html {
   return html`
     <div>
-      <div class="addwines-heading">
-        Name a few wines you've drunk and had an opinion about.
-      </div>
-      <div class="addwines-sub">
-        Loved or hated both help. You'll sort them in the next step — not ones
-        you're thinking of buying.
-      </div>
+      <div class="addwines-heading">${t().addHeading}</div>
+      <div class="addwines-sub">${t().addSub}</div>
     </div>
     <div class="seedinput">
       <div class="seedinput-panel">
-        <div class="label">One per line</div>
-        <textarea rows="6" data-add="text" placeholder="${PLACEHOLDER}">${text}</textarea>
+        <div class="label">${t().onePerLine}</div>
+        <textarea rows="6" data-add="text" placeholder="${t().addPlaceholder}">${text}</textarea>
       </div>
     </div>
   `
@@ -67,12 +57,12 @@ function candidatePicker(r: Resolution, i: number): Html | false {
   return html`
     <select
       class="resolution-alt" data-add="candidate" data-index="${i}"
-      aria-label="Which wine ${r.input} means"
+      aria-label="${t().whichWine(r.input)}"
     >
       ${candidates.map((w, ci) => html`
         <option value="${ci}">${w.name} · ${money(w.price)}</option>
       `)}
-      <option value="-1">None of these</option>
+      <option value="-1">${t().noneOfThese}</option>
     </select>
   `
 }
@@ -85,13 +75,13 @@ function resolutionRow(r: Resolution, i: number): Html {
         <div class="resolution-body">
           <div class="resolution-name resolution-name--warn">${r.input}</div>
           <div class="resolution-meta resolution-meta--warn">
-            ${tried === 0 ? 'no match — not added' : 'nothing chosen — not added'}
+            ${tried === 0 ? t().noMatch : t().nothingChosen}
           </div>
           ${candidatePicker(r, i)}
         </div>
         <button
           type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
-          aria-label="Dismiss the unmatched line ${r.input}" title="Dismiss this line"
+          aria-label="${t().dismissUnmatched(r.input)}"
         >×</button>
       </li>
     `
@@ -100,18 +90,18 @@ function resolutionRow(r: Resolution, i: number): Html {
     <li class="resolution-row">
       <div class="resolution-body">
         <div class="resolution-name">${r.wine.name}</div>
-        <div class="resolution-meta">${money(r.wine.price)} · from "${r.input}"</div>
+        <div class="resolution-meta">${t().fromInput(money(r.wine.price), r.input)}</div>
         ${candidatePicker(r, i)}
         <select
           class="resolution-kind" data-add="kind" data-index="${i}"
-          aria-label="Which list ${r.wine.name} belongs in"
+          aria-label="${t().whichList(r.wine.name)}"
         >
-          ${KINDS.map(k => html`<option value="${k}">${KIND_LABEL[k]}</option>`)}
+          ${KINDS.map(k => html`<option value="${k}">${kindLabel(k)}</option>`)}
         </select>
       </div>
       <button
         type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
-        aria-label="Do not add ${r.wine.name}" title="Don't add this one"
+        aria-label="${t().dismissMatched(r.wine.name)}"
       >×</button>
     </li>
   `
@@ -126,9 +116,9 @@ function resolutionStep(batch: Resolution[]): Html {
     <section class="resolution">
       <ul class="resolution-list">${batch.map(resolutionRow)}</ul>
       <p class="sheet-summary resolution-summary">
-        ${unmatched > 0 && html`${plural(unmatched, 'line')} ignored · `}
-        ${count('like')} liked, ${count('dislike')} steered clear
-        ${count('skip') > 0 && html`, ${count('skip')} never recommended`}
+        ${unmatched > 0 && t().linesIgnored(unmatched)}
+        ${t().batchSummary(count('like'), count('dislike'))}
+        ${count('skip') > 0 && t().batchSkipped(count('skip'))}
       </p>
     </section>
   `
@@ -142,7 +132,7 @@ export function openAddWines(): void {
   let busy = false
   let error: string | null = null
 
-  const sheet = openSheet({ title: 'Add wines', full: true })
+  const sheet = openSheet({ title: t().addTitle, full: true })
 
   function showError(): void {
     const existing = sheet.body.querySelector('.error')
@@ -178,7 +168,7 @@ export function openAddWines(): void {
       const n = parseNames(readText()).length
       sheet.setFoot(html`
         <button class="btn-primary" data-add="lookup">
-          ${busy ? 'Looking up…' : `Look up ${plural(n, 'wine')}`}
+          ${busy ? t().lookingUp : t().lookUp(n)}
         </button>
       `)
       setDisabled('[data-add="lookup"]', busy || n === 0)
@@ -187,9 +177,9 @@ export function openAddWines(): void {
     const matched = batch.filter(r => r.wine !== null).length
     sheet.setFoot(html`
       <div class="sheet-foot-row">
-        <button type="button" class="btn-secondary" data-add="back">Back</button>
+        <button type="button" class="btn-secondary" data-add="back">${t().back}</button>
         <button class="btn-primary" data-add="save">
-          ${busy ? 'Saving…' : `Save ${plural(matched, 'wine')}`}
+          ${busy ? t().saving : t().save(matched)}
         </button>
       </div>
     `)
@@ -228,7 +218,7 @@ export function openAddWines(): void {
   }
 
   function renderStep(): void {
-    sheet.setTitle(batch === null ? 'Add wines' : 'Check these matches')
+    sheet.setTitle(batch === null ? t().addTitle : t().reviewTitle)
     mount(sheet.body, batch === null ? inputStep(text) : resolutionStep(batch))
     applyKindSelections()
     showError()
@@ -255,7 +245,7 @@ export function openAddWines(): void {
         }
       }))
     } catch (e) {
-      error = `Could not reach the SAQ catalog: ${e instanceof Error ? e.message : String(e)}`
+      error = t().catalogUnreachable(e instanceof Error ? e.message : String(e))
     } finally {
       busy = false
       renderStep()

@@ -2,12 +2,14 @@ import '../styles.css'
 import { isPersistent } from '../lib/storage'
 import { watchOtherTabs } from '../lib/cellar'
 import { hydrateMissing } from '../lib/hydrate'
+import { initLang, t, subscribe as onLangChange } from '../lib/lang'
 import { ModeSwitch } from './elements/mode-switch'
 import { AppStatus } from './elements/app-status'
 import { AppPanel } from './elements/app-panel'
 import { AppFoot } from './elements/app-foot'
 import { MyWines } from './elements/my-wines'
 import { FindPanel } from './elements/find-panel'
+import { LangToggle } from './elements/lang-toggle'
 
 /**
  * The app entry point.
@@ -32,6 +34,7 @@ const ELEMENTS: Array<[string, CustomElementConstructor]> = [
   ['app-foot', AppFoot],
   ['my-wines', MyWines],
   ['find-panel', FindPanel],
+  ['lang-toggle', LangToggle],
 ]
 
 export function defineElements(): void {
@@ -43,6 +46,10 @@ export function defineElements(): void {
 export function start(): void {
   defineElements()
 
+  // Before anything renders: the detected language has to reach the catalog
+  // and <html lang> or the first paint is English chrome over a French index.
+  initLang()
+
   // Notification, not merge — two tabs are last-write-wins by design. This
   // exists so the losing tab stops showing a list that is no longer true.
   watchOtherTabs()
@@ -52,15 +59,22 @@ export function start(): void {
   // something to interrupt them over.
   void hydrateMissing().catch(() => {})
 
-  // Render-once, so it is a plain DOM write rather than a StoreElement: the
-  // answer cannot change within a session.
+  // Whether storage works cannot change within a session, so this is a plain
+  // DOM write rather than a StoreElement — but the *wording* can, so it
+  // re-runs on a language change.
   const note = document.querySelector('.head-status')
-  if (note) {
-    note.textContent = isPersistent()
-      ? 'saved in this browser'
-      : 'not saved — this browser is blocking storage'
-    if (!isPersistent()) note.classList.add('head-status--warn')
+  const showStorageNote = (): void => {
+    if (!note) return
+    note.textContent = isPersistent() ? t().storageOk : t().storageBlocked
+    note.classList.toggle('head-status--warn', !isPersistent())
   }
+  showStorageNote()
+  onLangChange(showStorageNote)
+
+  const about = document.querySelector('.head-about')
+  const showAbout = (): void => { if (about) about.textContent = t().about }
+  showAbout()
+  onLangChange(showAbout)
 }
 
 start()

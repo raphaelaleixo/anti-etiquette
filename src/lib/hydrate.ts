@@ -1,4 +1,4 @@
-import { resolveSku } from './catalog'
+import { resolveSku, getCatalogLang } from './catalog'
 import * as cellar from './cellar'
 import type { CellarEntry } from './cellar'
 import type { Wine } from './types'
@@ -53,7 +53,18 @@ async function mapLimit<T, R>(
  * still shown, and removing it is one tap; this only suppresses the retry.
  */
 export function pending(entries: readonly CellarEntry[]): CellarEntry[] {
-  return entries.filter(e => e.wine === null && e.unresolvedAt === undefined)
+  const wanted = getCatalogLang()
+  return entries.filter(e => {
+    // A record fetched in the other language is a miss, not a hit: its grape
+    // and region strings will not match anything the current catalog returns.
+    // Re-fetching is cheap and happens once per switch; scoring against
+    // mismatched strings is silent and permanent.
+    const stale = e.wine === null || e.wineLang !== wanted
+    if (!stale) return false
+    // `unresolvedAt` only suppresses retries for a wine the catalog does not
+    // have. A language switch is a new question, so it does not apply.
+    return e.wine === null ? e.unresolvedAt === undefined : true
+  })
 }
 
 export interface HydrateResult {

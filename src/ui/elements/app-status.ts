@@ -1,6 +1,7 @@
 import { StoreElement, html, mount } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
+import * as lang from '../../lib/lang'
 
 /**
  * Transient status and error lines.
@@ -12,7 +13,7 @@ import * as cellar from '../../lib/cellar'
  */
 export class AppStatus extends StoreElement {
   protected sources() {
-    return [appState.subscribe, cellar.subscribe]
+    return [appState.subscribe, cellar.subscribe, lang.subscribe]
   }
 
   protected render(): void {
@@ -21,7 +22,7 @@ export class AppStatus extends StoreElement {
     mount(this, html`
       ${status && html`<p class="status">${status}</p>`}
       ${error && html`<p class="error">${error}</p>`}
-      ${writeError && html`<p class="error">Could not save to this browser. ${writeError}</p>`}
+      ${writeError && html`<p class="error">${lang.t().couldNotSave} ${writeError}</p>`}
     `)
   }
 }

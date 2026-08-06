@@ -1,4 +1,5 @@
 import { html, mount } from './dom'
+import { t } from '../lib/lang'
 
 /**
  * The prompt, in a dialog, with a copy button.
@@ -12,17 +13,17 @@ export function openPromptDialog(prompt: string, total: number): void {
 
   mount(dialog, html`
     <div class="prompt-dialog-head">
-      <h2>Prompt</h2>
-      <button type="button" class="icon-close" aria-label="Close" data-prompt="close">×</button>
+      <h2>${t().promptTitle}</h2>
+      <button type="button" class="icon-close" aria-label="${t().close}" data-prompt="close">×</button>
     </div>
-    <p class="hint">${total} wines available · ${prompt.length} characters</p>
+    <p class="hint">${t().promptMeta(total, prompt.length)}</p>
     <textarea rows="14" readonly data-prompt="text"></textarea>
     <div class="prompt-dialog-footer">
-      <button type="button" class="btn-primary" data-prompt="copy">Copy</button>
+      <button type="button" class="btn-primary" data-prompt="copy">${t().copy}</button>
       <a
         class="btn-secondary prompt-link" data-prompt="open"
         href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer"
-      >Open ChatGPT ↗</a>
+      >${t().openChatGpt}</a>
     </div>
   `)
 
@@ -48,11 +49,11 @@ export function openPromptDialog(prompt: string, total: number): void {
     // it otherwise, and this project has already shipped that bug once.
     try {
       await navigator.clipboard.writeText(prompt)
-      copyButton.textContent = 'Copied ✓'
+      copyButton.textContent = t().copied
       copyButton.className = 'btn-secondary'
       openLink.className = 'btn-primary prompt-link'
     } catch {
-      copyButton.textContent = 'Select and copy manually'
+      copyButton.textContent = t().copyManually
       textarea.classList.add('copy-failed')
       // Select the text so the OS copy affordance (long-press, Cmd-C) is one
       // action away. No error dialog, no instructions to read.

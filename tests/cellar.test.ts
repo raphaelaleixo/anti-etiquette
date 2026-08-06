@@ -8,9 +8,13 @@ import { wine } from './helpers'
 const KEY = 'cellar.v2'
 
 function seed(entries: Array<Partial<CellarEntry> & { sku: string }>): void {
-  storage.setItem(KEY, JSON.stringify(
-    entries.map(e => ({ kind: 'like', addedAt: 1, wine: null, wineFetchedAt: 0, ...e })),
-  ))
+  storage.setItem(KEY, JSON.stringify(entries.map(e => ({
+    kind: 'like', addedAt: 1, wine: null, wineFetchedAt: 0,
+    // Same reasoning as tests/helpers.ts: a supplied wine is stamped with the
+    // language it would really have been fetched in.
+    ...(e.wine ? { wineLang: 'en' } : {}),
+    ...e,
+  }))))
   cellar.reload()
 }
 
