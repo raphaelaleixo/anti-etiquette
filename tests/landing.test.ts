@@ -58,10 +58,24 @@ describe('what the landing does not ship', () => {
   })
 
   it('links only to local assets and its own routes', () => {
-    const css = readFileSync('src/landing.css', 'utf8')
-    expect(css).not.toContain('@import url(http')
-    expect(css).not.toContain('fonts.googleapis')
-    expect(css).not.toContain('fonts.gstatic')
+    // Both stylesheets: the design links Caprasimo and Figtree from Google
+    // Fonts, and the app's whole argument is that nothing is sent anywhere.
+    // The faces are declared in the font stack and simply do not resolve until
+    // someone self-hosts the files.
+    for (const path of ['src/landing.css', 'src/styles.css']) {
+      const css = readFileSync(path, 'utf8')
+      expect(css, path).not.toContain('@import url(http')
+      expect(css, path).not.toContain('fonts.googleapis')
+      expect(css, path).not.toContain('fonts.gstatic')
+    }
+  })
+
+  it('declares the design faces so self-hosting is the only step left', () => {
+    for (const path of ['src/landing.css', 'src/styles.css']) {
+      const css = readFileSync(path, 'utf8')
+      expect(css, path).toContain('Caprasimo')
+      expect(css, path).toContain('Figtree')
+    }
   })
 })
 

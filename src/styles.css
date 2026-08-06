@@ -10,23 +10,60 @@
   }
 }
 
+/*
+ * Organic, dark. The tokens are re-pointed rather than re-designed, so the
+ * warmth survives: an espresso ground instead of a cool near-black, warm
+ * off-white type instead of grey, and wine red where brass used to be.
+ *
+ * The old `--brass` was doing two jobs — a fill with dark ink on top, and a
+ * text colour — which a single value could get away with because brass is
+ * light. Wine red is dark, so it cannot: it works as a fill under cream ink,
+ * and fails as text on this ground. Hence the split into `--accent` (fill),
+ * `--on-accent` (ink over it) and `--accent-hi` (text and focus rings).
+ */
 :root{
   color-scheme:dark;
-  --ground:#15161a; --raise:#1d1f24; --raise2:#24262c;
-  --ink:oklch(0.945 0.012 80); --ink2:oklch(0.985 0.008 80);
-  --mute:oklch(0.72 0.012 80); --mute2:oklch(0.60 0.010 80);
-  --line:rgba(255,255,255,0.09); --line2:rgba(255,255,255,0.16);
-  --brass:oklch(0.80 0.085 85); --good:oklch(0.76 0.105 155);
-  --warn:oklch(0.76 0.135 62); --bad:oklch(0.70 0.155 22);
-  --ui:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --ground:#1a1512; --raise:#241e19; --raise2:#2f2721;
+  /* The tab switch's selected segment goes darker than the ground, not
+     lighter — it reads as a well rather than a raised chip. */
+  --sink:#100d0b;
+  --ink:#f4ebdd; --ink2:#f9f4ed;
+  --mute:#c2b8a9; --mute2:#a1978a;
+  --line:rgba(244,235,221,0.15); --line2:rgba(244,235,221,0.28);
+
+  --accent:#8e2436; --accent-600:#a52c40; --on-accent:#f4ebdd;
+  --accent-hi:#d97f8e;
+  --wine:#5e1a25; --wine-300:#d59aa3;
+
+  /* Sage: a fill for the liked list, not just a marker. */
+  --leaf:#94a874; --leaf-fill:#2c3324; --leaf-ink:#dbe3c6;
+
+  --warn:#e0a45c; --bad:#d97f8e;
+
+  /*
+   * Caprasimo and Figtree are the system's faces. They are declared but not
+   * fetched: the design links them from Google Fonts, and a page whose whole
+   * argument is "nothing is sent anywhere" cannot announce each visit to a
+   * font CDN. Self-host the files and these stacks light up with no other
+   * change.
+   */
+  --display:"Caprasimo",ui-serif,Georgia,serif;
+  --ui:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,monospace;
+
+  --radius-sm:8px; --radius-md:16px; --radius-lg:28px;
+
+  /* Elevation on a dark ground is ambient darkness, not a tinted drop. */
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md:0 6px 18px -6px rgba(0,0,0,0.65);
+  --shadow-lg:0 28px 60px -22px rgba(0,0,0,0.8);
 }
 
-body{margin:0;background:#0d0e10;color:var(--ink);font-family:var(--ui);
+body{margin:0;background:#120e0c;color:var(--ink);font-family:var(--ui);
      -webkit-font-smoothing:antialiased;}
-a{color:var(--brass);text-decoration:none;}
+a{color:var(--accent-hi);text-decoration:none;}
 a:hover{color:var(--ink2);}
-::selection{background:var(--brass);color:#15161a;}
+::selection{background:var(--accent);color:var(--on-accent);}
 
 .label{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;
        text-transform:uppercase;color:var(--mute2);}
@@ -34,13 +71,13 @@ a:hover{color:var(--ink2);}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
                  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
-h1{font-size:1.6rem;}
-h2{font-size:1.05rem;margin-bottom:.3rem;}
+h1{font-size:1.6rem;font-family:var(--display);font-weight:400;}
+h2{font-size:1.05rem;margin-bottom:.3rem;font-family:var(--display);font-weight:400;}
 textarea,select,input[type="number"],input[type="text"]{
-  font:inherit;color:var(--ink2);background:#101114;
+  font:inherit;color:var(--ink2);background:var(--sink);
   border:none;box-shadow:inset 0 0 0 1px var(--line);
   border-radius:12px;padding:12px 14px;box-sizing:border-box;width:100%;}
-textarea:focus,select:focus,input:focus{outline:2px solid var(--brass);
+textarea:focus,select:focus,input:focus{outline:2px solid var(--accent-hi);
   outline-offset:1px;}
 button{font:inherit;cursor:pointer;}
 button:disabled{opacity:.45;cursor:default;}
@@ -85,15 +122,14 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 }
 
 /* Favourites — promoted card */
-.favourites-card{border-radius:18px;
-    background:linear-gradient(180deg,#23272a 0%,#1e2124 100%);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10);overflow:hidden;}
+.favourites-card{border-radius:var(--radius-lg);background:var(--leaf-fill);
+    box-shadow:var(--shadow-sm);overflow:hidden;}
 .favourites-head{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;}
-.favourites-dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex:none;}
-.favourites-title{font-size:17px;font-weight:600;color:var(--ink2);}
+.favourites-dot{width:8px;height:8px;border-radius:50%;background:var(--leaf);flex:none;}
+.favourites-title{font-family:var(--display);font-size:19px;color:var(--ink);}
 .favourites-list{display:flex;flex-direction:column;}
 .favourites-row{display:flex;gap:12px;padding:11px 16px;
-    border-top:1px solid rgba(255,255,255,0.07);align-items:baseline;}
+    border-top:1px solid rgba(244,235,221,0.12);align-items:baseline;}
 .favourites-body{flex:1;min-width:0;}
 .favourites-name{display:block;font-size:15px;color:var(--ink2);line-height:1.25;}
 .favourites-stock{font-size:12px;color:var(--mute2);margin-top:2px;}
@@ -107,8 +143,12 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .results-count{font-size:12px;color:var(--mute2);}
 .results-list{display:flex;flex-direction:column;}
 .results-row{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line);}
-.results-rank{font-family:var(--mono);font-size:12px;color:var(--brass);
-    width:16px;flex:none;padding-top:3px;}
+/* A filled disc rather than a bare numeral: the ranking is the point of this
+   list, and at 12px of mono on a warm ground it was barely there. */
+.results-rank{width:26px;height:26px;flex:none;border-radius:999px;
+    background:var(--accent);color:var(--on-accent);
+    font-family:var(--display);font-size:13px;line-height:1;
+    display:flex;align-items:center;justify-content:center;}
 .results-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
 .results-name-row{display:flex;gap:10px;align-items:baseline;}
 .results-name{flex:1;min-width:0;font-size:16px;color:var(--ink2);line-height:1.25;}
@@ -122,7 +162,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
     opacity:.65;margin-left:.5rem;}
 .prompt-include{display:flex;align-items:center;gap:6px;}
 .prompt-include>span{font-size:11px;color:var(--mute2);flex:none;}
-.prompt-include-seg{display:flex;gap:2px;padding:2px;background:#101114;
+.prompt-include-seg{display:flex;gap:2px;padding:2px;background:var(--sink);
     border-radius:9px;box-shadow:inset 0 0 0 1px var(--line);flex:1;
     position:relative;}
 .prompt-include-seg button{flex:1;height:26px;margin:0;border:none;
@@ -176,9 +216,9 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .prompt-dialog-footer{display:flex;gap:10px;margin-top:12px;}
 /* .prompt-link is an <a>, not a <button> — it needs the flex centring and
    text-decoration reset that a real button gets for free, plus an explicit
-   ink colour to override the global brass `a{color:var(--brass)}` rule. */
+   ink colour to override the global `a{color:var(--accent-hi)}` rule. */
 .prompt-link{display:flex;align-items:center;justify-content:center;
-    text-decoration:none;color:#15161a;}
+    text-decoration:none;color:var(--ground);}
 .prompt-link.btn-secondary{color:var(--ink2);}
 .prompt-dialog-head{display:flex;align-items:center;justify-content:space-between;
     gap:8px;}
@@ -194,22 +234,31 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 /* My wines — liked vs steer clear */
 .mywines-group--disliked{opacity:0.86;}
 .mywines-head{display:flex;align-items:center;gap:8px;padding-bottom:6px;}
-.mywines-badge{width:20px;height:20px;border-radius:50%;font-size:12px;
+.mywines-badge{width:22px;height:22px;border-radius:50%;font-size:12px;
     font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
-.mywines-badge--good{background:var(--good);color:#15161a;}
-.mywines-badge--bad{box-shadow:inset 0 0 0 1.5px var(--bad);color:var(--bad);}
-.mywines-title{font-size:17px;font-weight:600;color:var(--ink2);}
+.mywines-badge--good{background:var(--leaf);color:var(--ground);}
+.mywines-badge--bad{box-shadow:inset 0 0 0 1.5px var(--wine-300);color:var(--wine-300);}
+.mywines-title{font-family:var(--display);font-size:20px;color:var(--ink);}
 .mywines-title--quiet{color:var(--ink);}
 .mywines-count{font-size:13px;color:var(--mute2);}
 .mywines{list-style:none;padding:0;margin:0;}
-.mywines-row{display:flex;gap:10px;align-items:center;padding:8px 0;
-    border-top:1px solid var(--line);}
-.mywines-rule{width:3px;height:34px;border-radius:2px;flex:none;background:var(--good);}
-.mywines-row--disliked .mywines-rule{background:var(--bad);opacity:0.7;}
+/* Liked and steer-clear now differ by fill, not by the colour of a 3px rule:
+   a sage-filled card against a dashed outline. The distinction survives a
+   glance in shop lighting, which a hairline did not. */
+.mywines-row{display:flex;gap:11px;align-items:center;padding:11px 14px;
+    border-radius:var(--radius-md);margin-bottom:8px;}
+.mywines-row--liked{background:var(--leaf-fill);}
+.mywines-row--disliked{border:1px dashed var(--line2);}
+.mywines-row--skipped{border:1px dashed var(--line);}
+/* The rule is gone; the fill carries the meaning now. */
+.mywines-rule{display:none;}
 .mywines-body{flex:1;min-width:0;}
 .mywines-name{font-size:16px;line-height:1.25;color:var(--ink2);}
 .mywines-row--disliked .mywines-name{color:var(--mute);}
 .mywines-region{font-size:12px;color:var(--mute2);margin-top:2px;}
+/* Inside the sage fill the neutral mute goes muddy; sage ink stays legible. */
+.mywines-row--liked .mywines-region{color:var(--leaf-ink);opacity:0.75;}
+.mywines-row--liked .mywines-name{color:var(--ink2);}
 .mywines-remove{width:44px;height:44px;border-radius:50%;flex:none;
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
     font-size:19px;background:rgba(255,255,255,0.04);border:none;padding:0;}
@@ -221,7 +270,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
     display:flex;align-items:center;justify-content:center;color:var(--mute2);
     font-size:19px;line-height:1;background:rgba(255,255,255,0.04);
     border:none;padding:0;}
-.mywines-menu-btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+.mywines-menu-btn:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
 
 .wine-menu{margin:0;padding:6px;min-width:14rem;border:1px solid var(--line2);
     border-radius:14px;background:var(--raise);color:var(--ink2);
@@ -247,7 +296,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .wine-menu-item{display:flex;align-items:center;gap:8px;width:100%;
     padding:10px;border:none;background:none;border-radius:9px;
     font:inherit;font-size:15px;color:var(--ink2);text-align:left;}
-.wine-menu-item[aria-pressed="true"]{color:var(--brass);}
+.wine-menu-item[aria-pressed="true"]{color:var(--accent-hi);}
 .wine-menu-item--danger{color:var(--bad);margin-top:4px;
     border-top:1px solid var(--line);border-radius:0 0 9px 9px;}
 .wine-menu-tick{width:1rem;flex:none;font-size:12px;}
@@ -273,6 +322,7 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .mywines-row--unresolved .mywines-name{color:var(--mute);font-variant-numeric:tabular-nums;}
 .mywines-row--unresolved .mywines-region{font-style:italic;}
 
+
 /* Backup block — the honest note at the foot of My Wines. */
 .backup{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);}
 .backup-summary{font-size:13px;color:var(--mute2);cursor:pointer;list-style:none;
@@ -288,15 +338,18 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 /* Shell */
 .shell{min-height:100dvh;max-width:30rem;margin-inline:auto;
        display:flex;flex-direction:column;background:var(--ground);}
-.shell-head{padding:12px 16px;display:flex;flex-direction:column;gap:12px;}
+/* Its own block with a divider, so "where am I / what am I filtering" stays
+   one thing you cannot scroll away from. */
+.shell-head{padding:12px 16px;display:flex;flex-direction:column;gap:12px;
+            border-bottom:1px solid var(--line);}
 .shell-body{flex:1;min-height:0;padding:0 16px 8px;
             display:flex;flex-direction:column;gap:18px;}
 .shell-fade{height:26px;margin-top:-26px;position:sticky;bottom:0;z-index:2;
             pointer-events:none;
-            background:linear-gradient(180deg,rgba(21,22,26,0) 0%,var(--ground) 90%);}
+            background:linear-gradient(180deg,rgba(26,21,18,0) 0%,var(--ground) 90%);}
 .shell-foot{position:sticky;bottom:0;z-index:3;
             border-top:1px solid var(--line);
-            background:rgba(29,31,36,0.92);backdrop-filter:blur(12px);
+            background:rgba(36,30,25,0.92);backdrop-filter:blur(12px);
             padding:12px 16px calc(12px + env(safe-area-inset-bottom));
             display:flex;gap:12px;align-items:stretch;}
 
@@ -311,12 +364,12 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
    `scale` with transform-origin: left rather than `width` keeps the update
    on the compositor. */
 .progress{height:2px;background:var(--line);border-radius:2px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--brass);transform-origin:left;
+.progress-fill{height:100%;background:var(--accent-hi);transform-origin:left;
                 transition:scale 200ms ease-out;}
 
 /* Mode switch */
 .modeswitch{display:flex;gap:4px;padding:4px;background:var(--raise);
-            border-radius:13px;position:relative;}
+            border-radius:999px;position:relative;}
 
 /* The sliding pill. A pseudo-element, so it stays out of the DOM and the
    accessibility tree. Track padding is 4px and the gap is 4px, so each
@@ -324,8 +377,8 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
    width plus the gap lands it exactly on the second segment. No measuring. */
 .modeswitch::before{content:'';position:absolute;
     inset-block:4px;inset-inline-start:4px;inline-size:calc(50% - 6px);
-    border-radius:10px;background:var(--raise2);
-    box-shadow:inset 0 0 0 1px var(--line);
+    border-radius:999px;background:var(--sink);
+    box-shadow:none;
     translate:0;
     /* Its own transition name so it slides *during* the view transition.
        Without this the header snapshot would hold it still and it would
@@ -341,30 +394,34 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
     animation-timing-function:cubic-bezier(0.32,0.72,0,1);}
 
 .modeswitch button{flex:1;height:40px;margin:0;border:none;background:none;
-                    border-radius:10px;font-size:15px;color:var(--mute);
+                    border-radius:999px;font-size:15px;color:var(--mute2);
                     display:flex;align-items:center;justify-content:center;
                     cursor:pointer;position:relative;z-index:1;
                     transition:color 160ms ease;}
 /* Fill now comes from the pill, so the active button only changes its type. */
-.modeswitch button.active{font-weight:600;color:var(--ink2);}
+.modeswitch button.active{font-family:var(--display);color:var(--ink);}
 
 /* Buttons */
-.btn-primary{flex:1;min-height:52px;border:none;border-radius:13px;
-             background:var(--brass);color:#15161a;font-size:17px;
-             font-weight:600;letter-spacing:-0.01em;
+.btn-primary{flex:1;min-height:52px;border:none;border-radius:999px;
+             background:var(--accent);color:var(--on-accent);font-size:17px;
+             font-family:var(--display);letter-spacing:-0.005em;
              transition:background-color 160ms ease,color 160ms ease,
                         scale 100ms ease;}
-.btn-secondary{flex:1;min-height:52px;border:none;border-radius:13px;
-               background:transparent;color:var(--ink2);font-size:16px;
+.btn-secondary{flex:1;min-height:52px;border:none;border-radius:999px;
+               background:transparent;color:var(--ink);font-size:16px;
+               font-family:var(--display);
                box-shadow:inset 0 0 0 1px var(--line2);}
+/* The deep red is dark, so it lightens rather than darkens on press. */
+.btn-primary:hover{background:var(--accent-600);}
+.btn-primary:active:not(:disabled){background:var(--accent-600);}
 
 /* Chips — open the branch / filter sheets */
 .chip-row{display:flex;gap:8px;}
-.chip{height:46px;border:none;border-radius:12px;background:var(--raise);
+.chip{border-radius:999px;height:46px;border:none;border-radius:12px;background:var(--raise);
       color:var(--ink2);display:flex;align-items:center;gap:8px;
       padding:0 14px;font-size:15px;font:inherit;cursor:pointer;}
 .chip-branch{flex:1;min-width:0;justify-content:flex-start;}
-.chip-dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;}
+.chip-dot{width:7px;height:7px;border-radius:50%;background:var(--leaf);flex:none;}
 .chip-branch-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
                    white-space:nowrap;text-align:left;}
 .chip-change{font-size:13px;color:var(--mute2);flex:none;}
@@ -421,9 +478,9 @@ button:active:not(:disabled), .chip:active { scale: 0.98; }
 .sheet-summary{font-size:12px;color:var(--mute2);text-align:center;margin:0;}
 
 /* Branch sheet */
-input.branch-filter{border-radius:999px;height:46px;background:#101114;}
+input.branch-filter{border-radius:999px;height:46px;background:var(--sink);}
 .branch-group{display:flex;flex-direction:column;}
-.label--brass{color:var(--brass);padding-bottom:6px;}
+.label--brass{color:var(--accent-hi);padding-bottom:6px;}
 .branch-row{display:flex;gap:11px;align-items:center;padding:10px 0;
             border-top:1px solid var(--line);background:none;border-left:none;
             border-right:none;width:100%;min-height:44px;text-align:left;
@@ -431,8 +488,8 @@ input.branch-filter{border-radius:999px;height:46px;background:#101114;}
 .branch-radio{width:18px;height:18px;border-radius:50%;flex:none;
               box-shadow:inset 0 0 0 1.5px var(--line2);display:flex;
               align-items:center;justify-content:center;font-size:11px;
-              font-weight:700;color:#15161a;}
-.branch-radio--on{background:var(--brass);box-shadow:none;}
+              font-weight:700;color:var(--ground);}
+.branch-radio--on{background:var(--accent);color:var(--on-accent);box-shadow:none;}
 .branch-body{flex:1;min-width:0;}
 .branch-name{font-size:16px;color:var(--ink2);line-height:1.25;display:block;}
 .branch-address{font-size:12px;color:var(--mute2);margin-top:2px;display:block;}
@@ -444,13 +501,13 @@ input.branch-filter{border-radius:999px;height:46px;background:#101114;}
       color:var(--mute);background:none;border:none;font:inherit;
       box-shadow:inset 0 0 0 1px var(--line2);display:flex;align-items:center;
       justify-content:center;}
-.pill--brass{background:var(--brass);color:#15161a;font-weight:600;box-shadow:none;}
+.pill--brass{background:var(--accent);color:var(--on-accent);font-weight:600;box-shadow:none;}
 .pill--raised{background:var(--raise2);color:var(--ink2);font-weight:600;
               box-shadow:inset 0 0 0 1px var(--line2);}
 .filtersheet-pricehead{display:flex;align-items:baseline;justify-content:space-between;}
 .filtersheet-priceband{font-size:15px;color:var(--ink2);font-variant-numeric:tabular-nums;}
 .filtersheet-numbers{display:flex;gap:10px;padding-top:2px;}
-.filtersheet-numberbox{flex:1;height:52px;border-radius:12px;background:#101114;
+.filtersheet-numberbox{flex:1;height:52px;border-radius:var(--radius-md);background:var(--sink);
                         box-shadow:inset 0 0 0 1px var(--line);padding:0 14px;
                         display:flex;flex-direction:column;justify-content:center;
                         gap:2px;}
@@ -461,7 +518,7 @@ input.branch-filter{border-radius:999px;height:46px;background:#101114;}
 .filtersheet-note{display:flex;gap:9px;align-items:flex-start;padding:12px 14px;
                    border-radius:12px;background:rgba(255,255,255,0.03);}
 .filtersheet-note div{font-size:13px;line-height:1.45;color:var(--mute);}
-.filtersheet-dot{width:7px;height:7px;border-radius:50%;background:var(--good);
+.filtersheet-dot{width:7px;height:7px;border-radius:50%;background:var(--leaf);
                   flex:none;margin-top:6px;}
 
 /* Add-wines sheet */
@@ -498,7 +555,7 @@ input.branch-filter{border-radius:999px;height:46px;background:#101114;}
                   /* The global `select` rule paints an inset 1px border via
                      box-shadow; left on, it doubles up with the real border. */
                   box-shadow:none;}
-.resolution-kind:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+.resolution-kind:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
 
 /* Drop one line from the batch — deliberately not another option inside the
    picker, since it is not a verdict on the wine but a refusal to file it. */
@@ -506,7 +563,7 @@ input.branch-filter{border-radius:999px;height:46px;background:#101114;}
                      display:flex;align-items:center;justify-content:center;
                      font-size:19px;line-height:1;color:var(--mute2);
                      background:none;border:none;padding:0;}
-.resolution-dismiss:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+.resolution-dismiss:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
 @media (hover:hover){.resolution-dismiss:hover{color:var(--bad);}}
 
 /* ---- Mode transition -------------------------------------------------
@@ -614,3 +671,48 @@ html:active-view-transition-type(backward)::view-transition-new(app-body){
    offered more than one, so an unambiguous match doesn't sprout a control
    that implies doubt. */
 .resolution-alt{margin-top:6px;font-size:13px;padding:8px 10px;}
+
+/*
+ * The mark — variant 4c, "X inside the label".
+ *
+ * Black bottle, white label, red X clipped to the label's edges: the cross
+ * happens on the label rather than over the bottle, so the silhouette stays
+ * whole at every size and red goes back to meaning wine. Drawn in CSS exactly
+ * as the design draws it, which means no asset to ship, no request to make,
+ * and it scales by changing one number.
+ *
+ * The cream tile is deliberate on a dark ground — it is what lets the same
+ * mark sit on either theme without a second version.
+ */
+.mark{--mark:34px;
+  inline-size:var(--mark);block-size:var(--mark);flex:none;position:relative;
+  border-radius:calc(var(--mark) * 0.283);background:#f6efe4;overflow:hidden;}
+/* neck */
+.mark::before{content:'';position:absolute;
+  inset-inline-start:calc(var(--mark) * 0.435);inset-block-start:calc(var(--mark) * 0.13);
+  inline-size:calc(var(--mark) * 0.13);block-size:calc(var(--mark) * 0.348);
+  border-radius:calc(var(--mark) * 0.043) calc(var(--mark) * 0.043) 0 0;
+  background:#201e1d;}
+/* shoulders and body */
+.mark::after{content:'';position:absolute;
+  inset-inline-start:calc(var(--mark) * 0.261);inset-block-start:calc(var(--mark) * 0.391);
+  inline-size:calc(var(--mark) * 0.478);block-size:calc(var(--mark) * 0.609);
+  border-radius:calc(var(--mark) * 0.152) calc(var(--mark) * 0.152) 0 0;
+  background:#201e1d;}
+/* the label, and the X clipped inside it */
+.mark-label{position:absolute;
+  inset-inline-start:calc(var(--mark) * 0.304);inset-block-start:calc(var(--mark) * 0.522);
+  inline-size:calc(var(--mark) * 0.391);block-size:calc(var(--mark) * 0.37);
+  border-radius:calc(var(--mark) * 0.043);background:#fff;overflow:hidden;z-index:1;}
+.mark-label::before,
+.mark-label::after{content:'';position:absolute;
+  inset-inline:calc(var(--mark) * 0.065);inset-block-start:calc(var(--mark) * 0.148);
+  block-size:calc(var(--mark) * 0.074);background:var(--wine);}
+.mark-label::before{rotate:-45deg;}
+.mark-label::after{rotate:45deg;}
+
+/* Header lockup: mark, wordmark, and whatever sits opposite them. */
+.head-row{display:flex;align-items:center;gap:10px;}
+.head-brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.head-row .label{font-family:var(--display);font-size:19px;color:var(--ink);
+  letter-spacing:0;text-transform:none;}
