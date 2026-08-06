@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
-  resolveWineName, fetchBranchCatalog, buildCatalogFilter, countMatches, CATALOG_HEADERS,
+  resolveWineName, fetchBranchCatalog, buildCatalogFilter, countMatches, catalogHeaders,
   type CatalogFilters,
 } from '../src/lib/catalog'
 
@@ -18,14 +18,14 @@ function mockFetchOnce(payload: unknown) {
 
 afterEach(() => { vi.restoreAllMocks() })
 
-describe('CATALOG_HEADERS', () => {
+describe('catalogHeaders', () => {
   it('carries all seven headers the endpoint requires', () => {
     for (const h of [
       'x-api-key', 'Magento-Environment-Id', 'Magento-Website-Code',
       'Magento-Store-Code', 'Magento-Store-View-Code',
       'Magento-Customer-Group', 'Content-Type',
     ]) {
-      expect(CATALOG_HEADERS).toHaveProperty(h)
+      expect(catalogHeaders()).toHaveProperty(h)
     }
   })
 })

@@ -1,6 +1,7 @@
 import { StoreElement, html, mount, delegate, money, type Html } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
+import { productUrl } from '../../lib/catalog'
 import { chipSummary } from '../../lib/filters'
 import { branchName } from '../../lib/branches'
 import { describeMatch } from '../../lib/reasons'
@@ -33,8 +34,10 @@ function rating(wine: Wine): Html | false {
 }
 
 function saqLink(wine: Wine, className: string): Html {
+  // productUrl carries the language prefix, so a link cannot point at the
+  // English page while the row beside it shows French data.
   return html`
-    <a class="${className}" href="https://www.saq.com/en/${wine.urlKey}"
+    <a class="${className}" href="${productUrl(wine.urlKey)}"
        target="_blank" rel="noreferrer">${wine.name}</a>
   `
 }
@@ -82,7 +85,8 @@ function results(rows: readonly ScoredWine[], profile: TasteProfile, total: numb
                 <div class="results-price">${money(scored.wine.price)}</div>
               </div>
               <!-- No stock line: every row is in stock here by construction
-                   (buildCatalogFilter pins it) and the header says so. -->
+                   (buildCatalogFilter pins availability to the branch) and the
+                   header above already says so. -->
               <div class="results-stock">${rating(scored.wine)}</div>
               <p class="reason">${describeMatch(scored, profile)}</p>
             </div>

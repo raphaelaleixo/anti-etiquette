@@ -15,8 +15,9 @@ const RESULT_COUNT = 10
  * per shortlisted wine, 10+ concurrent requests through a serverless proxy,
  * and the slowest part of a search by a wide margin. It is gone, along with
  * the exact bottle counts it bought. `buildCatalogFilter` already pins
- * `availability_front == 'In store'` and `store_availability_list == branch`,
- * so every wine here is in stock at this branch by construction.
+ * `availability_front` to the store view's on-the-shelf value and
+ * `store_availability_list` to the branch, so every wine here is in stock at
+ * this branch by construction.
  */
 
 /**

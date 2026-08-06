@@ -6,15 +6,20 @@ const ENDPOINT = 'https://catalog-service.adobe.io/graphql'
 /**
  * Public front-end credentials, scraped from any saq.com page source.
  * If these rotate, re-scrape from https://www.saq.com/en/products/wine.
+ *
+ * A function, not a constant, because the store-view code has to come from the
+ * same place the category paths and the availability value do.
  */
-export const CATALOG_HEADERS: Record<string, string> = {
-  'Content-Type': 'application/json',
-  'x-api-key': '7a7d7422bd784f2481a047e03a73feaf',
-  'Magento-Environment-Id': '2ce24571-9db9-4786-84a9-5f129257ccbb',
-  'Magento-Website-Code': 'base',
-  'Magento-Store-Code': 'main_website_store',
-  'Magento-Store-View-Code': 'en',
-  'Magento-Customer-Group': 'b6589fc6ab0dc82cf12099d1c2d40ab994e8410c',
+export function catalogHeaders(): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': '7a7d7422bd784f2481a047e03a73feaf',
+    'Magento-Environment-Id': '2ce24571-9db9-4786-84a9-5f129257ccbb',
+    'Magento-Website-Code': 'base',
+    'Magento-Store-Code': 'main_website_store',
+    'Magento-Store-View-Code': view().code,
+    'Magento-Customer-Group': 'b6589fc6ab0dc82cf12099d1c2d40ab994e8410c',
+  }
 }
 
 const PRODUCT_FIELDS = `
@@ -36,7 +41,7 @@ query($phrase:String!,$filter:[SearchClauseInput!]!,$size:Int!,$page:Int!){
 async function query(variables: Record<string, unknown>): Promise<any> {
   const res = await fetch(ENDPOINT, {
     method: 'POST',
-    headers: CATALOG_HEADERS,
+    headers: catalogHeaders(),
     body: JSON.stringify({ query: SEARCH_QUERY, variables }),
   })
   if (!res.ok) {
@@ -73,7 +78,7 @@ const NUMERIC = /^\d+$/
 export async function searchWines(name: string, limit = CANDIDATE_LIMIT): Promise<Wine[]> {
   const json = await query({
     phrase: name,
-    filter: [{ attribute: 'categories', eq: 'products/wine' }],
+    filter: [{ attribute: 'categories', eq: view().categories.all }],
     size: limit,
     page: 1,
   })
@@ -96,7 +101,7 @@ export async function searchWines(name: string, limit = CANDIDATE_LIMIT): Promis
 export async function resolveSku(sku: string): Promise<Wine | null> {
   const json = await query({
     phrase: sku,
-    filter: [{ attribute: 'categories', eq: 'products/wine' }],
+    filter: [{ attribute: 'categories', eq: view().categories.all }],
     size: 1,
     page: 1,
   })
@@ -125,12 +130,89 @@ export interface CatalogFilters {
   priceMax: number | null
 }
 
-const CATEGORY_BY_COLOUR: Record<WineColour, string> = {
-  all: 'products/wine',
-  red: 'products/wine/red-wine',
-  white: 'products/wine/white-wine',
-  rose: 'products/wine/rose',
-  orange: 'products/wine/orange-wine',
+/**
+ * Everything about a catalog request that is language-specific.
+ *
+ * The SAQ runs one index per store view, and the *values* differ between them,
+ * not just the prose: `products/wine` returns 0 rows from the French index and
+ * `In store` matches nothing there either. Scattered as literals, that is a
+ * silent failure — a French request built with an English category returns an
+ * empty result set with no error, and the app looks broken rather than
+ * misconfigured.
+ *
+ * Keeping them in one table per language is what makes a half-translated
+ * request impossible: you cannot send the `fr` header with an `en` category,
+ * because you never choose them separately.
+ *
+ * Measured against the live endpoint, branch 23112: `In store` and
+ * `En succursale` both return 736 wines, which is the check that the pair
+ * really are the same predicate.
+ */
+interface StoreView {
+  /** `Magento-Store-View-Code` header value. */
+  code: string
+  /** `categories` filter path, per colour. */
+  categories: Record<WineColour, string>
+  /** The `availability_front` value meaning "on the shelf at that branch". */
+  inStore: string
+  /** Path segment for product links: `saq.com/<prefix>/<urlKey>`. */
+  urlPrefix: string
+}
+
+export type CatalogLang = 'en' | 'fr'
+
+const STORE_VIEWS: Record<CatalogLang, StoreView> = {
+  en: {
+    code: 'en',
+    categories: {
+      all: 'products/wine',
+      red: 'products/wine/red-wine',
+      white: 'products/wine/white-wine',
+      rose: 'products/wine/rose',
+      orange: 'products/wine/orange-wine',
+    },
+    inStore: 'In store',
+    urlPrefix: 'en',
+  },
+  fr: {
+    code: 'fr',
+    categories: {
+      all: 'produits/vin',
+      red: 'produits/vin/vin-rouge',
+      white: 'produits/vin/vin-blanc',
+      rose: 'produits/vin/vin-rose',
+      orange: 'produits/vin/vin-orange',
+    },
+    inStore: 'En succursale',
+    urlPrefix: 'fr',
+  },
+}
+
+/**
+ * The store view every catalog request uses.
+ *
+ * Module-level rather than a parameter threaded through each call, precisely
+ * because the failure being prevented is two halves of one request disagreeing.
+ * Nothing sets it today — the app is English — but when it does, one call moves
+ * the header, the category, the availability value and the links together.
+ */
+let currentLang: CatalogLang = 'en'
+
+export function setCatalogLang(lang: CatalogLang): void {
+  currentLang = lang
+}
+
+export function getCatalogLang(): CatalogLang {
+  return currentLang
+}
+
+function view(): StoreView {
+  return STORE_VIEWS[currentLang]
+}
+
+/** The saq.com page for a wine, in the language the catalog is being read in. */
+export function productUrl(urlKey: string): string {
+  return `https://www.saq.com/${view().urlPrefix}/${urlKey}`
 }
 
 export function buildCatalogFilter(
@@ -139,7 +221,7 @@ export function buildCatalogFilter(
 ): Array<Record<string, unknown>> {
   const clauses: Array<Record<string, unknown>> = [
     { attribute: 'store_availability_list', eq: branch },
-    { attribute: 'categories', eq: CATEGORY_BY_COLOUR[filters.colour] },
+    { attribute: 'categories', eq: view().categories[filters.colour] },
   ]
   if (filters.priceMin !== null || filters.priceMax !== null) {
     const range: Record<string, number> = {}
@@ -147,7 +229,7 @@ export function buildCatalogFilter(
     if (filters.priceMax !== null) range.to = filters.priceMax
     clauses.push({ attribute: 'price', range })
   }
-  clauses.push({ attribute: 'availability_front', eq: 'In store' })
+  clauses.push({ attribute: 'availability_front', eq: view().inStore })
   return clauses
 }
 
