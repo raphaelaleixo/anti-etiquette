@@ -25,6 +25,10 @@ export const en = {
   alsoHere: 'Also here: wines you already know',
   alsoHereNote: 'From your own list, in stock at this branch.',
   askAnAi: 'Ask an AI about this shelf',
+  searchAgain: 'Search again',
+  onlyExclusionsHere:
+    'Only exclusions can be filed from here — a wine joins your taste after ' +
+    'you have drunk it. Changes apply straight away, no new search.',
 
   // -------------------------------------------------------------- kinds
   //
@@ -260,7 +264,6 @@ export const en = {
   whichShop: 'Which shop are you standing in?',
 
   // -------------------------------------------------------------- prompt
-  promptTitle: 'Prompt',
   secondOpinion: 'Get a second opinion',
   promptExplain: (branch: string) =>
     `This writes up your taste and what is on the shelf at ${branch} as plain ` +

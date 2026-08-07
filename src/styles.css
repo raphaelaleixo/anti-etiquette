@@ -541,15 +541,25 @@ button { font: inherit; color: inherit; }
   .shell-foot app-foot > .btn-secondary { flex: none; padding-block: 11px; }
 }
 
-/* The prompt controls, which replace the buttons once a search has run. */
-.prompt-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  inline-size: 100%;
+/* The note the results footer carries, beside its two actions. */
+.foot-note { display: none; }
+@media (min-width: 62rem) {
+  .foot-note {
+    display: block;
+    margin-inline-end: auto;
+    max-inline-size: 62ch;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--mute2);
+  }
 }
+
 .prompt-include { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.prompt-chars {
+  margin-inline-start: auto;
+  font: 500 12px/1 var(--mono);
+  color: var(--mute3);
+}
 .prompt-include-seg { display: flex; gap: 7px; }
 .prompt-include-seg button {
   padding: 9px 16px;
@@ -565,10 +575,6 @@ button { font: inherit; color: inherit; }
   background: var(--chip);
   color: var(--ink0);
   font-weight: 600;
-}
-@media (min-width: 62rem) {
-  .prompt-actions { inline-size: auto; }
-  .prompt-include { order: -1; margin-inline-end: auto; }
 }
 
 /* ══════════════════════════════════════════════════════════════ my wines ══ */
@@ -830,18 +836,21 @@ button { font: inherit; color: inherit; }
 
 .firstrun-groups { display: flex; flex-direction: column; gap: 11px; }
 .firstrun-group {
-  display: flex;
-  gap: 11px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  gap: 3px 11px;
   padding: 13px;
   border: 1px solid var(--line3);
   border-radius: 4px;
   background: var(--raise);
 }
 /* The colour bar, which is the same signal the group cards carry later. */
+/* One bar down the side of both lines, not a third column beside them. */
 .firstrun-group::before {
   content: '';
+  grid-row: 1 / 3;
   inline-size: 6px;
-  flex: none;
   border-radius: 2px;
   background: var(--faint);
 }
@@ -875,7 +884,7 @@ button { font: inherit; color: inherit; }
   .firstrun-example { margin-block-start: 22px; max-inline-size: 560px; }
   .firstrun-panelhead h3 { font-size: 22px; }
   .firstrun-groups { gap: 14px; }
-  .firstrun-group { padding: 16px; gap: 14px; }
+  .firstrun-group { padding: 16px; gap: 5px 14px; }
   .firstrun-group::before { inline-size: 8px; }
   .firstrun-groupname { font-size: 16px; }
   .firstrun-groupnote { font-size: 14px; line-height: 1.5; }
@@ -1042,9 +1051,9 @@ button { font: inherit; color: inherit; }
   color: oklch(0.82 0.04 35);
 }
 
-.gate-req.is-open { border-color: oklch(0.38 0.04 95); background: var(--less-bg); }
+.gate-req.is-open { border-color: oklch(0.38 0.04 35); background: oklch(0.225 0.014 35); }
 .gate-req.is-open .gate-mark { border: 2px solid var(--more); }
-.gate-req.is-open .gate-note { color: var(--less-ink); }
+.gate-req.is-open .gate-note { color: var(--more-ink2); }
 
 /*
  * The gate, and the branch list beside it.
@@ -1057,7 +1066,7 @@ button { font: inherit; color: inherit; }
 .find-gate branch-panel { display: none; }
 
 @media (min-width: 62rem) {
-  .find-gate {
+  .find-gate:has(branch-panel) {
     grid-template-columns: 1fr 620px;
     gap: 56px;
     align-items: start;
@@ -1127,7 +1136,12 @@ button { font: inherit; color: inherit; }
 .find-main { min-inline-size: 0; }
 .find-side { display: flex; flex-direction: column; gap: 20px; }
 @media (min-width: 62rem) {
-  .find-grid { grid-template-columns: 1fr 380px; gap: 32px; padding: 28px var(--pad) 32px; }
+  .find-grid { padding: 28px var(--pad) 32px; }
+  /* The rail is only worth its width when something is in it. */
+  .find-grid:has(.favourites-card) {
+    grid-template-columns: 1fr 380px;
+    gap: 32px;
+  }
 }
 
 /* ── results ─────────────────────────────────────────────────────────────── */

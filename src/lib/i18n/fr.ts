@@ -27,6 +27,11 @@ export const fr: Messages = {
   alsoHere: 'Aussi ici : des vins que vous connaissez',
   alsoHereNote: 'Tirés de votre liste, en tablette à cette succursale.',
   askAnAi: 'Interroger une IA sur cette tablette',
+  searchAgain: 'Chercher à nouveau',
+  onlyExclusionsHere:
+    'Seules les exclusions se font ici — un vin rejoint vos goûts une fois que ' +
+    'vous l’avez bu. Les changements s’appliquent tout de suite, sans nouvelle ' +
+    'recherche.',
 
   // -------------------------------------------------------------- kinds
   kindLike: 'Plus comme ça',
@@ -250,7 +255,6 @@ export const fr: Messages = {
   whichShop: 'Dans quelle succursale êtes-vous ?',
 
   // -------------------------------------------------------------- prompt
-  promptTitle: 'Texte pour l’IA',
   secondOpinion: 'Obtenir un deuxième avis',
   promptExplain: branch =>
     `Ceci résume vos goûts et ce qu’il y a en tablette à ${branch}, en texte ` +

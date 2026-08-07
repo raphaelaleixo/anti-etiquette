@@ -2,7 +2,8 @@ import { StoreElement, html, mount, delegate } from '../dom'
 import * as lang from '../../lib/lang'
 import type { Lang } from '../../lib/lang'
 
-const LANGS: readonly Lang[] = ['fr', 'en']
+// EN first, as the design draws it — and as the page itself defaults.
+const LANGS: readonly Lang[] = ['en', 'fr']
 
 /**
  * The FR/EN switch.

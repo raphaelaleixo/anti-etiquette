@@ -83,7 +83,7 @@ function favourites(rows: readonly Wine[]): Html | false {
 }
 
 function results(
-  rows: readonly ScoredWine[], profile: TasteProfile, total: number, seedCount: number,
+  rows: readonly ScoredWine[], profile: TasteProfile, seedCount: number,
 ): Html | false {
   if (rows.length === 0) return false
   return html`
@@ -93,7 +93,6 @@ function results(
           ${lang.t().bestMatches}
           <span class="results-against">${lang.t().rankedAgainst(seedCount)}</span>
         </div>
-        <div class="results-count">${lang.t().resultCount(rows.length, total)}</div>
       </div>
       <div class="results-list">
         ${rows.map((scored, i) => html`
@@ -244,7 +243,7 @@ export class FindPanel extends StoreElement {
         <!-- The action belongs to the requirement that is missing — or, when
              nothing is missing, to the thing that has not happened yet. -->
         ${ready
-          ? html`<button type="button" class="btn-primary" data-find="search">${t.searchButton}</button>`
+          ? false
           : noWines
           ? html`<button type="button" class="btn-primary" data-find="add">${t.addWines}</button>`
           : html`<button type="button" class="btn-primary" data-find="branch">${t.chooseBranch}</button>`}
@@ -280,13 +279,10 @@ export class FindPanel extends StoreElement {
       ${search && html`
         <div class="find-grid">
           <div class="find-main">
-            ${results(visible, search.profile, search.catalog.length, likedCount)}
+            ${results(visible, search.profile, likedCount)}
           </div>
           <aside class="find-side">
             ${favourites(visibleFavourites)}
-            <button type="button" class="btn-primary" data-find="prompt">
-              ${lang.t().askAnAi}
-            </button>
           </aside>
         </div>
       `}

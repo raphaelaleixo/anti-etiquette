@@ -1,4 +1,4 @@
-import { html, mount } from './dom'
+import { html, mount, delegate } from './dom'
 import { t } from '../lib/lang'
 
 /**
@@ -7,9 +7,20 @@ import { t } from '../lib/lang'
  * Three states, and the brass fill marks the next thing to tap: Copy is
  * primary until a copy succeeds, then Open ChatGPT is. Nothing else moves.
  */
-export function openPromptDialog(prompt: string, branchName: string): void {
+export interface PromptSource {
+  /** The text, for a given "include" count. 0 means every ranked wine. */
+  build(count: number): string
+  /** How many wines the shelf offered, for the "All N" label. */
+  total: number
+  counts: readonly number[]
+  count: number
+  onCount(n: number): void
+}
+
+export function openPromptDialog(source: PromptSource, branchName: string): void {
   const dialog = document.createElement('dialog')
   dialog.className = 'prompt-dialog'
+  let prompt = source.build(source.count)
 
   /*
    * A block of text whose job is to leave.
@@ -25,8 +36,17 @@ export function openPromptDialog(prompt: string, branchName: string): void {
       <button type="button" class="icon-close" aria-label="${t().close}" data-prompt="close">×</button>
     </div>
     <p class="hint">${t().promptExplain(branchName)}</p>
+    <!--
+      Choosing how much of the shelf to include belongs beside the text it
+      changes, not in the app's footer bar: the character count next to it is
+      the only place the choice has a visible consequence.
+    -->
+    <div class="prompt-include">
+      <span class="label">${t().include}</span>
+      <div class="prompt-include-seg" data-prompt="counts"></div>
+      <span class="prompt-chars" data-prompt="chars">${t().characters(prompt.length)}</span>
+    </div>
     <textarea rows="12" readonly data-prompt="text"></textarea>
-    <p class="hint" data-prompt="chars">${t().characters(prompt.length)}</p>
     <div class="prompt-steps" data-prompt="steps">
       <div class="prompt-step" data-prompt="step1">
         <span class="prompt-steplabel">${t().stepCopy}</span>
@@ -57,6 +77,37 @@ export function openPromptDialog(prompt: string, branchName: string): void {
   dialog.addEventListener('close', () => dialog.remove())
 
   const note = dialog.querySelector<HTMLElement>('[data-prompt="note"]')!
+  const seg = dialog.querySelector<HTMLElement>('[data-prompt="counts"]')!
+  const chars = dialog.querySelector<HTMLElement>('[data-prompt="chars"]')!
+
+  /**
+   * Redraw the include control and the text it produces.
+   *
+   * The textarea's value is set as a property, never interpolated: the prompt
+   * runs to tens of thousands of characters and is the one string here
+   * guaranteed to contain quotes.
+   */
+  function renderCounts(): void {
+    mount(seg, html`
+      ${source.counts.map(n => html`
+        <button type="button" class="${n === source.count ? 'active' : ''}"
+                data-prompt="count" data-count="${n}"
+                aria-pressed="${n === source.count ? 'true' : 'false'}"
+        >${n === 0 ? t().allN(source.total) : t().topN(n)}</button>
+      `)}
+    `)
+  }
+
+  delegate(seg, 'click', '[data-prompt="count"]', (_e, el) => {
+    source.count = Number(el.dataset.count)
+    source.onCount(source.count)
+    prompt = source.build(source.count)
+    textarea.value = prompt
+    chars.textContent = t().characters(prompt.length)
+    renderCounts()
+  })
+
+  renderCounts()
 
   /**
    * What replaces the two steps once the text is actually on the clipboard.

@@ -51,6 +51,10 @@ export class AppHead extends StoreElement {
   #find(): Html {
     const t = lang.t()
     const { branch, filters, search } = appState.getSnapshot()
+    // Before a search there is nothing for this bar to scope, and the gate
+    // below already carries the same three chips in its "Current scope"
+    // panel. Two copies of one fact on one screen is just noise.
+    if (!search) return html``
     const hidden = cellar.hiddenSkus(cellar.getSnapshot().refs)
     const shown = search?.results.filter(r => !hidden.has(r.wine.sku)).length ?? 0
     return html`

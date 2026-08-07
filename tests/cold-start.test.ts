@@ -91,7 +91,8 @@ describe('the find tab with nothing to search from', () => {
     expect(document.querySelector('.find-empty')).not.toBe(null)
     expect([...document.querySelectorAll('.gate-req')].every(r => r.classList.contains('is-met')))
       .toBe(true)
-    expect($('.find-empty [data-find="search"]')).toBeTruthy()
+    // The footer owns the action; the body does not repeat it.
+    expect(document.querySelector('.find-empty .btn-primary')).toBe(null)
     expect($<HTMLButtonElement>('[data-act="search"]').disabled).toBe(false)
   })
 

@@ -13,9 +13,6 @@ import { runSearch } from '../../lib/search'
 /** How many ranked wines to offer the model. 0 means all of them. */
 const PROMPT_COUNTS = [20, 40, 0] as const
 
-function formatCount(n: number): string {
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n)
-}
 
 /**
  * The pinned footer, whose contents depend on the tab and on whether a search
@@ -38,23 +35,25 @@ export class AppFoot extends StoreElement {
         case 'search':
           void runSearch()
           break
-        case 'prompt':
-          openPromptDialog(
-            this.#buildPrompt(),
-            appState.getSnapshot().branch
-              ? branchName(appState.getSnapshot().branch)
-              : lang.t().thisBranch)
+        case 'prompt': {
+          const branch = appState.getSnapshot().branch
+          openPromptDialog({
+            build: n => this.#buildPrompt(n),
+            total: appState.getSnapshot().search?.catalog.length ?? 0,
+            counts: PROMPT_COUNTS,
+            count: appState.getSnapshot().promptCount,
+            // Kept in appState so the choice survives closing the dialog.
+            onCount: n => appState.setPromptCount(n),
+          }, branch ? branchName(branch) : lang.t().thisBranch)
           break
-        case 'prompt-count':
-          appState.setPromptCount(Number(el.dataset.count))
-          break
+        }
       }
     })
     super.connectedCallback()
   }
 
-  #buildPrompt(): string {
-    const { search, promptCount, filters, branch } = appState.getSnapshot()
+  #buildPrompt(promptCount: number): string {
+    const { search, filters, branch } = appState.getSnapshot()
     const snap = cellar.getSnapshot()
     if (!search) return ''
     const hidden = cellar.hiddenSkus(snap.refs)
@@ -71,26 +70,10 @@ export class AppFoot extends StoreElement {
   }
 
   #promptBox(): Html {
-    const { promptCount, search } = appState.getSnapshot()
-    const total = search?.catalog.length ?? 0
-    const length = this.#buildPrompt().length
     return html`
-      <div class="prompt-actions">
-        <button class="btn-primary" data-act="prompt">
-          ${lang.t().promptTitle} <span class="btn-note">${formatCount(length)}</span>
-        </button>
-        <div class="prompt-include">
-          <span>${lang.t().include}</span>
-          <div class="prompt-include-seg" data-active="${PROMPT_COUNTS.indexOf(promptCount as 20 | 40 | 0)}">
-            ${PROMPT_COUNTS.map(n => html`
-              <button
-                type="button" class="${promptCount === n ? 'active' : ''}"
-                data-act="prompt-count" data-count="${n}"
-              >${n === 0 ? lang.t().allN(total) : lang.t().topN(n)}</button>
-            `)}
-          </div>
-        </div>
-      </div>
+      <span class="foot-note">${lang.t().onlyExclusionsHere}</span>
+      <button class="btn-secondary" data-act="search">${lang.t().searchAgain}</button>
+      <button class="btn-primary" data-act="prompt">${lang.t().askAnAi}</button>
     `
   }
 

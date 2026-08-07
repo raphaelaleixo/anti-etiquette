@@ -86,6 +86,11 @@ function menu(entry: CellarEntry, name: string): Html {
   `
 }
 
+/** Region and country together, which is how the design names a place. */
+function place(wine: NonNullable<CellarEntry['wine']>): string {
+  return [wine.region, wine.country].filter(Boolean).join(', ')
+}
+
 function row(entry: CellarEntry, index: number): Html {
   const wine = entry.wine
   // `--i` drives the per-row stagger in styles.css.
@@ -121,7 +126,7 @@ function row(entry: CellarEntry, index: number): Html {
     <li class="mywines-row" style="${stagger}">
       <div class="mywines-body">
         <div class="mywines-name">${wine.name}</div>
-        ${wine.region && html`<div class="mywines-region">${wine.region}</div>`}
+        ${place(wine) && html`<div class="mywines-region">${place(wine)}</div>`}
       </div>
       ${menu(entry, wine.name)}
     </li>

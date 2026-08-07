@@ -43,21 +43,27 @@ async function searchWith(wines: Wine[]): Promise<void> {
 }
 
 describe('the chip row', () => {
-  it('prompts for a branch before one is chosen', () => {
+  it('stays away until there is a result for it to scope', async () => {
+    // Before a search the gate carries the same three chips in its own
+    // "Current scope" panel; two copies of one fact on one screen is noise.
     mountPanel()
-    expect($('[data-head="branch"]').textContent).toContain('Choose a branch')
+    expect($$('.scopebar')).toEqual([])
+
+    await searchWith([wine('900')])
+    expect($('.scopebar')).toBeTruthy()
   })
 
-  it('names the branch once chosen', () => {
+  it('names the branch once a search has run', async () => {
     mountPanel()
-    appState.setBranch('23112')
+    await searchWith([wine('900')])
     expect($('[data-head="branch"]').textContent!.trim().length).toBeGreaterThan(0)
     expect($('[data-head="branch"]').textContent).not.toContain('Choose a branch')
   })
 
-  it('summarises the scope without opening anything', () => {
+  it('summarises the scope without opening anything', async () => {
     mountPanel()
-    const chips = $$('.scopechip').map(c => c.textContent!.trim())
+    await searchWith([wine('900')])
+    const chips = $$('.scopebar .scopechip').map(c => c.textContent!.trim())
     expect(chips.join(' ')).toContain('Red')
     expect(chips.join(' ')).toContain('$15')
   })
@@ -113,8 +119,10 @@ describe('the scope gate', () => {
     mountPanel()
 
     expect($$('.gate-req').map(r => r.classList.contains('is-met'))).toEqual([true, true])
-    // The action becomes the thing that has not happened, not a missing input.
-    expect($('.find-empty .btn-primary').dataset.find).toBe('search')
+    // No action in the body: the pinned footer already carries the search, and
+    // the same control twice on one screen is the defect this replaced.
+    expect($$('.find-empty .btn-primary')).toEqual([])
+    expect($<HTMLButtonElement>('app-foot [data-act="search"]').disabled).toBe(false)
     // And the picker steps aside: there is nothing left for it to answer.
     expect($$('branch-panel')).toEqual([])
   })
@@ -266,14 +274,19 @@ describe('results', () => {
     expect($<HTMLAnchorElement>('.results-name').href).toBe('https://www.saq.com/en/crozes-hermitage-900')
   })
 
-  it('heads the list with how many of the branch total are shown', async () => {
+  it('states how many of the branch total are shown, once', async () => {
     mountPanel()
     await searchWith(Array.from({ length: 30 }, (_, i) => wine(String(900 + i))))
     // RESULT_COUNT is 10. "fit your filters" rather than "in stock": every
     // row is in stock by construction, so the number that carries information
     // is how many the filter admitted.
-    expect($('.results-count').textContent).toContain('10 shown')
-    expect($('.results-count').textContent).toContain('30 fit your filters')
+    //
+    // It belongs to the scope bar, which is where the design puts it. The
+    // results head used to repeat it, which is the same fact twice on one
+    // screen.
+    expect($('.scopebar-count').textContent).toContain('10 shown')
+    expect($('.scopebar-count').textContent).toContain('30 fit your filters')
+    expect(document.querySelector('.results-count')).toBe(null)
   })
 
   /**
@@ -377,30 +390,26 @@ describe('re-filing after a search', () => {
   })
 })
 
-describe('the prompt footer', () => {
-  it('replaces the search button once a search has run', async () => {
+describe('the results footer', () => {
+  it('offers the two actions the design draws, and says what this screen can file', async () => {
     mountPanel()
     expect($('[data-act="search"]')).toBeTruthy()
     await searchWith([wine('900')])
-    expect(document.querySelector('[data-act="search"]')).toBe(null)
-    expect($('[data-act="prompt"]')).toBeTruthy()
+
+    // "Search again" and "Ask an AI" — and the note explaining why only
+    // exclusions can be filed from a list of things you have not drunk.
+    expect($('app-foot [data-act="search"]').textContent).toContain('Search again')
+    expect($('[data-act="prompt"]').textContent).toContain('Ask an AI')
+    expect($('.foot-note').textContent).toContain('Only exclusions')
   })
 
-  it('offers 20 / 40 / All and marks the active one', async () => {
+  it('keeps the include control out of the footer', async () => {
+    // It belongs beside the text it changes, in the prompt panel, where the
+    // character count next to it is the only visible consequence of choosing.
     mountPanel()
     await searchWith([wine('900')])
-
-    const labels = $$('[data-act="prompt-count"]').map(b => b.textContent!.trim())
-    expect(labels).toEqual(['Top 20', 'Top 40', 'All 1'])
-    expect($('[data-act="prompt-count"].active').textContent!.trim()).toBe('Top 20')
-  })
-
-  it('changes the included count', async () => {
-    mountPanel()
-    await searchWith([wine('900')])
-    $$('[data-act="prompt-count"]')[2]!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    expect(appState.getSnapshot().promptCount).toBe(0)
-    expect($('[data-act="prompt-count"].active').textContent!.trim()).toContain('All')
+    expect(document.querySelector('app-foot [data-prompt="count"]')).toBe(null)
+    expect(document.querySelector('app-foot .prompt-include')).toBe(null)
   })
 })
 
@@ -414,6 +423,11 @@ describe('the prompt dialog', () => {
     document.body.innerHTML = ''
   })
 
+  /** The smallest thing that satisfies the dialog's contract. */
+  function promptSource(text: string) {
+    return { build: () => text, total: 412, counts: [20, 40, 0] as const, count: 20, onCount: () => {} }
+  }
+
   function stubClipboard(impl: (text: string) => Promise<void>): void {
     Object.defineProperty(navigator, 'clipboard', {
       value: { writeText: vi.fn(impl) }, configurable: true, writable: true,
@@ -424,22 +438,45 @@ describe('the prompt dialog', () => {
     // The prompt runs to tens of thousands of characters and is the one string
     // here guaranteed to contain quotes.
     const prompt = 'Wines: "Château" <script>window.pwned=1</script>'
-    openPromptDialog(prompt, 'Marché Central')
+    openPromptDialog(promptSource(prompt), 'Marché Central')
 
     expect($<HTMLTextAreaElement>('[data-prompt="text"]').value).toBe(prompt)
     expect(document.querySelector('.prompt-dialog script')).toBe(null)
     expect((globalThis as Record<string, unknown>).pwned).toBeUndefined()
   })
 
+  it('chooses how much of the shelf to include, beside the text it changes', () => {
+    let asked: number[] = []
+    const chosen: number[] = []
+    openPromptDialog({
+      build: n => { asked.push(n); return 'x'.repeat(n === 0 ? 900 : n * 10) },
+      total: 412, counts: [20, 40, 0], count: 20, onCount: n => chosen.push(n),
+    }, 'Marché Central')
+
+    expect($$('[data-prompt="count"]').map(b => b.textContent!.trim()))
+      .toEqual(['Top 20', 'Top 40', 'All 412'])
+    expect($('[data-prompt="count"].active').textContent!.trim()).toBe('Top 20')
+    expect($<HTMLTextAreaElement>('[data-prompt="text"]').value).toHaveLength(200)
+
+    $$('[data-prompt="count"]')[2]!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    // The text, the character count and the marked segment all follow.
+    expect($<HTMLTextAreaElement>('[data-prompt="text"]').value).toHaveLength(900)
+    expect($('[data-prompt="chars"]').textContent).toContain('900')
+    expect($('[data-prompt="count"].active').textContent!.trim()).toBe('All 412')
+    // And the choice is handed back, so it survives closing the panel.
+    expect(chosen).toEqual([0])
+  })
+
   it('names the branch and the prompt length', () => {
-    openPromptDialog('abcde', 'Marché Central')
+    openPromptDialog(promptSource('abcde'), 'Marché Central')
     expect($('.hint').textContent).toContain('Marché Central')
     expect($('[data-prompt="chars"]').textContent).toContain('5 characters')
   })
 
   it('replaces the steps with where the text went and what to do next', async () => {
     stubClipboard(async () => {})
-    openPromptDialog('the prompt', 'Marché Central')
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
     expect($('[data-prompt="copy"]').className).toBe('btn-primary')
 
     $<HTMLButtonElement>('[data-prompt="copy"]').click()
@@ -458,7 +495,7 @@ describe('the prompt dialog', () => {
   it('can copy again from the panel that says it copied', async () => {
     const writes: string[] = []
     stubClipboard(async text => { writes.push(text) })
-    openPromptDialog('the prompt', 'Marché Central')
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
     $<HTMLButtonElement>('[data-prompt="copy"]').click()
     await vi.waitFor(() => expect($('[data-prompt="again"]')).toBeTruthy())
 
@@ -469,7 +506,7 @@ describe('the prompt dialog', () => {
 
   it('falls back to selecting the text when the clipboard refuses', async () => {
     stubClipboard(async () => { throw new Error('denied') })
-    openPromptDialog('the prompt', 'Marché Central')
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
     const textarea = $<HTMLTextAreaElement>('[data-prompt="text"]')
     const select = vi.spyOn(textarea, 'select')
 
@@ -488,7 +525,7 @@ describe('the prompt dialog', () => {
     // writeText would reintroduce it.
     const order: string[] = []
     stubClipboard(async () => { order.push('writeText') })
-    openPromptDialog('the prompt', 'Marché Central')
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
 
     $<HTMLButtonElement>('[data-prompt="copy"]').click()
     order.push('after-click-returns')
