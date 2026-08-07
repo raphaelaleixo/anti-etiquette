@@ -202,6 +202,8 @@ export class FindPanel extends StoreElement {
     const { filters } = appState.getSnapshot()
     const noWines = likedCount === 0
     const ready = likedCount > 0 && branch !== ''
+    // The inline picker only appears when the branch is the missing piece.
+    const panelShown = !noWines && !ready
     const title = ready ? t.gateReadyTitle
       : noWines ? t.emptyNoWinesTitle
       : t.emptyNoBranchTitle
@@ -232,9 +234,21 @@ export class FindPanel extends StoreElement {
         <div class="scopepanel">
           <div class="label">${t.currentScope}</div>
           <div class="scopepanel-chips">
-            <span class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
-              ${branch ? branchName(branch) : t.noBranch}
-            </span>
+            <!--
+              A control, not a label, whenever the inline picker is not on the
+              page to do the job instead. Without this the commonest state in
+              the app — a saved list and a branch, before any search — offered
+              no way to change branch at all: the scope bar waits for a result,
+              and the picker has already been answered.
+            -->
+            ${panelShown
+              ? html`<span class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
+                  ${branch ? branchName(branch) : t.noBranch}
+                </span>`
+              : html`<button type="button" data-find="branch"
+                      class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
+                  ${branch ? branchName(branch) : t.noBranch}
+                </button>`}
             <span class="scopechip">${colourLabel(filters.colour)}</span>
             <span class="scopechip">${priceLabel(filters)}</span>
             <button type="button" class="scopelink" data-find="filters">${t.changeFilters}</button>
@@ -256,7 +270,7 @@ export class FindPanel extends StoreElement {
         Hidden below the desktop breakpoint, where the sheet is the right
         shape — so the button above stays the way in on a phone.
       -->
-      ${!noWines && !ready && html`<branch-panel></branch-panel>`}
+      ${panelShown && html`<branch-panel></branch-panel>`}
       </div>
     `
   }

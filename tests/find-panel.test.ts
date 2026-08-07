@@ -138,6 +138,67 @@ describe('the scope gate', () => {
 })
 
 /**
+ * Every reachable state must offer a way to each thing it can change.
+ *
+ * This exists because a dead end got shipped: hiding the scope bar until a
+ * search has run left the commonest state in the app — a saved list and a
+ * chosen branch, before any search — with no branch control at all. The bar
+ * was waiting for a result and the inline picker had already been answered.
+ *
+ * Asserting one control at a time is what missed it; the question is whether
+ * *some* route exists, from every state, so that is what this asks.
+ */
+describe('nothing is a dead end', () => {
+  const canChangeBranch = () =>
+    !!document.querySelector('[data-head="branch"], [data-find="branch"], branch-panel')
+  const canChangeFilters = () =>
+    !!document.querySelector('[data-head="filters"], [data-find="filters"]')
+
+  it('offers a branch control once there is a list to search with', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect(canChangeBranch()).toBe(true)
+  })
+
+  it('still offers one after the branch is chosen but before searching', () => {
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    mountPanel()
+    expect(canChangeBranch()).toBe(true)
+  })
+
+  it('still offers one once results are on screen', async () => {
+    mountPanel()
+    await searchWith([wine('900')])
+    expect(canChangeBranch()).toBe(true)
+  })
+
+  it('offers a filter control in every one of those states', async () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect(canChangeFilters()).toBe(true)
+
+    appState.setBranch('23112')
+    expect(canChangeFilters()).toBe(true)
+
+    await searchWith([wine('900')])
+    expect(canChangeFilters()).toBe(true)
+  })
+
+  it('opens the picker from the scope panel when the inline one is gone', () => {
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    mountPanel()
+    expect($$('branch-panel')).toEqual([])
+
+    $('.scopepanel [data-find="branch"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+
+    expect(document.querySelector('dialog [data-branch]')).toBeTruthy()
+  })
+})
+
+/**
  * What the search would run with, as it stands. The filters carry over from
  * last time and are otherwise invisible until after a search has used them.
  */

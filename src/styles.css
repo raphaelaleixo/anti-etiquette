@@ -1038,12 +1038,9 @@ button { font: inherit; color: inherit; }
   max-inline-size: 440px;
 }
 .scopepanel-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.scopepanel .scopechip {
-  flex: none;
-  padding: 8px 12px;
-  cursor: default;
-}
-.scopepanel .scopechip:hover { border-color: var(--edge); }
+.scopepanel .scopechip { flex: none; padding: 8px 12px; cursor: default; }
+.scopepanel button.scopechip { cursor: pointer; }
+.scopepanel button.scopechip:hover { border-color: var(--edge3); color: var(--ink0); }
 /* The missing piece is dashed and tinted, so the gap is visible at a glance. */
 .scopechip--open {
   border-style: dashed;
