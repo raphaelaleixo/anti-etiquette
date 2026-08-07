@@ -1448,6 +1448,15 @@ button { font: inherit; color: inherit; }
   .sheet-summary { text-align: start; }
   .sheet-full { inline-size: 620px; }
   .sheet-full .sheet-inner { block-size: 86svb; }
+  /*
+   * Adding wines is a keyboard task and the design treats it as a page. A
+   * 620px panel holding a two-column grid leaves the left column too narrow
+   * to type into.
+   */
+  .sheet-wide { inline-size: min(1240px, calc(100vw - 48px)); }
+  .sheet-wide .sheet-head { padding: 18px 40px 0; }
+  .sheet-wide .sheet-body { padding: 32px 40px; }
+  .sheet-wide .sheet-foot { padding: 18px 40px; }
 }
 
 /* ── filters ─────────────────────────────────────────────────────────────── */
@@ -2030,14 +2039,6 @@ button { font: inherit; color: inherit; }
   border: 1px solid var(--less-edge);
   border-radius: 5px;
   background: var(--sub);
-}
-.resolution-many {
-  padding: 14px 16px;
-  border-block-end: 1px solid var(--less-line);
-  background: var(--less-bg);
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--ink2);
 }
 .resolution-altlist { display: flex; flex-direction: column; }
 .resolution-alt {

@@ -542,7 +542,8 @@ describe('an ambiguous name says how ambiguous it is', () => {
 
   it('says how many wines match the name', async () => {
     await openAmbiguous()
-    expect($('.resolution-many').textContent).toContain('340 wines match that name')
+    expect($('.resolution-row--ambiguous .resolution-name').textContent)
+      .toContain('340 wines match that name')
   })
 
   it('says how many of them it is showing', async () => {

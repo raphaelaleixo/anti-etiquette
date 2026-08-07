@@ -154,14 +154,10 @@ function candidateList(r: Resolution, i: number, open: boolean, keepsCount = 0):
     `
   }
   const t = lang.t()
-  const total = r.candidateTotal ?? candidates.length
   const chosen = r.wine === null ? -1 : candidates.findIndex(w => w.sku === r.wine!.sku)
 
   return html`
     <div class="resolution-alts">
-      ${total > candidates.length && html`
-        <p class="resolution-many">${t.manyMatch(total)}</p>
-      `}
       <div class="resolution-altlist">
         ${candidates.map((w, ci) => html`
           <button
@@ -276,6 +272,7 @@ function resolutionRow(r: Resolution, i: number, open: boolean, keeps: number): 
 
 function resolutionStep(batch: Resolution[], expanded: ReadonlySet<number>): Html {
   const t = lang.t()
+  const willSave = batch.filter(r => r.wine !== null)
   const matched = batch.filter(r => r.wine !== null && !isAmbiguous(r))
   const ambiguousCount = batch.filter(isAmbiguous).length
   const missing = batch.map((r, i) => [r, i] as const).filter(([r]) => isMissing(r))
@@ -287,7 +284,7 @@ function resolutionStep(batch: Resolution[], expanded: ReadonlySet<number>): Htm
           <h2>${t.reviewHeading}</h2>
           <p class="hint">${t.reviewTally(matched.length, ambiguousCount, missing.length)}</p>
         </div>
-        <span class="resolution-willsave">${t.linesWillSave(batch.length, matched.length)}</span>
+        <span class="resolution-willsave">${t.linesWillSave(batch.length, willSave.length)}</span>
       </div>
 
       <!--
@@ -341,6 +338,10 @@ export function openAddWines(): void {
   const sheet = openSheet({
     title: t().addTitle, full: true, cancelLabel: t().closeWithoutSaving,
   })
+  // Frame 10 gives this step the whole page, not a panel on it: numbered
+  // lines, room for forty of them, and the guidance beside rather than under.
+  // At the sheet's usual width the heading breaks one word to a line.
+  sheet.dialog.classList.add('sheet-wide')
 
   function showError(): void {
     const existing = sheet.body.querySelector('.error')
