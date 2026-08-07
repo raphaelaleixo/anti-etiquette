@@ -26,7 +26,7 @@ describe('the three groups', () => {
     cellar.saveWine(wine('333'), 'skip')
     const el = mountList()
 
-    const counts = [...el.querySelectorAll('.mywines-count')].map(n => n.textContent)
+    const counts = [...el.querySelectorAll('.group-count')].map(n => n.textContent)
     expect(counts).toEqual(['1', '1', '1'])
     expect(el.querySelector('.mywines-row--liked .mywines-name')!.textContent).toBe('Wine 111')
     expect(el.querySelector('.mywines-row--disliked .mywines-name')!.textContent).toBe('Wine 222')
@@ -60,8 +60,8 @@ describe('no loading gap', () => {
     ])
     const el = mountList()
 
-    expect(el.querySelector('.mywines-count')!.textContent).toBe('2')
-    expect(el.querySelectorAll('.mywines-group .mywines-row')).toHaveLength(2)
+    expect(el.querySelector('.group-count')!.textContent).toBe('2')
+    expect(el.querySelectorAll('.group .mywines-row')).toHaveLength(2)
     expect(el.textContent).not.toContain('Loading')
   })
 
@@ -358,20 +358,21 @@ describe('the three groups explain themselves', () => {
   it('names each group by its effect', () => {
     cellar.saveWine(wine('111'), 'like')
     const el = mountList()
-    const titles = [...el.querySelectorAll('.mywines-title')].map(n => n.textContent!.trim())
+    const titles = [...el.querySelectorAll('.group-name')].map(n => n.textContent!.trim())
     expect(titles).toEqual(['More like this', 'Less like this', 'Just hidden'])
   })
 
   it('says what each one does to results', () => {
     cellar.saveWine(wine('111'), 'like')
     const el = mountList()
-    const notes = [...el.querySelectorAll('.mywines-note')].map(n => n.textContent!.trim())
+    const notes = [...el.querySelectorAll('.group-note')].map(n => n.textContent!.trim())
     expect(notes[0]).toContain('towards')
     expect(notes[1]).toContain('away')
     expect(notes[2]).toContain('No effect on your taste')
   })
 
   it('distinguishes wines saved from wines shaping results', () => {
+    // The summary lives in <app-head> now, beside the page title.
     // An unresolved entry is saved but shapes nothing, and a hidden one is
     // saved on purpose to shape nothing. One number could not say both.
     cellar.saveWine(wine('111'), 'like')
@@ -380,16 +381,16 @@ describe('the three groups explain themselves', () => {
       ...cellar.getSnapshot().entries,
       { sku: '333', kind: 'like', addedAt: 3, wine: null, wineFetchedAt: 0 },
     ])
-    const el = mountList()
+    document.body.innerHTML = '<app-head></app-head><my-wines></my-wines>'
 
-    expect(el.querySelector('.mywines-summary')!.textContent)
+    expect(document.querySelector('.pagehead-sub')!.textContent)
       .toContain('3 saved · 1 shaping results')
   })
 
   it('keeps every group visible even when empty', () => {
     cellar.saveWine(wine('111'), 'like')
     const el = mountList()
-    expect(el.querySelectorAll('.mywines-group')).toHaveLength(3)
+    expect(el.querySelectorAll('.group')).toHaveLength(3)
   })
 })
 
@@ -437,6 +438,6 @@ describe('first run', () => {
     expect(el.querySelector('.firstrun')).toBeTruthy()
     cellar.saveWine(wine('111'), 'like')
     expect(el.querySelector('.firstrun')).toBe(null)
-    expect(el.querySelectorAll('.mywines-group')).toHaveLength(3)
+    expect(el.querySelectorAll('.group')).toHaveLength(3)
   })
 })

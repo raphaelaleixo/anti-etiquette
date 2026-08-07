@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Anti-Étiquette — buy the wine, not the label</title>
+    <title>Anti-Étiquette</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-180.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#0e0c09" />
     <meta
       name="description"
-      content="Name a few wines you've liked. Anti-Étiquette reads what your SAQ branch has on the shelf right now and tells you which bottle to take. Runs entirely in your browser."
+      content="The wine you'll like is already on that shelf. Name a few wines you have drunk, and Anti-Étiquette ranks your SAQ branch's current stock against your taste. Runs entirely in your browser."
     />
     <meta property="og:title" content="Anti-Étiquette" />
-    <meta property="og:description" content="Buy the wine, not the label. Runs entirely in your browser." />
+    <meta property="og:description" content="The wine you'll like is already on that shelf." />
     <meta property="og:type" content="website" />
 
     <script>
@@ -22,8 +22,8 @@
       // it away. `replace` rather than `assign` so the landing does not sit in
       // history as a page Back returns to.
       //
-      // `?stay` is the escape hatch — the app's own links here carry it, so
-      // reading the About note does not bounce you straight back.
+      // `?stay` is the escape hatch — the app's own link here carries it, so
+      // reading the About section does not bounce you straight back.
       try {
         if (!location.search.includes('stay') && localStorage.getItem('cellar.v2')) {
           location.replace('/app/')
@@ -32,67 +32,48 @@
         // Storage denied. Showing the landing is the right fallback.
       }
 
-      // ---------------------------------------------------------- language
-      //
-      // Both languages are in the markup and CSS hides whichever is not
-      // current, so switching costs no request and this page keeps shipping no
-      // external JavaScript. Running in <head> rather than at the end of body
-      // is what stops a French visitor seeing a frame of English first.
-      //
-      // Same `lang` key the app uses, so a choice made on either side holds on
-      // the other.
+      // Language. Both are in the markup and CSS hides the one that is not
+      // current, so switching costs no request. This runs before first paint,
+      // or a French visitor sees a frame of English and then a correction.
       ;(function () {
         var doc = document.documentElement
         function read() {
           try {
             var saved = localStorage.getItem('lang')
             if (saved === 'en' || saved === 'fr') return saved
-          } catch (e) { /* storage denied — fall through to the browser */ }
+          } catch (e) { /* storage denied */ }
           return (navigator.language || '').toLowerCase().indexOf('fr') === 0 ? 'fr' : 'en'
         }
-        function apply(lang) {
-          doc.lang = lang
-          var title = document.body && document.body.getAttribute('data-title-' + lang)
-          if (title) document.title = title
-        }
-        apply(read())
-        // Delegated to `document`, which exists already, so no readiness
-        // handshake is needed from <head>.
+        doc.lang = read()
         document.addEventListener('click', function (e) {
-          var button = e.target && e.target.closest && e.target.closest('[data-set-lang]')
-          if (!button) return
-          var next = button.getAttribute('data-set-lang')
+          var b = e.target && e.target.closest && e.target.closest('[data-set-lang]')
+          if (!b) return
+          var next = b.getAttribute('data-set-lang')
           try { localStorage.setItem('lang', next) } catch (err) { /* session only */ }
-          apply(next)
+          doc.lang = next
         })
       })()
     </script>
     <link rel="stylesheet" href="/src/landing.css" />
   </head>
-  <body
-    data-title-en="Anti-Étiquette — buy the wine, not the label"
-    data-title-fr="Anti-Étiquette — achetez le vin, pas l'étiquette"
-  >
+  <body>
     <header class="site-head">
       <a class="brand" href="/">
-        <span class="brand-mark" aria-hidden="true"><span class="brand-label"></span></span>
+        <span class="brand-mark" aria-hidden="true"></span>
         <span class="brand-name">Anti-Étiquette</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
-        <a href="#how"><span data-lang="en">How it works</span><span data-lang="fr">Comment ça marche</span></a>
-        <a href="#privacy"><span data-lang="en">Privacy</span><span data-lang="fr">Confidentialité</span></a>
-        <a href="#about"><span data-lang="en">About</span><span data-lang="fr">À propos</span></a>
-        <!--
-          Two buttons rather than one toggle: with two languages a single
-          control cannot say whether its label is the current state or the
-          action it performs.
-        -->
-        <span class="langtoggle" role="group" aria-label="Language / Langue">
-          <button type="button" data-set-lang="fr" lang="fr">FR</button>
-          <button type="button" data-set-lang="en" lang="en">EN</button>
+        <span class="site-links">
+          <a href="#how"><span data-lang="en">How it works</span><span data-lang="fr">Comment ça marche</span></a>
+          <a href="#privacy"><span data-lang="en">Privacy</span><span data-lang="fr">Confidentialité</span></a>
+          <a href="#about"><span data-lang="en">About</span><span data-lang="fr">À propos</span></a>
         </span>
-        <a class="btn btn-primary" href="/app/">
-          <span data-lang="en">Build my list</span><span data-lang="fr">Créer ma liste</span>
+        <span class="langtoggle" role="group" aria-label="Language / Langue">
+          <button type="button" data-set-lang="en" lang="en">EN</button>
+          <button type="button" data-set-lang="fr" lang="fr">FR</button>
+        </span>
+        <a class="btn" href="/app/">
+          <span data-lang="en">Open the app</span><span data-lang="fr">Ouvrir l'app</span>
         </a>
       </nav>
     </header>
@@ -101,229 +82,206 @@
       <section class="hero">
         <div class="hero-copy">
           <h1>
-            <span data-lang="en">Buy the wine, not the label.</span>
-            <span data-lang="fr">Achetez le vin, pas l'étiquette.</span>
+            <span data-lang="en">The wine you'll like is already on that shelf.</span>
+            <span data-lang="fr">Le vin qui vous plaira est déjà sur cette tablette.</span>
           </h1>
           <p class="lede">
             <span data-lang="en">
-              Name a few bottles you've enjoyed. Anti-Étiquette reads what your
-              SAQ branch has on the shelf right now and tells you which one to take.
+              Name a few wines you have drunk and had an opinion about. It reads
+              what your SAQ branch has in stock right now, ranks that inventory
+              against your taste, and tells you which bottles to consider — and why.
             </span>
             <span data-lang="fr">
-              Nommez quelques bouteilles que vous avez aimées. L'app lit ce que
-              votre succursale a en tablette en ce moment et vous dit laquelle prendre.
+              Nommez quelques vins que vous avez bus et sur lesquels vous avez un
+              avis. L'app lit ce que votre succursale a en tablette en ce moment,
+              classe cet inventaire selon vos goûts, et vous dit quelles bouteilles
+              considérer — et pourquoi.
             </span>
           </p>
-          <div class="hero-actions">
-            <a class="btn btn-primary btn-lg" href="/app/">
-              <span data-lang="en">Build my list</span><span data-lang="fr">Créer ma liste</span>
-            </a>
-            <a class="btn btn-secondary btn-lg" href="#how">
-              <span data-lang="en">How it works</span><span data-lang="fr">Comment ça marche</span>
-            </a>
-          </div>
-          <p class="fineprint">
-            <span data-lang="en">Everything stays in your browser. No sign-up, and nothing is sent anywhere.</span>
-            <span data-lang="fr">Tout reste dans votre navigateur. Aucune inscription, rien n'est envoyé nulle part.</span>
+          <p class="reassure">
+            <span data-lang="en">Nothing is sent anywhere. No sign-up. Your list stays in this browser.</span>
+            <span data-lang="fr">Rien n'est envoyé nulle part. Aucune inscription. Votre liste reste dans ce navigateur.</span>
           </p>
+          <div class="hero-actions">
+            <a class="btn btn-lg" href="/app/">
+              <span data-lang="en">Open the app</span><span data-lang="fr">Ouvrir l'app</span>
+            </a>
+            <span class="mono">
+              <span data-lang="en">Montréal branches only · 66 of them</span>
+              <span data-lang="fr">Succursales de Montréal seulement · 66 au total</span>
+            </span>
+          </div>
         </div>
-        <!-- The design slots a photograph here; none exists yet, and the mark
-             is now a dot rather than something that could stand in for one. -->
-        <div class="hero-figure" aria-hidden="true"></div>
+
+        <!-- The design calls for a photograph. None exists, and the panel says
+             so rather than sitting there as an unexplained empty rectangle. -->
+        <div class="hero-figure" aria-hidden="true">
+          <span data-lang="en">Photograph — a shelf, in a shop.<br />None exists yet.</span>
+          <span data-lang="fr">Photographie — une tablette, en succursale.<br />Aucune pour l'instant.</span>
+        </div>
       </section>
 
       <section id="how" class="steps">
-        <h2>
-          <span data-lang="en">Five steps, about ninety seconds.</span>
-          <span data-lang="fr">Cinq étapes, une minute et demie.</span>
-        </h2>
+        <div class="steps-head">
+          <h2><span data-lang="en">How it works</span><span data-lang="fr">Comment ça marche</span></h2>
+          <span class="mono">
+            <span data-lang="en">Five steps · about four minutes</span>
+            <span data-lang="fr">Cinq étapes · environ quatre minutes</span>
+          </span>
+        </div>
         <ol class="step-list">
           <li class="step">
-            <span class="step-num" aria-hidden="true">1</span>
+            <span class="step-num" aria-hidden="true">01</span>
             <h3>
-              <span data-lang="en">Name wines you've drunk</span>
+              <span data-lang="en">Name wines you have drunk</span>
               <span data-lang="fr">Nommez des vins que vous avez bus</span>
             </h3>
             <p>
-              <span data-lang="en">
-                Paste them however you remember them. Loved or hated both help — a
-                bottle you didn't finish says as much as one you did.
-              </span>
-              <span data-lang="fr">
-                Collez-les comme vous vous en souvenez. Aimés ou détestés : un vin
-                que vous n'avez pas fini en dit autant qu'un autre.
-              </span>
+              <span data-lang="en">One per line, as you remember them. Wines you loved and wines you did not — both are useful.</span>
+              <span data-lang="fr">Un par ligne, comme vous vous en souvenez. Les vins aimés et ceux détestés sont aussi utiles.</span>
             </p>
           </li>
           <li class="step">
-            <span class="step-num" aria-hidden="true">2</span>
+            <span class="step-num" aria-hidden="true">02</span>
             <h3>
               <span data-lang="en">Pick your branch</span>
               <span data-lang="fr">Choisissez votre succursale</span>
             </h3>
             <p>
-              <span data-lang="en">
-                The catalogue is read live: grape, region, price, and what is
-                actually on the shelf at that branch.
-              </span>
-              <span data-lang="fr">
-                L'inventaire est lu en direct : cépage, région, prix, et ce qui est
-                réellement en tablette à cette succursale.
-              </span>
+              <span data-lang="en">The one you are standing in. Its shelf is what gets ranked, not the whole catalogue.</span>
+              <span data-lang="fr">Celle où vous êtes. C'est sa tablette qui est classée, pas le catalogue entier.</span>
             </p>
           </li>
           <li class="step">
-            <span class="step-num" aria-hidden="true">3</span>
+            <span class="step-num" aria-hidden="true">03</span>
             <h3>
               <span data-lang="en">Set your price range</span>
               <span data-lang="fr">Fixez votre fourchette de prix</span>
             </h3>
             <p>
-              <span data-lang="en">
-                Looking for a $20 bottle? You won't be shown a $100 one to impress
-                you. The budget is a filter, not a suggestion.
-              </span>
-              <span data-lang="fr">
-                Vous cherchez une bouteille à 20 $ ? On ne vous proposera pas un
-                grand cru à 100 $ pour vous impressionner. Le budget est un filtre,
-                pas une suggestion.
-              </span>
+              <span data-lang="en">A colour and a band. You see how many bottles fit before you apply it.</span>
+              <span data-lang="fr">Une couleur et une fourchette. Vous voyez combien de bouteilles y entrent avant d'appliquer.</span>
             </p>
           </li>
           <li class="step">
-            <span class="step-num" aria-hidden="true">4</span>
+            <span class="step-num" aria-hidden="true">04</span>
             <h3>
               <span data-lang="en">Take a bottle</span>
               <span data-lang="fr">Prenez une bouteille</span>
             </h3>
             <p>
-              <span data-lang="en">
-                A short ranked list, each with a plain sentence saying why that
-                one — built from what you already like.
-              </span>
-              <span data-lang="fr">
-                Une courte liste classée, avec une phrase claire pour chacune :
-                pourquoi celle-là, à partir de ce que vous aimez déjà.
-              </span>
+              <span data-lang="en">Ten matches, ranked, each with a sentence saying what in your own list it resembles.</span>
+              <span data-lang="fr">Dix correspondances classées, chacune avec une phrase disant à quoi de votre liste elle ressemble.</span>
             </p>
           </li>
-          <li class="step step--alt">
-            <span class="step-num" aria-hidden="true">5</span>
+          <li class="step">
+            <span class="step-num" aria-hidden="true">05</span>
             <h3>
-              <span data-lang="en">Want a second opinion?</span>
-              <span data-lang="fr">Un avis plus poussé ?</span>
+              <span data-lang="en">Optionally, get a second opinion from an AI</span>
+              <span data-lang="fr">Au besoin, demandez un deuxième avis à une IA</span>
             </h3>
             <p>
-              <span data-lang="en">
-                The app writes a prompt ready to paste into ChatGPT, Claude or
-                Gemini: your taste on one side, what's in stock on the other.
-              </span>
-              <span data-lang="fr">
-                L'app rédige un texte prêt à coller dans ChatGPT, Claude ou Gemini :
-                vos goûts d'un côté, ce qu'il y a en tablette de l'autre.
-              </span>
+              <span data-lang="en">Copy a summary of your taste and the shelf, paste it into a chat, argue with it.</span>
+              <span data-lang="fr">Copiez un résumé de vos goûts et de la tablette, collez-le dans une IA, discutez avec elle.</span>
             </p>
           </li>
         </ol>
       </section>
 
-      <section id="privacy" class="privacy">
-        <div class="privacy-copy">
-          <h2>
-            <span data-lang="en">No account to create.</span>
-            <span data-lang="fr">Aucun compte à créer.</span>
-          </h2>
+      <section class="plainly">
+        <div id="privacy">
+          <h2><span data-lang="en">Privacy, stated plainly</span><span data-lang="fr">La confidentialité, dite simplement</span></h2>
+          <ul class="nots">
+            <li>
+              <span class="not-mark" aria-hidden="true">NO</span>
+              <span class="not-name"><span data-lang="en">Sign-in</span><span data-lang="fr">Connexion</span></span>
+              <span class="not-why">
+                <span data-lang="en">Nothing to create, nothing to forget</span>
+                <span data-lang="fr">Rien à créer, rien à oublier</span>
+              </span>
+            </li>
+            <li>
+              <span class="not-mark" aria-hidden="true">NO</span>
+              <span class="not-name"><span data-lang="en">Tracking</span><span data-lang="fr">Suivi</span></span>
+              <span class="not-why">
+                <span data-lang="en">No analytics, no third-party requests at all</span>
+                <span data-lang="fr">Aucune statistique, aucune requête vers un tiers</span>
+              </span>
+            </li>
+            <li>
+              <span class="not-mark" aria-hidden="true">NO</span>
+              <span class="not-name"><span data-lang="en">Server</span><span data-lang="fr">Serveur</span></span>
+              <span class="not-why">
+                <span data-lang="en">Your list is in this browser and nowhere else</span>
+                <span data-lang="fr">Votre liste est dans ce navigateur et nulle part ailleurs</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div id="about" class="about">
+          <h2><span data-lang="en">About</span><span data-lang="fr">À propos</span></h2>
           <p>
             <span data-lang="en">
-              Your list lives in your browser's storage and never leaves it. No
-              account, no email, no analytics, no cookie banner, and nothing to
-              delete later.
+              Anti-Étiquette compares the wines you tell it about against the
+              bottles a single SAQ branch is holding right now, and ranks them. It
+              does not review wine. It reads a shelf and reads your list, and it
+              shows its reasoning on every row.
             </span>
             <span data-lang="fr">
-              Votre liste vit dans le stockage de votre navigateur et n'en sort
-              jamais. Pas de compte, pas de courriel, aucune statistique, aucun
-              bandeau de témoins, rien à supprimer plus tard.
+              Anti-Étiquette compare les vins dont vous lui parlez aux bouteilles
+              qu'une succursale de la SAQ a en ce moment, et les classe. Elle ne
+              juge pas le vin. Elle lit une tablette et lit votre liste, et montre
+              son raisonnement à chaque ligne.
+            </span>
+          </p>
+          <p>
+            <span data-lang="en">
+              Your list never leaves your browser. That is why there is no sign-in,
+              and also why there is no sync: the list exists on this one device, in
+              this one browser, and if you clear your browser data it is gone.
+              There is an export for exactly that reason.
+            </span>
+            <span data-lang="fr">
+              Votre liste ne quitte jamais votre navigateur. C'est pourquoi il n'y
+              a pas de connexion, et pourquoi il n'y a pas de synchronisation : la
+              liste existe sur cet appareil, dans ce navigateur, et si vous effacez
+              vos données elle disparaît. L'exportation existe pour cette raison.
+            </span>
+          </p>
+          <p>
+            <span data-lang="en">
+              This is an unofficial project. It is not affiliated with, endorsed
+              by, or connected to the SAQ in any way.
+            </span>
+            <span data-lang="fr">
+              Ceci est un projet non officiel. Il n'est ni affilié à la SAQ, ni
+              approuvé par elle, ni lié à elle d'aucune façon.
             </span>
           </p>
         </div>
-        <ul class="privacy-nots">
-          <li>
-            <span class="not-mark" aria-hidden="true"></span>
-            <span data-lang="en">Sign-in</span><span data-lang="fr">Connexion</span>
-          </li>
-          <li>
-            <span class="not-mark" aria-hidden="true"></span>
-            <span data-lang="en">Tracking</span><span data-lang="fr">Suivi</span>
-          </li>
-          <li>
-            <span class="not-mark" aria-hidden="true"></span>
-            <span data-lang="en">Server</span><span data-lang="fr">Serveur</span>
-          </li>
-        </ul>
       </section>
 
-      <section id="about" class="about">
-        <h2><span data-lang="en">About</span><span data-lang="fr">À propos</span></h2>
-        <p>
-          <span data-lang="en">
-            Anti-Étiquette matches an SAQ branch's current stock against wines you
-            already like, and explains each suggestion in a sentence.
-          </span>
-          <span data-lang="fr">
-            Anti-Étiquette compare l'inventaire actuel d'une succursale de la SAQ
-            aux vins que vous aimez déjà, et explique chaque suggestion en une phrase.
-          </span>
-        </p>
-        <p>
-          <span data-lang="en">
-            <strong>Your data never leaves your browser.</strong> There is no
-            server, no database and no account — the page talks to the SAQ's own
-            public catalogue directly, the same way saq.com does, and everything
-            you save is stored locally. Because of that, clearing your browsing
-            data clears your list, so the app offers an export.
-          </span>
-          <span data-lang="fr">
-            <strong>Vos données ne quittent jamais votre navigateur.</strong> Il
-            n'y a ni serveur, ni base de données, ni compte — la page interroge
-            directement le catalogue public de la SAQ, comme le fait saq.com, et
-            tout ce que vous gardez reste sur votre appareil. C'est pourquoi
-            effacer vos données de navigation efface votre liste : l'app propose
-            donc une exportation.
-          </span>
-        </p>
-        <p>
-          <span data-lang="en">
-            This is an unofficial tool, not affiliated with or endorsed by the
-            Société des alcools du Québec. Inventory data comes from its public
-            catalogue. Montréal branches only.
-          </span>
-          <span data-lang="fr">
-            Outil non officiel, sans lien avec la Société des alcools du Québec ni
-            son approbation. Les données d'inventaire proviennent de son catalogue
-            public. Succursales de Montréal seulement.
-          </span>
-        </p>
+      <section class="closing">
+        <div class="closing-copy">
+          <h2>
+            <span data-lang="en">Start with three wines you remember.</span>
+            <span data-lang="fr">Commencez avec trois vins dont vous vous souvenez.</span>
+          </h2>
+          <p>
+            <span data-lang="en">That is enough for a first ranking.</span>
+            <span data-lang="fr">C'est assez pour un premier classement.</span>
+          </p>
+        </div>
+        <a class="btn btn-lg" href="/app/">
+          <span data-lang="en">Open the app</span><span data-lang="fr">Ouvrir l'app</span>
+        </a>
       </section>
     </main>
 
     <footer class="site-foot">
-      <div class="foot-brand">
-        <span class="brand-mark" aria-hidden="true"><span class="brand-label"></span></span>
-        <span class="brand-name">Anti-Étiquette</span>
-      </div>
-      <p class="foot-note">
-        <span data-lang="en">
-          Made in Montréal. Not affiliated with the Société des alcools du Québec;
-          inventory data comes from its public catalogue.
-        </span>
-        <span data-lang="fr">
-          Fait à Montréal. Sans lien avec la Société des alcools du Québec ; les
-          données d'inventaire proviennent de son catalogue public.
-        </span>
-      </p>
-      <a class="btn btn-primary" href="/app/">
-        <span data-lang="en">Build my list</span><span data-lang="fr">Créer ma liste</span>
-      </a>
+      <span data-lang="en">Unofficial. Not affiliated with the SAQ. · Montréal branches only.</span>
+      <span data-lang="fr">Non officiel. Sans lien avec la SAQ. · Succursales de Montréal seulement.</span>
     </footer>
   </body>
 </html>

@@ -148,8 +148,10 @@ describe("Task 10's stated requirements", () => {
     expect(meta(landing)).toBe(/--ground:\s*(#[0-9a-f]{6})/i.exec(app)?.[1])
   })
 
-  it('gates motion behind a preference rather than assuming it', () => {
-    expect(css).toContain('prefers-reduced-motion: no-preference')
+  it('has no motion to gate', () => {
+    // The design gives this page no transitions or animations at all, so there
+    // is nothing to put behind a preference — and nothing that ignores one.
+    expect(css).not.toMatch(/@keyframes|animation:|transition:/)
   })
 
   it('is responsive rather than fixed to the design canvas width', () => {
@@ -214,12 +216,9 @@ describe('the language switch', () => {
   })
 
   it('survives a browser that denies storage', () => {
-    const script = landing.slice(landing.indexOf('---------- language'))
-    expect(script).toContain('catch')
-  })
-
-  it('offers a title in both languages', () => {
-    expect(landing).toContain('data-title-en=')
-    expect(landing).toContain('data-title-fr=')
+    // Both inline scripts touch localStorage; neither may throw on a browser
+    // that refuses it, or the page renders blank.
+    const head = landing.slice(0, landing.indexOf('</head>'))
+    expect(head.match(/catch/g)?.length ?? 0).toBeGreaterThanOrEqual(3)
   })
 })

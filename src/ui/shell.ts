@@ -5,6 +5,7 @@ import { initLang, t, subscribe as onLangChange } from '../lib/lang'
 import { ModeSwitch } from './elements/mode-switch'
 import { AppStatus } from './elements/app-status'
 import { AppPanel } from './elements/app-panel'
+import { AppHead } from './elements/app-head'
 import { AppFoot } from './elements/app-foot'
 import { MyWines } from './elements/my-wines'
 import { FindPanel } from './elements/find-panel'
@@ -30,6 +31,7 @@ const ELEMENTS: Array<[string, CustomElementConstructor]> = [
   ['mode-switch', ModeSwitch],
   ['app-status', AppStatus],
   ['app-panel', AppPanel],
+  ['app-head', AppHead],
   ['app-foot', AppFoot],
   ['my-wines', MyWines],
   ['find-panel', FindPanel],
@@ -58,8 +60,8 @@ export function start(): void {
   // something to interrupt them over.
   void hydrateMissing().catch(() => {})
 
-  const about = document.querySelector('.head-about')
-  const showAbout = (): void => { if (about) about.textContent = t().about }
+  const about = document.querySelector('.topbar-link')
+  const showAbout = (): void => { if (about) about.textContent = t().aboutProject }
   showAbout()
   onLangChange(showAbout)
 }

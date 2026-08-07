@@ -29,7 +29,9 @@ beforeEach(() => {
 afterEach(() => { vi.restoreAllMocks() })
 
 function mountPanel(): HTMLElement {
-  document.body.innerHTML = '<find-panel></find-panel><app-foot></app-foot>'
+  // The scope chips live in <app-head> now; mount the row the app really has.
+  document.body.innerHTML =
+    '<app-head></app-head><find-panel></find-panel><app-foot></app-foot>'
   return $('find-panel')
 }
 
@@ -42,21 +44,22 @@ async function searchWith(wines: Wine[]): Promise<void> {
 
 describe('the chip row', () => {
   it('prompts for a branch before one is chosen', () => {
-    const el = mountPanel()
-    expect(el.querySelector('.chip-branch-name')!.textContent).toContain('Choose a branch')
+    mountPanel()
+    expect($('[data-head="branch"]').textContent).toContain('Choose a branch')
   })
 
   it('names the branch once chosen', () => {
     mountPanel()
     appState.setBranch('23112')
-    expect($('.chip-branch-name').textContent!.trim().length).toBeGreaterThan(0)
-    expect($('.chip-branch-name').textContent).not.toContain('Choose a branch')
+    expect($('[data-head="branch"]').textContent!.trim().length).toBeGreaterThan(0)
+    expect($('[data-head="branch"]').textContent).not.toContain('Choose a branch')
   })
 
-  it('summarises the filters without opening them', () => {
+  it('summarises the scope without opening anything', () => {
     mountPanel()
-    expect($('.chip-filter').textContent).toContain('Red')
-    expect($('.chip-filter').textContent).toContain('$15')
+    const chips = $$('.scopechip').map(c => c.textContent!.trim())
+    expect(chips.join(' ')).toContain('Red')
+    expect(chips.join(' ')).toContain('$15')
   })
 })
 
@@ -146,18 +149,18 @@ describe('favourites here', () => {
   it('calls out saved wines stocked at this branch', async () => {
     mountPanel()
     await searchWith([wine('111', { name: 'My Own' }), wine('900')])
-    expect($('.favourites-title').textContent).toContain('One of your wines is here')
+    expect($('.favourites-title').textContent).toContain('wines you already know')
     expect($('.favourites-name').textContent).toBe('My Own')
   })
 
-  it('pluralises correctly', async () => {
+  it('lists every saved wine the branch stocks', async () => {
     vi.spyOn(catalog, 'fetchBranchCatalog').mockResolvedValue([wine('111'), wine('222')])
     appState.setBranch('23112')
     cellar.saveWine(wine('111'), 'like')
     cellar.saveWine(wine('222'), 'like')
     mountPanel()
     await runSearch()
-    expect($('.favourites-title').textContent).toContain('2 of your wines are here')
+    expect($$('.favourites-row')).toHaveLength(2)
   })
 })
 
@@ -356,5 +359,43 @@ describe('the reason leads the row', () => {
     mountPanel()
     await searchWith([wine('900')])
     expect($('.results-against').textContent).toContain('ranked against your 1 wines')
+  })
+})
+
+/**
+ * A catalog fetch runs to several pages and several seconds. The design shows
+ * real progress rather than a spinner, and the numbers the bar is drawn from
+ * are the ones a screen reader is given.
+ */
+describe('search progress', () => {
+  it('reports paging as a progressbar with its bounds set', async () => {
+    document.body.innerHTML = '<app-status></app-status>'
+    appState.setBranch('23112')
+    cellar.saveWine(wine('111'), 'like')
+
+    let seen: Element | null = null
+    vi.spyOn(catalog, 'fetchBranchCatalog').mockImplementation(async (_b, _f, onProgress) => {
+      onProgress?.(3, 9)
+      seen = document.querySelector('[role="progressbar"]')
+      return [wine('900')]
+    })
+    await runSearch()
+
+    expect(seen).not.toBe(null)
+    expect(seen!.getAttribute('aria-valuenow')).toBe('3')
+    expect(seen!.getAttribute('aria-valuemax')).toBe('9')
+  })
+
+  it('clears the bar when the results land', async () => {
+    document.body.innerHTML = '<app-status></app-status>'
+    appState.setBranch('23112')
+    cellar.saveWine(wine('111'), 'like')
+    vi.spyOn(catalog, 'fetchBranchCatalog').mockImplementation(async (_b, _f, onProgress) => {
+      onProgress?.(9, 9)
+      return [wine('900')]
+    })
+    await runSearch()
+
+    expect(document.querySelector('[role="progressbar"]')).toBe(null)
   })
 })

@@ -49,13 +49,13 @@ beforeEach(() => {
 describe('what the page actually shows', () => {
   it('shows English and hides French when lang is en', () => {
     const shown = visibleText('h1 [data-lang]')
-    expect(shown).toEqual(['Buy the wine, not the label.'])
+    expect(shown).toEqual(["The wine you'll like is already on that shelf."])
   })
 
   it('shows French and hides English when lang is fr', () => {
     render('fr')
     const shown = visibleText('h1 [data-lang]')
-    expect(shown).toEqual(["Achetez le vin, pas l'étiquette."])
+    expect(shown).toEqual(['Le vin qui vous plaira est déjà sur cette tablette.'])
   })
 
   it('switches every string, not just the heading', () => {
@@ -63,9 +63,9 @@ describe('what the page actually shows', () => {
     const all = visibleText('[data-lang]')
     expect(all.length).toBeGreaterThan(15)
     // If any English survived, one of these would appear.
-    expect(all.join(' ')).not.toContain('Build my list')
-    expect(all.join(' ')).not.toContain('No account to create')
-    expect(all.join(' ')).toContain('Créer ma liste')
+    expect(all.join(' ')).not.toContain('Open the app')
+    expect(all.join(' ')).not.toContain('Privacy, stated plainly')
+    expect(all.join(' ')).toContain("Ouvrir l'app")
   })
 
   it.each(['en', 'fr'] as const)('never shows both languages at once (%s)', l => {

@@ -2,8 +2,6 @@ import { StoreElement, html, mount, delegate, money, type Html } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
 import { productUrl } from '../../lib/catalog'
-import { chipSummary } from '../../lib/filters'
-import { branchName } from '../../lib/branches'
 import * as lang from '../../lib/lang'
 import { describeMatch } from '../../lib/reasons'
 import { openBranchSheet } from '../branchSheet'
@@ -59,10 +57,8 @@ function favourites(rows: readonly Wine[]): Html | false {
   return html`
     <section class="favourites-card">
       <div class="favourites-head">
-        <span class="favourites-dot" aria-hidden="true"></span>
-        <div class="favourites-title">
-          ${lang.t().favouritesHere(rows.length)}
-        </div>
+        <div class="favourites-title">${lang.t().alsoHere}</div>
+        <p class="hint">${lang.t().alsoHereNote}</p>
       </div>
       <div class="favourites-list">
         ${rows.map(wine => html`
@@ -135,6 +131,12 @@ export class FindPanel extends StoreElement {
       if (el.dataset.find === 'branch') openBranchSheet()
       else if (el.dataset.find === 'filters') openFilterSheet()
       else if (el.dataset.find === 'add') openAddWines()
+      else if (el.dataset.find === 'prompt') {
+        // The footer owns assembling the prompt (it has the count control), so
+        // this asks it rather than building a second copy of that logic.
+        document.querySelector<HTMLElement>('app-foot')
+          ?.querySelector<HTMLButtonElement>('[data-act="prompt"]')?.click()
+      }
       else if (el.dataset.find === 'less' || el.dataset.find === 'hide') {
         const sku = el.dataset.sku
         const wine = appState.getSnapshot().search?.results
@@ -176,7 +178,7 @@ export class FindPanel extends StoreElement {
   }
 
   protected render(): void {
-    const { branch, filters, search } = appState.getSnapshot()
+    const { branch, search } = appState.getSnapshot()
     const hidden = cellar.hiddenSkus(cellar.getSnapshot().refs)
     const likedCount = cellar.getSnapshot().liked.length
 
@@ -185,20 +187,24 @@ export class FindPanel extends StoreElement {
     const visible = search?.results.filter(r => !hidden.has(r.wine.sku)) ?? []
     const visibleFavourites = search?.favourites.filter(w => !hidden.has(w.sku)) ?? []
 
+    // The scope chips live in <app-head> now, where the design puts them: one
+    // bar saying where you are, above everything it applies to. Results take
+    // the main column; what is not the ranking sits beside it.
     mount(this, html`
-      <div class="chip-row">
-        <button type="button" class="chip chip-branch" data-find="branch">
-          <span class="chip-dot" aria-hidden="true"></span>
-          <span class="chip-branch-name">${branch ? branchName(branch) : lang.t().chooseBranch}</span>
-          <span class="chip-change">${lang.t().changeBranch}</span>
-        </button>
-        <button type="button" class="chip chip-filter" data-find="filters">
-          ${chipSummary(filters)}
-        </button>
-      </div>
       ${this.#emptyState(likedCount, branch)}
-      ${search && favourites(visibleFavourites)}
-      ${search && results(visible, search.profile, search.catalog.length, likedCount)}
+      ${search && html`
+        <div class="find-grid">
+          <div class="find-main">
+            ${results(visible, search.profile, search.catalog.length, likedCount)}
+          </div>
+          <aside class="find-side">
+            ${favourites(visibleFavourites)}
+            <button type="button" class="btn-primary" data-find="prompt">
+              ${lang.t().askAnAi}
+            </button>
+          </aside>
+        </div>
+      `}
     `)
   }
 }

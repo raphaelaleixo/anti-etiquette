@@ -51,18 +51,20 @@ describe('mode-switch', () => {
     mountShell()
 
     const el = document.querySelector('mode-switch')!
-    expect(el.textContent).toContain('My wines · 1') // dislikes are not "my wines"
+    // The count is a badge inside the tab, not part of its label.
+    expect(el.textContent).toContain('My wines')
+    expect(el.querySelector('.seg-count')!.textContent).toBe('1') // dislikes are not "my wines"
     expect(el.getAttribute('data-mode')).toBe('wines')
   })
 
   it('re-renders the count when the cellar changes, with no wiring in the shell', () => {
     mountShell()
     const el = document.querySelector('mode-switch')!
-    expect(el.textContent).toContain('My wines · 0')
+    expect(el.querySelector('.seg-count')!.textContent).toBe('0')
 
     cellar.saveWine(wine('111'), 'like')
 
-    expect(el.textContent).toContain('My wines · 1')
+    expect(el.querySelector('.seg-count')!.textContent).toBe('1')
   })
 
   it('switches mode on click and moves the pill via data-mode', () => {

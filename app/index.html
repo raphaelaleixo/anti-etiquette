@@ -23,36 +23,42 @@
       load, so building it at runtime would only add a frame of empty page.
       The custom elements below upgrade in place once the module runs.
     -->
-    <main>
-      <div class="shell">
-        <header class="shell-head">
-          <h1 class="visually-hidden">Anti-Étiquette — wine at the SAQ</h1>
-          <div class="head-row">
-            <div class="head-brand">
-              <!-- Mark 4c, drawn in CSS: no asset, no request, scales by one number. -->
-              <span class="mark" aria-hidden="true"><span class="mark-label"></span></span>
-              <div class="label">Anti-Étiquette</div>
-            </div>
-            <lang-toggle></lang-toggle>
-            <!--
-              `?stay` suppresses the landing page's returning-visitor redirect.
-              Without it this link would bounce straight back here, since
-              having a saved list is exactly what triggers that redirect.
-            -->
-            <a class="head-about" href="/?stay#about">About</a>
-          </div>
+    <main class="shell">
+      <h1 class="visually-hidden">Anti-Étiquette — wine at the SAQ</h1>
+
+      <!--
+        One bar carrying identity, place and language: the mark, the wordmark,
+        the two sections, and the switches that apply everywhere.
+      -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="brand">
+            <span class="mark" aria-hidden="true"></span>
+            <span class="wordmark">Anti-Étiquette</span>
+          </span>
           <mode-switch></mode-switch>
-        </header>
-
-        <div class="shell-body">
-          <app-status></app-status>
-          <app-panel></app-panel>
         </div>
-
-        <div class="shell-fade" aria-hidden="true"></div>
-        <div class="shell-foot">
-          <app-foot></app-foot>
+        <div class="topbar-right">
+          <!--
+            `?stay` suppresses the landing page's returning-visitor redirect.
+            Without it this link would bounce straight back here, since having
+            a saved list is exactly what triggers that redirect.
+          -->
+          <a class="topbar-link" href="/?stay#about">About this project</a>
+          <lang-toggle></lang-toggle>
         </div>
+      </header>
+
+      <app-head></app-head>
+      <app-status></app-status>
+
+      <div class="shell-body">
+        <app-panel></app-panel>
+      </div>
+
+      <div class="shell-fade" aria-hidden="true"></div>
+      <div class="shell-foot">
+        <app-foot></app-foot>
       </div>
     </main>
 

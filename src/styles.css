@@ -64,8 +64,15 @@
   --marked:#171310;
   --warn:#d9a05c;
 
+  /*
+   * Three faces, each with one job — and the base is SANS, not mono. Every
+   * screen frame in the design sets -apple-system as its font-family and
+   * reaches for monospace only where a thing is a label, a count or a price.
+   * An earlier pass made monospace the base, which is what made the app look
+   * like a terminal rather than a document.
+   */
+  --ui:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;
   --display:Georgia,"Iowan Old Style","Times New Roman",serif;
-  --ui:ui-monospace,Menlo,"SF Mono",monospace;
   --mono:ui-monospace,Menlo,"SF Mono",monospace;
 
   --radius-sm:2px; --radius-md:3px; --radius-lg:5px;

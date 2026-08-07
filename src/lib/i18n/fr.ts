@@ -23,6 +23,14 @@ export const fr: Messages = {
   findTab: 'Trouver un vin',
   about: 'À propos',
   language: 'Langue',
+  myWines: 'Mes vins',
+  exportBackup: 'Exporter une copie',
+  importShort: 'Importer',
+  aboutProject: 'À propos du projet',
+  alsoHere: 'Aussi ici : des vins que vous connaissez',
+  alsoHereNote: 'Tirés de votre liste, en tablette à cette succursale.',
+  askAnAi: 'Interroger une IA sur cette tablette',
+  ranksContinue: (from, to) => `Les rangs ${from} à ${to} suivent`,
 
   // -------------------------------------------------------------- kinds
   kindLike: 'Plus comme ça',
@@ -108,8 +116,6 @@ export const fr: Messages = {
   emptyNoBranchNote:
     'L’inventaire change d’une SAQ à l’autre : la liste ne vaut quelque chose ' +
     'qu’une fois qu’elle sait quelle tablette elle lit.',
-  favouritesHere: n =>
-    n === 1 ? 'Un de vos vins est ici' : `${n} de vos vins sont ici`,
   bestMatches: 'Meilleures correspondances',
   rankedAgainst: n => `classés selon vos ${n} vins`,
   resultCount: (shown, total) => `${shown} affichés · ${total} correspondent à vos filtres`,

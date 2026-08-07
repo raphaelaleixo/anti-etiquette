@@ -312,15 +312,20 @@ export class MyWines extends StoreElement {
       : kind === 'dislike' ? t.kindDislikeNote
       : t.kindSkipNote
     return html`
-      <section class="mywines-group mywines-group--${KIND_CLASS[kind]}">
-        <div class="mywines-head">
-          <div class="mywines-title">${lang.kindLabel(kind)}</div>
-          <div class="mywines-count">${entries.length}</div>
+      <section class="group group--${KIND_CLASS[kind]}">
+        <header class="group-head">
+          <div class="group-titlerow">
+            <span class="group-dot" aria-hidden="true"></span>
+            <span class="group-name">${lang.kindLabel(kind)}</span>
+            <span class="group-count">${entries.length}</span>
+          </div>
+          <p class="group-note">${note}</p>
+        </header>
+        <div class="group-body">
+          ${entries.length === 0
+            ? html`<p class="group-empty">${emptyHint}</p>`
+            : list(entries)}
         </div>
-        <p class="mywines-note">${note}</p>
-        ${entries.length === 0
-          ? html`<p class="hint">${emptyHint}</p>`
-          : list(entries)}
       </section>
     `
   }
@@ -350,16 +355,6 @@ export class MyWines extends StoreElement {
     }
 
     mount(this, html`
-      <div class="mywines-summary">
-        <!--
-          The second number is snapshot.liked, which excludes entries with no
-          cached wine — those are saved but shape nothing, because buildProfile
-          never sees them. Using the group's own length here would have
-          overstated it by exactly the wines the app cannot look up.
-        -->
-        ${t.savedShaping(entries.length, snap.liked.length)}
-      </div>
-
       <div class="mywines-groups">
         ${this.#group('like', liked, t.likedEmpty)}
         ${this.#group('dislike', disliked, t.dislikedEmpty)}

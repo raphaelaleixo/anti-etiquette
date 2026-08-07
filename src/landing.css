@@ -1,379 +1,284 @@
 /*
- * Landing page — the Organic system, dark.
+ * Marketing page — the Screens design.
  *
- * Dark-only, deliberately, because the app is: a cream landing opening into
- * an espresso app is a flash and an inconsistency, not a preference being
- * honoured. A light palette exists in the design system and both pages could
- * take it, but they would have to take it together. The mark is drawn in CSS,
- * so the page still ships no images.
+ * Three typefaces, each with one job. The base is the platform sans; Georgia
+ * carries every heading and nothing else; monospace carries labels, counts and
+ * anything that reads as a measurement. Getting the base wrong is what makes a
+ * page like this look like a terminal rather than a document — an earlier pass
+ * set monospace as the body font and that was the single biggest thing wrong
+ * with it.
  *
- * There is no webfont at all: Georgia for prose, the platform monospace for
- * everything structural. Nothing to fetch, nothing to self-host, and the
- * "nothing is sent anywhere" claim needs no asterisk.
+ * Nothing is fetched: all three are already on the machine.
+ *
+ * Measurements are the design's: 56px page gutters, 20px/56px header, 64px
+ * between hero columns, a five-column steps grid, 24px/56px footer.
  */
 
 :root {
   color-scheme: dark;
 
   --ground: #0e0c09;
-  --surface: #15120f;
-  --ink: #f4f1ec;
-  --ink-quiet: #9b9891;
+  --panel: #15120f;
+  --panel-2: #191613;
+  --raise: #1c1916;
   --line: #2b2825;
-  /*
-   * The page chrome — header and footer. They sit on the ground with a
-   * divider rather than being a wine field: a wine block on an espresso
-   * ground reads as a smudge rather than a band.
-   */
-  --chrome: #0e0c09;
-  --chrome-ink: #f4f1ec;
-  --chrome-quiet: #9b9891;
-  --chrome-line: #2b2825;
+  --line2: #37342f;
+
+  --ink2: #f4f1ec;
+  --ink: #c6c4be;
+  --mute: #9b9891;
+  --mute2: #7d7a74;
+
   --accent: #ea856b;
-  --accent-ink: #0e0c09;
-  --accent-soft: #150a08;
-  --accent-soft-ink: #f0a08c;
-  --leaf-fill: #15120f;
-  --leaf-ink: #c6c4be;
+  --accent-hi: #f0a08c;
+  --on-accent: #0e0c09;
+  /* The one other hue in the design: a green dot against the privacy line. */
+  --ok: #6bbf8a;
 
-  --gap: clamp(1.5rem, 4vw, 2.75rem);
-  --measure: 62ch;
-
-  /*
-   * No webfont. The design sets prose in Georgia and everything structural in
-   * the platform's monospace — both already present everywhere, so there is
-   * nothing to fetch and nothing to self-host. The privacy claim gets to stay
-   * true without a build step.
-   */
+  --sans: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   --display: Georgia, "Iowan Old Style", "Times New Roman", serif;
-  --ui: ui-monospace, Menlo, "SF Mono", monospace;
+  --mono: ui-monospace, Menlo, "SF Mono", monospace;
+
+  --gutter: clamp(1.125rem, 4vw, 3.5rem);
 }
 
-
-*,
-*::before,
-*::after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: var(--ground);
+  background: var(--panel);
   color: var(--ink);
-  font: 14px/1.55 var(--ui);
+  font: 15px/1.55 var(--sans);
   -webkit-text-size-adjust: 100%;
 }
 
-h1, h2, h3 { font-family: var(--display); font-weight: 400;
-  line-height: 1.15; text-wrap: balance; margin: 0; }
-p { margin: 0; text-wrap: pretty; }
-a { color: inherit; }
-
-/* A visible focus ring everywhere, since every action here is a link. */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 4px;
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 400;
+  margin: 0;
+  color: var(--ink2);
+  text-wrap: balance;
 }
+p { margin: 0; text-wrap: pretty; }
+a { color: inherit; text-decoration: none; }
 
-/* ------------------------------------------------------------------ chrome */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-.brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
-.brand-name { font-family: var(--display); font-size: 1.15rem; letter-spacing: 0; }
+.mono { font: 500 12px/1 var(--mono); color: var(--mute2); }
 
-/*
- * The mark, as the Screens design has it: one accent dot beside the wordmark.
- * The Organic bottle drawing went with the design that asked for it.
- */
+/* ─────────────────────────────────────────────────────────────── header ── */
+
+.site-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 20px var(--gutter);
+  border-block-end: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
 .brand-mark {
-  inline-size: 0.75rem;
-  block-size: 0.75rem;
+  inline-size: 14px;
+  block-size: 14px;
   flex: none;
   border-radius: 50%;
   background: var(--accent);
 }
-.brand-label { display: none; }
+.brand-name { font-family: var(--display); font-size: 20px; line-height: 1; color: var(--ink2); }
 
-.site-head {
-  background: var(--chrome);
-  color: var(--chrome-ink);
-  border-block-end: 1px solid var(--chrome-line);
-  padding: 0.9rem var(--gap);
+.site-nav { display: flex; align-items: center; gap: clamp(1rem, 2vw, 2.25rem); flex-wrap: wrap; }
+.site-links { display: flex; align-items: center; gap: 1.75rem; font-size: 14px; }
+.site-links a { color: var(--mute); }
+.site-links a:hover { color: var(--ink2); }
+
+.langtoggle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  border: 1px solid var(--line2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.langtoggle button {
+  padding: 7px 11px;
+  border: 0;
+  background: transparent;
+  color: var(--mute);
+  font: 500 11px/1 var(--mono);
+  cursor: pointer;
+}
+html[lang='en'] .langtoggle button[data-set-lang='en'],
+html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
+  background: #322e2a;
+  color: var(--ink2);
 }
 
-
-.site-nav { display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 1.6rem); }
-.site-nav a { text-decoration: none; color: var(--chrome-quiet); }
-.site-nav a:hover { color: var(--chrome-ink); }
-
-/* ------------------------------------------------------------------ buttons */
-
 .btn {
-  border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1.35rem;
-  font: inherit;
-  font-family: var(--ui);
-  font-size: 0.85rem;
-  letter-spacing: 0.02em;
-  text-decoration: none;
-  border: 1px solid transparent;
+  padding: 11px 22px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 500 14px/1 var(--sans);
+  cursor: pointer;
 }
-.btn-lg { padding: 0.95rem 1.75rem; font-size: 1.05rem; }
-.btn-primary { background: var(--accent); color: var(--accent-ink); }
-.btn-secondary { background: transparent; color: inherit; border-color: currentColor; }
-.site-nav .btn-primary { color: var(--accent-ink); }
+.btn-lg { padding: 15px 30px; font-size: 15px; }
+.btn:hover { background: var(--accent-hi); }
 
-@media (prefers-reduced-motion: no-preference) {
-  .btn { transition: translate 140ms ease, background-color 140ms ease; }
-  .btn:hover { translate: 0 -1px; }
-}
-
-/* --------------------------------------------------------------------- hero */
-
-main { display: block; }
+/* ───────────────────────────────────────────────────────────────── hero ── */
 
 .hero {
-  padding: clamp(2.5rem, 7vw, 4.75rem) var(--gap);
   display: grid;
-  gap: clamp(2rem, 5vw, 3.5rem);
-  align-items: center;
-  /* One column until there is genuinely room for two. */
   grid-template-columns: 1fr;
-  max-inline-size: 78rem;
-  margin-inline: auto;
+  gap: 40px;
+  padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter);
 }
-@media (min-width: 56rem) {
-  .hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
+@media (min-width: 62rem) {
+  .hero { grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: start; }
 }
 
-.hero h1 {
-  font-size: clamp(2.4rem, 7vw, 4.75rem);
-  max-inline-size: 14ch;
-  letter-spacing: -0.02em;
-}
-.lede {
-  font-size: clamp(1.05rem, 2vw, 1.25rem);
-  color: var(--ink-quiet);
-  max-inline-size: 42ch;
-  margin-block-start: 1.1rem;
-}
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-block-start: 1.75rem;
-}
-.fineprint {
-  font-size: 0.9rem;
-  color: var(--ink-quiet);
-  margin-block-start: 1.1rem;
-}
+.hero-copy { display: flex; flex-direction: column; gap: 26px; align-items: flex-start; }
+.hero h1 { font-size: clamp(2.125rem, 5vw, 3.625rem); line-height: 1.05; }
+.lede { font-size: clamp(1rem, 1.4vw, 1.1875rem); max-inline-size: 56ch; color: var(--ink); }
 
 /*
- * Hero art.
- *
- * The design slots a photograph here and none exists. The Organic bottle
- * drawing stood in for it; the Screens mark is a dot, which cannot carry a
- * hero, so the panel is empty again and hidden below the two-column breakpoint
- * rather than shown as a blank rectangle.
+ * The product's main argument, so it sits directly under the subheadline
+ * rather than in the footer. The dot is the only green in the design.
  */
-@media (max-width: 56rem) {
-  .hero-figure { display: none; }
+.reassure {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--raise);
+  font-size: 14px;
+}
+.reassure::before {
+  content: '';
+  inline-size: 7px;
+  block-size: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ok);
 }
 
-/* -------------------------------------------------------------------- steps */
+.hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+
+/*
+ * The photograph the design calls for does not exist, and the panel says so
+ * rather than sitting there as an unexplained empty rectangle.
+ */
+.hero-figure {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--raise);
+  min-block-size: 22rem;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+  font: 500 11px/1.4 var(--mono);
+  color: var(--mute2);
+}
+
+/* ────────────────────────────────────────────────────────── how it works ── */
 
 .steps {
-  padding: 0 var(--gap) clamp(3rem, 8vw, 4.5rem);
-  max-inline-size: 78rem;
-  margin-inline: auto;
+  padding: clamp(3rem, 6vw, 4.75rem) var(--gutter);
+  border-block-start: 1px solid var(--line);
+  background: var(--panel-2);
 }
-.steps h2 { font-size: clamp(1.6rem, 4vw, 2.15rem); max-inline-size: 20ch; }
+.steps-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-block-end: 2rem;
+}
+.steps h2 { font-size: clamp(1.5rem, 3vw, 2.125rem); line-height: 1.1; }
 
 .step-list {
   list-style: none;
-  margin: 1.75rem 0 0;
-  padding: 0;
-  border-block-start: 1px solid var(--line);
-}
-.step {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.4rem 1.25rem;
-  align-items: start;
-  padding: 1.4rem 0;
-  border-block-end: 1px solid var(--line);
-}
-@media (min-width: 56rem) {
-  .step {
-    grid-template-columns: auto 19rem 1fr;
-    align-items: center;
-    gap: 1.6rem;
-  }
-}
-.step-num {
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
-  border-radius: 3px;
-  background: var(--accent-soft);
-  color: var(--accent-soft-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  grid-row: span 2;
-}
-@media (min-width: 56rem) {
-  .step-num { grid-row: auto; }
-}
-.step h3 { font-size: 1.2rem; }
-.step p { color: var(--ink-quiet); max-inline-size: 56ch; }
-.step--alt .step-num { background: var(--leaf-fill); color: var(--leaf-ink); }
-
-/* ------------------------------------------------------------------ privacy */
-
-.privacy {
-  margin: 0 var(--gap) clamp(3rem, 8vw, 4.5rem);
-  max-inline-size: calc(78rem - var(--gap) * 2);
-  margin-inline: auto;
-  border-radius: 1.25rem;
-  background: var(--leaf-fill);
-  color: var(--leaf-ink);
-  padding: clamp(1.75rem, 4vw, 2.5rem);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.75rem;
-  align-items: center;
-  justify-content: space-between;
-}
-.privacy h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); margin-block-end: 0.5rem; }
-.privacy p { max-inline-size: 52ch; color: var(--leaf-ink); }
-.privacy-nots {
-  list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
 }
-.privacy-nots li { display: flex; align-items: center; gap: 0.55rem; }
+@media (min-width: 46rem) { .step-list { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 72rem) { .step-list { grid-template-columns: repeat(5, 1fr); } }
 
-/*
- * The struck-through square: the design's "not this" mark, drawn in CSS.
- * A white tile with a near-black cross in both schemes — it sits on the sage
- * fill, not on the page, so it does not follow the ground.
- */
-.not-mark {
-  inline-size: 1.75rem;
-  block-size: 1.75rem;
-  flex: none;
-  border-radius: 0.5rem;
-  background: #fff;
-  position: relative;
-  overflow: hidden;
-}
-.not-mark::before,
-.not-mark::after {
-  content: '';
-  position: absolute;
-  inset-inline: 0.2rem;
-  inset-block-start: calc(50% - 1.5px);
-  block-size: 3px;
-  background: #201e1d;
-}
-.not-mark::before { rotate: 45deg; }
-.not-mark::after { rotate: -45deg; }
-
-/* -------------------------------------------------------------------- about */
-
-.about {
-  padding: 0 var(--gap) clamp(3rem, 8vw, 4.5rem);
-  max-inline-size: 78rem;
-  margin-inline: auto;
+.step {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 12px;
+  padding-block-start: 18px;
+  border-block-start: 1px solid var(--line2);
 }
-.about h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); }
-.about p { color: var(--ink-quiet); max-inline-size: var(--measure); }
-.about strong { color: var(--ink); }
+.step-num { font: 500 12px/1 var(--mono); color: var(--accent); }
+.step h3 { font-size: 20px; line-height: 1.25; }
+.step p { font-size: 14px; color: var(--mute); }
 
-/* ------------------------------------------------------------------- footer */
+/* ─────────────────────────────────────────────────── privacy and about ── */
+
+.plainly {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  padding: clamp(3rem, 6vw, 4.75rem) var(--gutter);
+  border-block-start: 1px solid var(--line);
+}
+@media (min-width: 62rem) {
+  .plainly { grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+}
+.plainly h2 { font-size: clamp(1.5rem, 3vw, 2.125rem); line-height: 1.1; margin-block-end: 24px; }
+
+.nots { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 4px; }
+.nots li { display: flex; align-items: baseline; gap: 14px; padding: 18px 20px; flex-wrap: wrap; }
+.nots li + li { border-block-start: 1px solid var(--line); }
+.not-mark { font: 500 13px/1 var(--mono); color: var(--accent); }
+.not-name { font-size: 15px; color: var(--ink2); }
+.not-why { font-size: 14px; color: var(--mute); flex: 1 1 14rem; }
+
+.about { display: flex; flex-direction: column; gap: 20px; }
+.about p { font-size: 15px; color: var(--ink); }
+
+/* ──────────────────────────────────────────────────────── closing, foot ── */
+
+.closing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  padding: clamp(2.5rem, 5vw, 3.5rem) var(--gutter);
+  border-block-start: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.closing-copy { display: flex; flex-direction: column; gap: 8px; }
+.closing h2 { font-size: 26px; line-height: 1.2; }
+.closing p { font-size: 14px; color: var(--mute); }
 
 .site-foot {
-  background: var(--chrome);
-  color: var(--chrome-ink);
-  border-block-start: 1px solid var(--chrome-line);
-  padding: clamp(2rem, 5vw, 2.75rem) var(--gap);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem 2.5rem;
-  align-items: end;
-  justify-content: space-between;
-}
-.foot-brand { display: flex; align-items: center; gap: 0.7rem; }
-
-.foot-brand .brand-name { font-size: 1.4rem; }
-.foot-note {
-  color: var(--chrome-quiet);
-  font-size: 0.95rem;
-  max-inline-size: 46ch;
-  flex: 1 1 22rem;
+  padding: 24px var(--gutter);
+  border-block-start: 1px solid var(--line);
+  font: 500 12px/1.5 var(--mono);
+  color: var(--mute2);
 }
 
-/* ---------------------------------------------------------------- language */
+/* ──────────────────────────────────────────────────────────── language ── */
 
 /*
- * Both languages ship in the markup; this hides the one that is not current.
- *
- * It is what keeps the page free of external JavaScript: no fetch, no
- * dictionary, no re-render — the browser simply stops painting half the
- * document. The cost is that the HTML carries both copies, which gzip is
- * extremely good at, since the two versions share every tag.
- *
- * Keyed off <html lang>, which the inline script sets before first paint, so
- * the correct language is the first thing painted rather than a correction.
+ * Both languages ship in the markup and CSS hides whichever is not current,
+ * so switching costs no request and this page keeps shipping no external
+ * JavaScript beyond the few inline lines that set <html lang>.
  */
 html[lang='en'] [data-lang]:not([data-lang='en']),
 html[lang='fr'] [data-lang]:not([data-lang='fr']) {
   display: none;
-}
-
-.langtoggle {
-  display: inline-flex;
-  gap: 2px;
-  padding: 1px;
-  border-radius: 3px;
-  background: var(--surface);
-  flex: none;
-}
-.langtoggle button {
-  min-inline-size: 2.2rem;
-  block-size: 1.75rem;
-  padding-inline: 0.5rem;
-  border: 0;
-  border-radius: 2px;
-  background: none;
-  color: var(--ink-quiet);
-  font: inherit;
-  font-family: var(--ui);
-  font-size: 0.8rem;
-  line-height: 1;
-  cursor: pointer;
-}
-/*
- * The active button is chosen in CSS from <html lang>, not by a class the
- * script maintains. One source of truth, and the two cannot fall out of step.
- */
-html[lang='en'] .langtoggle button[data-set-lang='en'],
-html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
-  background: var(--accent);
-  color: var(--accent-ink);
 }

@@ -49,12 +49,14 @@ export class ModeSwitch extends StoreElement {
     // renders as empty by design here (so `${cond && html`…`}` reads the way
     // it looks), and aria-current="" is not one of the spec's tokens.
     const current = (m: Mode) => (mode === m ? 'true' : 'false')
+    // The count rides inside the tab as a badge rather than in its label, so
+    // the two tabs stay the same shape as the number grows.
     mount(this, html`
       <button
         data-mode="wines"
         class="${mode === 'wines' ? 'active' : ''}"
         aria-current="${current('wines')}"
-      >${lang.t().myWinesTab(count)}</button>
+      >${lang.t().myWines}<span class="seg-count">${count}</span></button>
       <button
         data-mode="find"
         class="${mode === 'find' ? 'active' : ''}"

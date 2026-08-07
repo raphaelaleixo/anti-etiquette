@@ -21,6 +21,14 @@ export const en = {
   findTab: 'Find a wine',
   about: 'About',
   language: 'Language',
+  myWines: 'My wines',
+  exportBackup: 'Export a backup',
+  importShort: 'Import',
+  aboutProject: 'About this project',
+  alsoHere: 'Also here: wines you already know',
+  alsoHereNote: 'From your own list, in stock at this branch.',
+  askAnAi: 'Ask an AI about this shelf',
+  ranksContinue: (from: number, to: number) => `Ranks ${from} – ${to} continue`,
 
   // -------------------------------------------------------------- kinds
   //
@@ -115,8 +123,6 @@ export const en = {
   emptyNoBranchNote:
     'Stock differs from one SAQ to the next, so the list is only worth ' +
     'anything once it knows which shelf it is reading.',
-  favouritesHere: (n: number) =>
-    n === 1 ? 'One of your wines is here' : `${n} of your wines are here`,
   bestMatches: 'Best matches',
   rankedAgainst: (n: number) => `ranked against your ${n} wines`,
   resultCount: (shown: number, total: number) => `${shown} shown · ${total} fit your filters`,
