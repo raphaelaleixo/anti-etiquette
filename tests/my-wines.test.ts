@@ -28,9 +28,11 @@ describe('the three groups', () => {
 
     const counts = [...el.querySelectorAll('.group-count')].map(n => n.textContent)
     expect(counts).toEqual(['1', '1', '1'])
-    expect(el.querySelector('.mywines-row--liked .mywines-name')!.textContent).toBe('Wine 111')
-    expect(el.querySelector('.mywines-row--disliked .mywines-name')!.textContent).toBe('Wine 222')
-    expect(el.querySelector('.mywines-row--skipped .mywines-name')!.textContent).toBe('Wine 333')
+    // Asserted through the group card, which is what actually carries the
+    // filing now — a row no longer repeats its own group's colour.
+    expect(el.querySelector('.group--liked .mywines-name')!.textContent).toBe('Wine 111')
+    expect(el.querySelector('.group--disliked .mywines-name')!.textContent).toBe('Wine 222')
+    expect(el.querySelector('.group--skipped .mywines-name')!.textContent).toBe('Wine 333')
   })
 
   it('shows a first-run screen rather than three empty groups', () => {
@@ -102,7 +104,9 @@ describe('row actions', () => {
     )!.click()
 
     expect(cellar.getSnapshot().refs).toEqual([{ sku: '111', kind: 'dislike' }])
-    expect(el.querySelector('.mywines-row--disliked')).not.toBe(null)
+    // Moved card, not just moved state: the wine is now under "Less like this".
+    expect(el.querySelector('.group--disliked .mywines-name')!.textContent).toBe('Wine 111')
+    expect(el.querySelector('.group--liked .mywines-row')).toBe(null)
   })
 
   it('removes a wine', () => {
@@ -402,8 +406,11 @@ describe('the three groups explain themselves', () => {
 describe('first run', () => {
   it('says what to do first', () => {
     const el = mountList()
-    expect(el.querySelector('.firstrun h2')!.textContent).toContain('Start here')
-    expect(el.textContent).toContain('Three wines is enough to begin')
+    // The heading is the sentence, not the label above it: "Start here" names
+    // the region and would be a poor thing to land on when tabbing headings.
+    expect(el.querySelector('.firstrun h2')!.textContent)
+      .toContain('Three wines is enough to begin')
+    expect(el.querySelector('.firstrun-eyebrow')!.textContent).toContain('Start here')
   })
 
   it('offers both ways in — typing, and a file', () => {

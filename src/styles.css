@@ -1,958 +1,1734 @@
-/* Reduced motion — global escape hatch, mandatory per guidance. Every rule
-   added below this line is covered by construction; per-component overrides
-   still follow where a transform needs neutralising explicitly. */
+/*
+ * Anti-Étiquette — the app.
+ *
+ * Written against the "Screens" design, and only that. Two earlier designs
+ * passed through this file and left sediment behind; the fix was not more
+ * cutting but starting again, so nothing here survives from them.
+ *
+ * ── The three faces ─────────────────────────────────────────────────────────
+ *
+ * The platform sans is the BASE. Georgia carries headings and the one sentence
+ * that explains a recommendation. Monospace carries labels, counts, prices and
+ * anything else that reads as a measurement — never running text.
+ *
+ * An earlier pass set monospace as the body font. That single mistake is what
+ * made the app look like a terminal and threw every baseline off, because a
+ * mono face has different metrics from the sans the design was drawn in.
+ *
+ * Nothing is fetched. All three faces are already on the machine.
+ *
+ * ── Colour ─────────────────────────────────────────────────────────────────
+ *
+ * The design is authored in oklch and this file keeps those numbers rather
+ * than converting them: hue 70 at near-zero chroma for the warm-neutral ramp,
+ * hue 85 for ink, and three carrying hues that each mean one thing.
+ *
+ *   35   terracotta   the accent, and "More like this"
+ *   95   brass        "Less like this"
+ *   145  green        a satisfied requirement, and the privacy line
+ *   25   red          the browser refuses to store anything
+ *
+ * "Just hidden" deliberately has no hue: it says nothing about taste, so it
+ * gets no colour to say it with.
+ *
+ * ── Layout ─────────────────────────────────────────────────────────────────
+ *
+ * Phone 390 is the base; the desktop 1440 layouts arrive at 62rem. Above that
+ * breakpoint the sheets stop being sheets and become the inline panels the
+ * design draws — a phone reaches a bottom sheet with a thumb, and a desktop
+ * has no thumb and plenty of room.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /*
+   * The ground, and the one colour written in sRGB.
+   *
+   * It is `oklch(0.185 0.008 70)`, but it also has to be repeated in a
+   * `<meta name="theme-color">` on both pages and in the marketing
+   * stylesheet, so it is stated in the notation every one of those places can
+   * carry. A landing and an app that disagree here flash on navigation.
+   */
+  --ground:  #15120f;
+
+  /* Surfaces, dimmest first. */
+  --well:    oklch(0.175 0.008 70);   /* text wells: the textarea, the prompt */
+  --shell:   var(--ground);           /* the app frame */
+  --sub:     oklch(0.198 0.008 70);   /* scope bar, quiet asides */
+  --topbar:  oklch(0.200 0.008 70);
+  --panel:   oklch(0.205 0.008 70);   /* every card */
+  --panel2:  oklch(0.215 0.008 70);   /* footer bars, sheet chrome */
+  --raise:   oklch(0.225 0.008 70);   /* hovered or selected rows */
+  --raise2:  oklch(0.235 0.008 70);
+  --track:   oklch(0.240 0.008 70);   /* the segmented control's track */
+  --field:   oklch(0.250 0.008 70);   /* text inputs */
+  --chip:    oklch(0.280 0.008 70);
+  --seg-on:  oklch(0.320 0.008 70);   /* the selected segment */
+
+  /* Rules and edges, weakest first. */
+  --line:    oklch(0.26 0.008 70);    /* between rows inside a card */
+  --line2:   oklch(0.28 0.008 70);    /* between a card's regions */
+  --line3:   oklch(0.30 0.008 70);    /* around a card */
+  --line4:   oklch(0.32 0.008 70);
+  --edge:    oklch(0.34 0.008 70);    /* chips and ghost buttons */
+  --edge2:   oklch(0.36 0.008 70);
+  --edge3:   oklch(0.40 0.008 70);
+  --edge4:   oklch(0.44 0.008 70);    /* a field being typed into */
+
+  /* Ink, brightest first. */
+  --ink0:    oklch(0.97 0.008 85);    /* headings */
+  --ink:     oklch(0.95 0.008 85);    /* names */
+  --ink2:    oklch(0.90 0.008 85);
+  --ink3:    oklch(0.82 0.008 85);    /* button labels */
+  --mute:    oklch(0.74 0.010 85);    /* explanatory prose */
+  --mute2:   oklch(0.66 0.010 85);
+  --mute3:   oklch(0.58 0.010 85);    /* mono labels */
+  --faint:   oklch(0.48 0.008 70);    /* line numbers, the hidden group's dot */
+
+  /* More like this — and the accent, because it is the product's argument. */
+  --more:      oklch(0.72 0.13 35);
+  --more-hi:   oklch(0.78 0.12 35);
+  --on-more:   oklch(0.16 0.02 35);
+  --more-line: oklch(0.34 0.03 35);
+  --more-edge: oklch(0.46 0.06 35);
+  --more-bg:   oklch(0.235 0.014 35);
+  --more-bg2:  oklch(0.320 0.020 35);
+  --more-ink:  oklch(0.90 0.06 35);
+  --more-ink2: oklch(0.82 0.02 35);
+
+  /* Less like this. */
+  --less:      oklch(0.74 0.12 95);
+  --less-line: oklch(0.34 0.03 95);
+  --less-edge: oklch(0.48 0.06 95);
+  --less-bg:   oklch(0.235 0.014 95);
+  --less-bg2:  oklch(0.320 0.020 95);
+  --less-ink:  oklch(0.84 0.02 95);
+
+  /* A requirement already met, and the privacy line. */
+  --ok:       oklch(0.72 0.13 145);
+  --ok-line:  oklch(0.32 0.03 145);
+  --ok-bg:    oklch(0.205 0.012 145);
+  --ok-ink:   oklch(0.84 0.02 145);
+  --on-ok:    oklch(0.18 0.03 145);
+
+  /* Nothing can be saved. */
+  --stop:      oklch(0.68 0.16 25);
+  --stop-line: oklch(0.40 0.06 25);
+  --stop-bg:   oklch(0.215 0.018 25);
+  --stop-ink:  oklch(0.84 0.03 25);
+  --on-stop:   oklch(0.18 0.03 25);
+
+  --sans:    -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --mono:    ui-monospace, Menlo, "SF Mono", monospace;
+
+  --pad: 16px;   /* the page gutter; 32px from 62rem up */
+}
+
+@media (min-width: 62rem) {
+  :root { --pad: 32px; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--shell);
+  color: var(--ink3);
+  font: 15px/1.5 var(--sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  color: var(--ink0);
+  text-wrap: balance;
+}
+p { margin: 0; text-wrap: pretty; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+
+:focus-visible { outline: 2px solid var(--more); outline-offset: 2px; }
+
+/* Anything a screen reader should hear and nobody should see. */
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/*
+ * The one label style in the app: mono, small, uppercase, wide.
+ *
+ * It names a region — "Colour", "Current scope", "What you get back" — and it
+ * is never used for a sentence, because letter-spaced uppercase is unreadable
+ * at any length.
+ */
+.label {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+.label--brass { color: var(--less-ink); }
+
+/* Explanatory prose. Sans, because it is prose. */
+.hint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mute2);
+}
+
+/* ═══════════════════════════════════════════════════════════════ buttons ══ */
+
+.btn-primary,
+.btn-secondary,
+.ghostbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn-primary {
+  padding: 11px 24px;
+  background: var(--more);
+  color: var(--on-more);
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) { background: var(--more-hi); }
+.btn-primary:disabled {
+  background: var(--chip);
+  color: var(--mute3);
+  cursor: default;
+}
+
+.btn-secondary {
+  padding: 11px 20px;
+  border-color: var(--edge2);
+  background: transparent;
+  color: var(--ink3);
+  font-size: 14px;
+}
+.btn-secondary:hover { border-color: var(--edge4); color: var(--ink0); }
+
+/* Quieter still: the actions on a page head, which act on the whole list. */
+.ghostbtn {
+  padding: 9px 16px;
+  border-color: var(--edge);
+  background: transparent;
+  color: var(--ink3);
+  font-size: 13px;
+}
+.ghostbtn:hover { border-color: var(--edge3); color: var(--ink0); }
+
+/* A count riding inside a button, in the measurement face. */
+.btn-note {
+  font: 500 12px/1 var(--mono);
+  color: color-mix(in oklch, var(--on-more) 65%, transparent);
+}
+
+/* ═════════════════════════════════════════════════════════════════ shell ══ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100svb;
+  background: var(--shell);
+}
+
+/* ── top bar ─────────────────────────────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px var(--pad);
+  border-block-end: 1px solid var(--line2);
+  background: var(--topbar);
+}
+
+.topbar-left { display: flex; align-items: center; gap: 32px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.brand { display: flex; align-items: baseline; gap: 8px; }
+.mark {
+  inline-size: 10px;
+  block-size: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--more);
+}
+.wordmark {
+  font-family: var(--display);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink0);
+}
+
+.topbar-link { font-size: 12px; color: var(--mute2); }
+.topbar-link:hover { color: var(--ink0); }
+
+.langtoggle {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+}
+.langtoggle button {
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--mute2);
+  font: 500 10px/1 var(--mono);
+  cursor: pointer;
+}
+.langtoggle button.active { background: var(--seg-on); color: var(--ink0); }
+
+/*
+ * On a phone the two sections are a full-width pair of segments on their own
+ * row, so `display: contents` lifts the brand and the switch out of their
+ * wrapper and lets the switch wrap below. Nothing about the markup changes.
+ */
+@media (max-width: 61.99rem) {
+  .topbar { flex-wrap: wrap; padding-block-end: 0; }
+  .topbar-left { display: contents; }
+  .brand { order: 1; }
+  .topbar-right { order: 2; }
+  .modeswitch {
+    order: 3;
+    flex: 1 0 100%;
+    margin-inline: calc(var(--pad) * -1);
+    padding: 10px var(--pad);
+    border-block-start: 1px solid var(--line2);
+  }
+}
+
+@media (min-width: 62rem) {
+  .topbar { padding-block: 14px; }
+  .mark { inline-size: 12px; block-size: 12px; }
+  .wordmark { font-size: 18px; }
+  .topbar-right { gap: 24px; }
+  .topbar-link { font-size: 13px; }
+  .langtoggle button { padding: 6px 10px; font-size: 11px; }
+}
+
+/* ── the two sections ────────────────────────────────────────────────────── */
+
+.modeswitch { display: flex; gap: 6px; }
+.modeswitch button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--mute2);
+  font-size: 14px;
+  cursor: pointer;
+}
+.modeswitch button.active {
+  background: var(--seg-on);
+  color: var(--ink0);
+  font-weight: 600;
+}
+
+/*
+ * The count rides inside the tab rather than in its label, so both tabs keep
+ * the same shape as the number grows. It only takes the accent once there is
+ * something to count — an accent-filled zero reads as an achievement.
+ */
+.seg-count {
+  padding: 3px 5px;
+  border-radius: 2px;
+  background: var(--chip);
+  color: var(--ink2);
+  font: 500 10px/1 var(--mono);
+}
+.modeswitch button.active .seg-count {
+  background: var(--more);
+  color: var(--on-more);
+}
+.modeswitch button.active .seg-count[data-zero='true'] {
+  background: oklch(0.44 0.02 70);
+  color: var(--ink2);
+}
+
+@media (min-width: 62rem) {
+  .modeswitch {
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--line4);
+    border-radius: 4px;
+    background: var(--track);
+  }
+  .modeswitch button { flex: none; padding: 8px 16px; gap: 9px; }
+  .seg-count { padding: 3px 6px; font-size: 11px; }
+}
+
+/* ── page head: what this page is, and what acts on all of it ────────────── */
+
+.pagehead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px var(--pad) 16px;
+}
+.pagehead-title { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.pagehead-title h1 { font-size: 24px; line-height: 1.1; }
+.pagehead-sub {
+  font: 500 12px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+.pagehead-actions { display: flex; align-items: center; gap: 10px; }
+
+@media (min-width: 62rem) {
+  .pagehead { padding: 28px var(--pad) 20px; }
+  .pagehead-title h1 { font-size: 26px; }
+}
+
+/* ── scope bar: where you are, above everything it applies to ────────────── */
+
+.scopebar {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px var(--pad);
+  border-block-end: 1px solid var(--line2);
+  background: var(--sub);
+}
+.scopebar-chips { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+
+.scopechip {
+  flex: 1;
+  min-inline-size: 0;
+  padding: 8px 13px;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 13px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scopechip:hover { border-color: var(--edge3); }
+/* The branch is the scope's subject; the filters only narrow it. */
+.scopechip.is-set {
+  border-color: var(--edge2);
+  background: var(--chip);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.scopelink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mute2);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.scopebar-count {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--mute3);
+}
+
+@media (min-width: 62rem) {
+  .scopebar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px var(--pad);
+  }
+  .scopebar-chips { gap: 12px; }
+  .scopechip { flex: none; }
+  .scopebar-count { font-size: 12px; }
+}
+
+/* ── status and progress ─────────────────────────────────────────────────── */
+
+.statusbar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px var(--pad);
+  border-block-end: 1px solid var(--line2);
+  background: var(--sub);
+}
+.status { font-size: 13px; color: var(--mute); }
+.error { font-size: 13px; line-height: 1.45; color: var(--stop-ink); }
+
+/*
+ * A catalog read is several seconds and several pages, so this reports real
+ * progress rather than spinning. The fill is scaled, not resized, so the
+ * browser can animate it off the main thread.
+ */
+.progress { block-size: 4px; background: var(--chip); }
+.progress-fill {
+  block-size: 4px;
+  background: var(--more);
+  transform-origin: left center;
+  transition: scale 240ms ease-out;
+}
+
+/* ── body and footer ─────────────────────────────────────────────────────── */
+
+.shell-body { flex: 1; min-block-size: 0; }
+
+/* Softens the cut where content runs under the pinned footer. */
+.shell-fade {
+  position: sticky;
+  inset-block-end: 0;
+  block-size: 24px;
+  margin-block-end: -24px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, oklch(0.185 0.008 70 / 0), var(--panel2));
+}
+
+.shell-foot {
+  position: sticky;
+  inset-block-end: 0;
+  border-block-start: 1px solid var(--line3);
+  background: var(--panel2);
+  padding-block-end: env(safe-area-inset-bottom);
+}
+.shell-foot app-foot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px var(--pad);
+}
+.shell-foot app-foot > .btn-primary,
+.shell-foot app-foot > .btn-secondary { flex: 1; padding-block: 14px; }
+
+@media (min-width: 62rem) {
+  .shell-foot app-foot {
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 18px var(--pad);
+  }
+  .shell-foot app-foot > .btn-primary,
+  .shell-foot app-foot > .btn-secondary { flex: none; padding-block: 11px; }
+}
+
+/* The prompt controls, which replace the buttons once a search has run. */
+.prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  inline-size: 100%;
+}
+.prompt-include { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.prompt-include-seg { display: flex; gap: 7px; }
+.prompt-include-seg button {
+  padding: 9px 16px;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 13px;
+  cursor: pointer;
+}
+.prompt-include-seg button.active {
+  border-color: var(--edge3);
+  background: var(--chip);
+  color: var(--ink0);
+  font-weight: 600;
+}
+@media (min-width: 62rem) {
+  .prompt-actions { inline-size: auto; }
+  .prompt-include { order: -1; margin-inline-end: auto; }
+}
+
+/* ══════════════════════════════════════════════════════════════ my wines ══ */
+
+.mywines-groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 0 var(--pad) 24px;
+  align-items: start;
+}
+@media (min-width: 62rem) {
+  .mywines-groups {
+    grid-template-columns: 1fr 1fr 340px;
+    gap: 20px;
+    padding: 0 var(--pad) 32px;
+  }
+}
+
+/*
+ * A group card.
+ *
+ * The three groups are the product's central idea. They are named for what
+ * they do to results rather than for how the visitor felt, and each carries a
+ * line saying so — the consequence is the part nobody can infer. Colour does
+ * the same work spatially: terracotta pulls, brass pushes, and the pile that
+ * says nothing about taste gets no hue and a dashed edge.
+ */
+.group {
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.group-head {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 16px 12px;
+  border-block-end: 1px solid var(--edge);
+}
+.group-titlerow { display: flex; align-items: center; gap: 9px; }
+.group-dot {
+  inline-size: 8px;
+  block-size: 8px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--faint);
+}
+.group-name { font-size: 15px; font-weight: 600; color: var(--ink0); }
+.group-count {
+  margin-inline-start: auto;
+  font: 500 12px/1 var(--mono);
+  color: var(--mute);
+}
+.group-note { font-size: 12px; line-height: 1.4; color: var(--mute2); }
+.group-empty { padding: 16px; font-size: 13px; line-height: 1.5; color: var(--mute2); }
+
+.group--liked { border-color: var(--more-line); }
+.group--liked .group-head { border-block-end-color: var(--more-line); background: var(--more-bg); }
+.group--liked .group-dot { background: var(--more); }
+.group--liked .group-count { color: var(--more-ink2); }
+.group--liked .group-note { color: var(--more-ink2); }
+
+.group--disliked { border-color: var(--less-line); }
+.group--disliked .group-head { border-block-end-color: var(--less-line); background: var(--less-bg); }
+.group--disliked .group-dot { background: var(--less); }
+.group--disliked .group-count { color: var(--less-ink); }
+.group--disliked .group-note { color: var(--less-ink); }
+
+/* The largest group and the least interesting. It stays quiet. */
+.group--skipped {
+  border-style: dashed;
+  border-color: var(--edge2);
+  background: var(--sub);
+}
+.group--skipped .group-head { border-block-end: 0; }
+.group--skipped .group-name { color: var(--ink2); }
+
+@media (min-width: 62rem) {
+  .group-head { padding: 16px 18px; }
+  .group-name { font-size: 16px; }
+  .group-count { font-size: 13px; }
+  .group-note { font-size: 13px; }
+}
+
+/* ── rows ────────────────────────────────────────────────────────────────── */
+
+.mywines { list-style: none; margin: 0; padding: 0; }
+.mywines-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-block-end: 1px solid var(--line);
+}
+.mywines-row:last-child { border-block-end: 0; }
+.mywines-body { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 3px; }
+.mywines-name { font-size: 15px; line-height: 1.3; color: var(--ink); }
+.mywines-region { font-size: 12px; color: var(--mute2); }
+
+/*
+ * A SKU saved before that the catalogue no longer returns.
+ *
+ * The React app rendered these as a permanent "Loading 3 more…" line that
+ * could never resolve and could not be removed. This row says what happened,
+ * says it still counts towards the taste profile, and can be deleted.
+ */
+.mywines-row--unresolved { align-items: flex-start; background: var(--sub); }
+.mywines-row--unresolved .mywines-name {
+  align-self: flex-start;
+  padding: 4px 6px;
+  border-radius: 2px;
+  background: var(--chip);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--mute);
+}
+.mywines-row--unresolved .mywines-region:first-of-type { font-style: italic; color: var(--mute); }
+
+/*
+ * 44px on a phone because it is a target for a thumb, 30px on a pointer
+ * because it is not.
+ */
+.mywines-menu-btn {
+  inline-size: 44px;
+  block-size: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--mute);
+  font-size: 16px;
+  cursor: pointer;
+}
+.mywines-menu-btn:hover { border-color: var(--edge4); background: var(--seg-on); color: var(--ink2); }
+@media (min-width: 62rem) {
+  .mywines-menu-btn { inline-size: 30px; block-size: 30px; font-size: 15px; }
+}
+
+/* ── the per-row menu, on the popover API ────────────────────────────────── */
+
+.wine-menu {
+  margin: 0;
+  padding: 6px;
+  inline-size: min(20rem, calc(100vw - 32px));
+  border: 1px solid var(--edge2);
+  border-radius: 5px;
+  background: var(--raise2);
+  color: var(--ink3);
+  box-shadow: 0 24px 50px -20px oklch(0.05 0 0 / 0.8);
+}
+.wine-menu::backdrop { background: transparent; }
+.wine-menu-head {
+  padding: 10px 10px 8px;
+  border-block-end: 1px solid var(--line2);
+  margin-block-end: 6px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--mute);
+}
+.wine-menu-item {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 10px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink2);
+  font-size: 14px;
+  text-align: start;
+  cursor: pointer;
+}
+.wine-menu-item:hover { background: var(--seg-on); color: var(--ink0); }
+.wine-menu-item[aria-pressed='true'] { color: var(--ink0); font-weight: 600; }
+.wine-menu-tick {
+  inline-size: 14px;
+  flex: none;
+  color: var(--more);
+  font-size: 12px;
+}
+.wine-menu-item--danger { color: var(--stop-ink); }
+.wine-menu-item--danger:hover { background: var(--stop-bg); color: var(--stop-ink); }
+
+/* ═════════════════════════════════════════════════════════════ first run ══ */
+
+/*
+ * The only moment the visitor has nothing else to read, so it is where the
+ * three groups get taught. One action, one alternative, and a worked example
+ * of a recommendation sentence — the promise made concrete before any typing.
+ */
+.firstrun {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 24px var(--pad) 8px;
+}
+.firstrun-lead { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+/* The one label in the app that takes the accent: it is the call to act. */
+.firstrun-eyebrow { color: var(--more); }
+.firstrun-big {
+  font-family: var(--display);
+  font-size: 28px;
+  line-height: 1.12;
+  color: var(--ink0);
+  text-wrap: balance;
+}
+.firstrun-lead .hint { font-size: 15px; line-height: 1.55; color: var(--mute); }
+.firstrun-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.firstrun-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--line3);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.firstrun-panelhead { display: flex; flex-direction: column; gap: 6px; }
+.firstrun-panelhead h3 { font-size: 20px; line-height: 1.2; }
+
+/* The worked example. The one place a quotation is set in the display face. */
+.firstrun-example {
+  align-self: stretch;
+  margin-block-start: 6px;
+  border-inline-start: 2px solid var(--more);
+}
+.firstrun-quote {
+  font-family: var(--display);
+  font-size: 19px;
+  line-height: 1.35;
+  color: var(--ink0);
+}
+
+.firstrun-groups { display: flex; flex-direction: column; gap: 11px; }
+.firstrun-group {
+  display: flex;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid var(--line3);
+  border-radius: 4px;
+  background: var(--raise);
+}
+/* The colour bar, which is the same signal the group cards carry later. */
+.firstrun-group::before {
+  content: '';
+  inline-size: 6px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--faint);
+}
+.firstrun-groupname { font-size: 15px; font-weight: 600; color: var(--ink0); }
+.firstrun-groupnote { font-size: 13px; line-height: 1.45; color: var(--mute); }
+
+.firstrun-group--liked { border-color: var(--more-line); background: var(--more-bg); }
+.firstrun-group--liked::before { background: var(--more); }
+.firstrun-group--liked .firstrun-groupnote { color: var(--more-ink2); }
+
+.firstrun-group--disliked { border-color: var(--less-line); background: var(--less-bg); }
+.firstrun-group--disliked::before { background: var(--less); }
+.firstrun-group--disliked .firstrun-groupnote { color: var(--less-ink); }
+
+.firstrun-group--skipped { border-style: dashed; border-color: var(--edge2); background: var(--panel2); }
+.firstrun-group--skipped .firstrun-groupname { color: var(--ink2); }
+
+.firstrun-foot { grid-column: 1 / -1; }
+
+@media (min-width: 62rem) {
+  .firstrun {
+    grid-template-columns: 1fr 500px;
+    gap: 64px;
+    padding: 56px var(--pad) 24px;
+    align-items: start;
+  }
+  .firstrun-lead { gap: 22px; }
+  .firstrun-big { font-size: 42px; line-height: 1.1; letter-spacing: -0.01em; max-inline-size: 22ch; }
+  .firstrun-lead > .hint { font-size: 17px; line-height: 1.6; max-inline-size: 52ch; }
+  .firstrun-panel { padding: 24px; gap: 16px; }
+  .firstrun-example { margin-block-start: 22px; max-inline-size: 560px; }
+  .firstrun-panelhead h3 { font-size: 22px; }
+  .firstrun-groups { gap: 14px; }
+  .firstrun-group { padding: 16px; gap: 14px; }
+  .firstrun-group::before { inline-size: 8px; }
+  .firstrun-groupname { font-size: 16px; }
+  .firstrun-groupnote { font-size: 14px; line-height: 1.5; }
+}
+
+/* ════════════════════════════════════════════════════════════════ backup ══ */
+
+/*
+ * Findable, honest, not alarming.
+ *
+ * The list lives in one browser and one "clear browsing data" ends it. That is
+ * the whole privacy promise and its one cost, so the panel states it rather
+ * than reassuring around it. A full stop is reserved for the one case where
+ * continuing wastes the visitor's work: a browser that will not store at all.
+ */
+.backup {
+  margin: 0 var(--pad) 24px;
+  border: 1px solid var(--line4);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.backup-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink3);
+  cursor: pointer;
+  list-style: none;
+}
+.backup-summary::-webkit-details-marker { display: none; }
+.backup-summary::before {
+  content: '';
+  inline-size: 7px;
+  block-size: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--faint);
+}
+.backup[open] .backup-summary { border-block-end: 1px solid var(--line2); }
+
+.backup > :not(.backup-summary) { margin-inline: 18px; }
+.backup-head {
+  margin-block-start: 18px;
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--ink0);
+}
+.backup .hint { margin-block-start: 10px; font-size: 14px; line-height: 1.55; }
+.backup-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-block: 16px;
+}
+.backup-message { color: var(--ok-ink); }
+.backup > :last-child { margin-block-end: 18px; }
+
+/* Not a nag: a statement that the feature this panel is about does not work. */
+.backup--blocked { border-color: var(--stop-line); background: var(--stop-bg); }
+.backup--blocked .backup-summary { color: var(--stop-ink); }
+.backup--blocked .backup-summary::before { background: var(--stop); }
+.backup--blocked .hint { color: var(--stop-ink); }
+
+@media (min-width: 62rem) {
+  .backup { max-inline-size: 720px; }
+  .backup-summary { padding: 16px 24px; }
+  .backup > :not(.backup-summary) { margin-inline: 24px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════ find ══ */
+
+/*
+ * The gate: two things are needed and one of them is missing.
+ *
+ * It names the missing requirement and offers the step that fixes it — rather
+ * than a disabled button with no explanation, which is what the React app
+ * showed a first visitor.
+ */
+.find-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 28px var(--pad);
+  max-inline-size: 44rem;
+}
+.find-empty h2 { font-size: 28px; line-height: 1.12; }
+.find-empty .hint { font-size: 15px; line-height: 1.55; color: var(--mute); }
+
+/*
+ * The two requirements.
+ *
+ * Green marks the one already satisfied and brass the one still open — the
+ * only place in the app those two hues appear together, because this is the
+ * only place the question is "done or not done" rather than "which group".
+ */
+.gate-reqs {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-inline-size: 440px;
+}
+.gate-req {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line3);
+  border-radius: 4px;
+}
+.gate-mark {
+  inline-size: 18px;
+  block-size: 18px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+.gate-body { display: flex; flex-direction: column; gap: 3px; }
+.gate-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.gate-note { font-size: 13px; line-height: 1.45; }
+
+.gate-req.is-met { border-color: var(--ok-line); background: var(--ok-bg); }
+.gate-req.is-met .gate-mark { background: var(--ok); color: var(--on-ok); }
+.gate-req.is-met .gate-note { color: var(--ok-ink); }
+
+.gate-req.is-open { border-color: oklch(0.38 0.04 95); background: var(--less-bg); }
+.gate-req.is-open .gate-mark { border: 2px solid var(--more); }
+.gate-req.is-open .gate-note { color: var(--less-ink); }
+
+@media (min-width: 62rem) {
+  .find-empty { gap: 26px; padding: 52px var(--pad) 44px; }
+  .find-empty h2 { font-size: 38px; letter-spacing: -0.01em; max-inline-size: 20ch; }
+  .find-empty .hint { font-size: 16px; line-height: 1.6; max-inline-size: 44ch; }
+  .gate-reqs { gap: 14px; }
+  .gate-req { padding: 16px 18px; gap: 14px; }
+  .gate-mark { inline-size: 20px; block-size: 20px; font-size: 12px; margin-block-start: 1px; }
+}
+
+.find-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 16px var(--pad) 32px;
+  align-items: start;
+}
+/* A grid item defaults to min-content width; wine names are long. */
+.find-main { min-inline-size: 0; }
+.find-side { display: flex; flex-direction: column; gap: 20px; }
+@media (min-width: 62rem) {
+  .find-grid { grid-template-columns: 1fr 380px; gap: 32px; padding: 28px var(--pad) 32px; }
+}
+
+/* ── results ─────────────────────────────────────────────────────────────── */
+
+.results-section { display: flex; flex-direction: column; gap: 16px; }
+.results-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.results-title {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--ink0);
+}
+.results-against,
+.results-count {
+  font: 500 12px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+.results-count { margin-inline-start: auto; }
+
+.results-list { display: flex; flex-direction: column; gap: 12px; }
+
+.results-row {
+  display: grid;
+  grid-template-areas:
+    'rank body'
+    '.    side';
+  grid-template-columns: 34px 1fr;
+  gap: 11px;
+  padding: 18px 16px;
+  border: 1px solid var(--line3);
+  border-radius: 5px;
+  background: var(--panel);
+}
+/* The top match earns the accent. Nothing below it does. */
+.results-row:first-child { border-color: var(--more-line); background: oklch(0.208 0.008 70); }
+
+.results-rank {
+  grid-area: rank;
+  font: 500 22px/1 var(--mono);
+  color: var(--mute3);
+}
+.results-row:first-child .results-rank { color: var(--more); }
+
+.results-body { grid-area: body; min-inline-size: 0; display: flex; flex-direction: column; gap: 8px; }
+.results-side { grid-area: side; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/*
+ * The reason leads, in the largest type on the row and in the display face.
+ *
+ * It is the only thing here that could not be copied off a price tag, and it
+ * is the product's claim to being useful rather than arbitrary. Rank is a
+ * quiet ordinal beside it, not a score — there is no score worth publishing.
+ */
+.reason {
+  font-family: var(--display);
+  font-size: 20px;
+  line-height: 1.35;
+  color: oklch(0.88 0.05 35);
+}
+.results-row:first-child .reason { color: var(--more-ink); }
+
+.results-name-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.results-name { font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--ink0); }
+.results-name:hover { text-decoration: underline; }
+.results-price { font: 500 17px/1 var(--mono); color: var(--ink0); }
+.results-meta { font-size: 12px; color: var(--mute2); }
+.results-stock { display: flex; align-items: baseline; gap: 7px; }
+
+.results-actions { display: flex; gap: 7px; flex: 1; }
+.results-act {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--edge2);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 13px;
+  cursor: pointer;
+}
+.results-act:hover { border-color: var(--less-edge); background: var(--less-bg2); color: var(--ink0); }
+
+@media (min-width: 62rem) {
+  .results-title { font-size: 24px; }
+  .results-row {
+    grid-template-areas: 'rank body side';
+    grid-template-columns: 44px 1fr auto;
+    gap: 22px;
+    padding: 22px 24px;
+  }
+  .results-rank { font-size: 30px; }
+  .results-body { gap: 12px; }
+  .results-side { flex-direction: column; align-items: flex-end; gap: 14px; flex-wrap: nowrap; }
+  .reason { font-size: 24px; }
+  .results-name { font-size: 17px; }
+  .results-name-row { gap: 14px; }
+  .results-price { font-size: 22px; }
+  .results-meta { font-size: 13px; }
+  .results-actions { flex: none; }
+  .results-act { flex: none; padding: 8px 12px; font-size: 12px; }
+}
+
+/*
+ * SAQ's own community rating, never shown as a bare score.
+ *
+ * The catalogue contains wines rated 100/100 off three reviews, and "100"
+ * alone would read as the best wine in the shop. The count comes in the same
+ * breath, and a thin sample is tinted so the eye discounts it without having
+ * to do the arithmetic.
+ */
+.rating { display: inline-flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+.rating-score { font: 500 14px/1 var(--mono); color: var(--ink2); }
+.rating-count { font-size: 12px; color: var(--mute3); }
+.rating--thin .rating-count { color: var(--less-ink); }
+.rating--none { font-size: 13px; color: var(--mute3); }
+
+/* ── the side column ─────────────────────────────────────────────────────── */
+
+.favourites-card {
+  overflow: hidden;
+  border: 1px solid var(--line4);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.favourites-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border-block-end: 1px solid var(--line2);
+}
+.favourites-title { font-family: var(--display); font-size: 18px; line-height: 1.25; color: var(--ink0); }
+.favourites-head .hint { font-size: 12px; }
+.favourites-list { display: flex; flex-direction: column; }
+.favourites-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 18px;
+  border-block-end: 1px solid var(--line);
+}
+.favourites-row:last-child { border-block-end: 0; }
+.favourites-body { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; }
+.favourites-name { font-size: 14px; color: var(--ink2); }
+.favourites-name:hover { text-decoration: underline; }
+.favourites-stock { font-size: 12px; }
+.favourites-price { font: 500 13px/1 var(--mono); color: var(--ink2); flex: none; }
+
+/* ════════════════════════════════════════════════════ sheets and panels ══ */
+
+/*
+ * On `<dialog>`, so Escape and focus trapping come from the platform.
+ *
+ * Below 62rem this is a bottom sheet: one-handed, thumb-reachable, dismissed
+ * by the grip or the backdrop. Above it the same markup becomes the design's
+ * inline panel — centred, bordered, radius 5 — because a desktop has no thumb
+ * and a sheet sliding up from the bottom of a 1440px window is a phone idiom
+ * wearing the wrong clothes.
+ */
+.sheet {
+  margin: auto auto 0;
+  padding: 0;
+  inline-size: 100%;
+  max-inline-size: none;
+  max-block-size: 92svb;
+  border: 0;
+  border-block-start: 1px solid var(--edge2);
+  border-radius: 12px 12px 0 0;
+  background: var(--panel2);
+  color: var(--ink3);
+  overflow: hidden;
+}
+.sheet::backdrop { background: oklch(0.10 0.008 70 / 0.72); }
+
+.sheet-inner {
+  display: flex;
+  flex-direction: column;
+  max-block-size: 92svb;
+}
+.sheet-head { padding: 10px 16px 0; }
+.sheet-grip {
+  inline-size: 38px;
+  block-size: 4px;
+  margin: 0 auto 12px;
+  border-radius: 2px;
+  background: var(--edge3);
+}
+.sheet-titlerow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block-end: 14px;
+  border-block-end: 1px solid var(--line3);
+}
+.sheet-title { font-family: var(--display); font-size: 20px; line-height: 1.2; color: var(--ink0); }
+.sheet-cancel {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mute2);
+  font-size: 13px;
+  cursor: pointer;
+}
+.sheet-cancel:hover { color: var(--ink0); }
+
+.sheet-body {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  overscroll-behavior: contain;
+}
+.sheet-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px 16px;
+  padding-block-end: max(14px, env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--line3);
+  background: var(--raise2);
+}
+.sheet-foot > .btn-primary { padding-block: 15px; font-size: 15px; }
+.sheet-foot-row { display: flex; gap: 9px; }
+.sheet-foot-row > * { flex: 1; }
+.sheet-summary { font-size: 12px; line-height: 1.4; color: var(--mute2); text-align: center; }
+
+.sheet-full .sheet-inner { block-size: 92svb; }
+
+@media (min-width: 62rem) {
+  .sheet {
+    margin: auto;
+    inline-size: 560px;
+    max-block-size: 86svb;
+    border: 1px solid var(--line4);
+    border-radius: 5px;
+    background: var(--panel);
+  }
+  .sheet-inner { max-block-size: 86svb; }
+  .sheet-grip { display: none; }
+  .sheet-head { padding: 18px 20px 0; }
+  .sheet-titlerow { padding-block-end: 18px; border-block-end-color: var(--line2); }
+  .sheet-body { padding: 20px; gap: 20px; }
+  .sheet-foot {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--raise);
+  }
+  /* The action goes last on a pointer, whatever order the markup emits it in. */
+  .sheet-foot > .btn-primary { order: 9; padding: 11px 22px; font-size: 14px; }
+  .sheet-summary { text-align: start; }
+  .sheet-full { inline-size: 620px; }
+  .sheet-full .sheet-inner { block-size: 86svb; }
+}
+
+/* ── filters ─────────────────────────────────────────────────────────────── */
+
+.filtersheet-section { display: flex; flex-direction: column; gap: 10px; }
+.filtersheet-pills { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.pill {
+  padding: 11px 14px;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 14px;
+  cursor: pointer;
+}
+.pill:hover { border-color: var(--edge3); }
+.pill--brass {
+  border-color: var(--more-edge);
+  background: var(--more-bg2);
+  color: oklch(0.96 0.01 35);
+  font-weight: 600;
+}
+
+.filtersheet-pricehead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.filtersheet-priceband { font: 500 13px/1 var(--mono); color: var(--ink0); }
+
+.filtersheet-numbers { display: flex; align-items: flex-end; gap: 10px; }
+.filtersheet-numberbox { flex: 1; display: flex; flex-direction: column; gap: 6px; min-inline-size: 0; }
+.filtersheet-numberbox input {
+  inline-size: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--edge4);
+  border-radius: 3px;
+  background: var(--field);
+  color: var(--ink0);
+  font: 500 15px/1 var(--mono);
+}
+.filtersheet-numberbox input::placeholder { color: var(--mute3); font-weight: 400; }
+
+/*
+ * The live count, in the body where the design puts it: the visitor never
+ * applies a band blind, and a band too thin to rank says so rather than
+ * quietly returning four wines.
+ */
+.filter-count {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line3);
+  border-radius: 4px;
+  background: var(--sub);
+}
+.filter-count-n { font: 500 22px/1 var(--mono); color: var(--ink0); flex: none; }
+.filter-count-note { font-size: 13px; line-height: 1.4; color: var(--mute); }
+.filter-count.filter-thin { border-color: var(--less-line); background: var(--less-bg); }
+.filter-thin .filter-count-n { color: oklch(0.88 0.05 95); }
+.filter-thin .filter-count-note { color: var(--less-ink); }
+
+/* On a pointer the label sits beside its pills, in one row, as drawn. */
+@media (min-width: 62rem) {
+  .filtersheet-section { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .filtersheet-section > .label,
+  .filtersheet-pricehead { inline-size: 60px; flex: none; }
+  .filtersheet-pricehead { display: block; }
+  .filtersheet-pricehead .filtersheet-priceband { margin-block-start: 5px; }
+  .filtersheet-pills { flex: 1; }
+  .pill { padding: 9px 14px; font-size: 13px; }
+  .filtersheet-numbers { flex: 1 0 100%; margin-inline-start: 80px; max-inline-size: 320px; }
+  .filter-count { flex-basis: 100%; }
+}
+
+/* ── branches ────────────────────────────────────────────────────────────── */
+
+.branch-filter {
+  inline-size: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--edge3);
+  border-radius: 3px;
+  background: var(--field);
+  color: var(--ink0);
+  font: 15px/1 var(--sans);
+}
+.branch-filter::placeholder { color: var(--mute3); }
+
+.branch-group { display: flex; flex-direction: column; }
+.branch-group > .label { padding: 14px 0 8px; }
+
+.branch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  padding: 14px 12px;
+  border: 0;
+  border-block-end: 1px solid var(--line2);
+  border-radius: 3px;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+.branch-row:hover { background: var(--raise); }
+.branch-radio {
+  inline-size: 18px;
+  block-size: 18px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--edge4);
+  border-radius: 50%;
+  font-size: 10px;
+  color: var(--on-more);
+}
+.branch-radio--on { border-color: var(--more); background: var(--more); }
+.branch-body { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 3px; }
+.branch-name { font-size: 15px; color: var(--ink); }
+.branch-address { font-size: 12px; color: var(--mute2); }
+
+/* ── the AI prompt ───────────────────────────────────────────────────────── */
+
+/*
+ * A block of text whose job is to leave.
+ *
+ * Framed as a receipt — what is in it, how long it is — and handed off in two
+ * named steps, because "copied!" alone leaves the visitor holding a clipboard
+ * with nowhere to put it.
+ */
+/*
+ * Its own `<dialog>` rather than a `.sheet`, so it carries its own framing:
+ * a bottom sheet on a phone, the design's 760px panel on a pointer.
+ */
+.prompt-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: auto auto 0;
+  inline-size: 100%;
+  max-inline-size: none;
+  max-block-size: 92svb;
+  padding: 16px;
+  padding-block-end: max(16px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  border: 0;
+  border-block-start: 1px solid var(--edge2);
+  border-radius: 12px 12px 0 0;
+  background: var(--panel2);
+  color: var(--ink3);
+}
+.prompt-dialog::backdrop { background: oklch(0.10 0.008 70 / 0.72); }
+.prompt-dialog-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.prompt-dialog-head h2 { font-size: 21px; line-height: 1.2; }
+.icon-close {
+  inline-size: 32px;
+  block-size: 32px;
+  flex: none;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--mute2);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.icon-close:hover { background: var(--seg-on); color: var(--ink0); }
+
+.prompt-dialog textarea {
+  inline-size: 100%;
+  block-size: 150px;
+  padding: 14px;
+  border: 1px solid var(--line3);
+  border-radius: 4px;
+  background: var(--well);
+  color: var(--mute);
+  font: 400 11px/1.6 var(--mono);
+  white-space: pre-wrap;
+  resize: none;
+}
+
+.prompt-steps { display: flex; flex-direction: column; gap: 9px; }
+.prompt-step { display: flex; flex-direction: column; gap: 8px; }
+.prompt-steplabel {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+/* Step 2 stays dim until step 1 has actually happened. */
+.prompt-step.is-pending { opacity: 0.45; }
+.prompt-step.is-done .prompt-steplabel { color: var(--ok-ink); }
+.prompt-link { justify-content: center; }
+.copy-failed { color: var(--stop-ink); }
+
+@media (min-width: 62rem) {
+  .prompt-dialog {
+    margin: auto;
+    inline-size: 760px;
+    max-block-size: 86svb;
+    padding: 24px;
+    gap: 16px;
+    border: 1px solid var(--line4);
+    border-radius: 5px;
+    background: var(--panel);
+  }
+  .prompt-dialog-head h2 { font-size: 24px; }
+  .prompt-dialog textarea { block-size: 230px; padding: 18px; font-size: 13px; line-height: 1.65; }
+  .prompt-steps { flex-direction: row; align-items: flex-end; gap: 16px; }
+  .prompt-step { flex: 1; }
+}
+
+/* ═════════════════════════════════════════════════════════ adding wines ══ */
+
+/* ── step 1: a keyboard task, given a keyboard-sized page ────────────────── */
+
+.addwines-heading { font-family: var(--display); font-size: 25px; line-height: 1.15; color: var(--ink0); }
+.addwines-sub { margin-block-start: 8px; font-size: 14px; line-height: 1.5; color: var(--mute); }
+
+.seedinput { display: flex; flex-direction: column; gap: 12px; }
+.seedinput-panel { display: flex; flex-direction: column; gap: 8px; }
+.seedinput textarea {
+  inline-size: 100%;
+  min-block-size: 220px;
+  padding: 14px;
+  border: 1px solid var(--edge3);
+  border-radius: 5px;
+  background: var(--well);
+  color: var(--ink);
+  /* The visitor's own words, so the reading face — not the measurement one. */
+  font: 400 15px/1.75 var(--sans);
+  resize: vertical;
+}
+.seedinput textarea::placeholder { color: var(--mute3); }
+
+@media (min-width: 62rem) {
+  .addwines-heading { font-size: 32px; letter-spacing: -0.01em; }
+  .addwines-sub { font-size: 15px; line-height: 1.55; max-inline-size: 64ch; }
+  .seedinput textarea { min-block-size: 300px; padding: 20px; }
+}
+
+/* ── step 2: where an ambiguous name gets settled ────────────────────────── */
+
+.resolution { display: flex; flex-direction: column; gap: 16px; }
+.resolution-head { display: flex; flex-direction: column; gap: 5px; }
+.resolution-head h2 { font-size: 22px; line-height: 1.15; }
+
+.resolution-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.resolution-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+  border-block-end: 1px solid var(--line);
+}
+.resolution-row:last-child { border-block-end: 0; }
+
+/*
+ * The words the visitor typed stay on the left, permanently.
+ *
+ * A match can only be judged against the memory that produced it, and mono
+ * marks it as a quotation of their input rather than another name we chose.
+ */
+.resolution-typed { display: flex; flex-direction: column; gap: 4px; }
+.resolution-typedlabel {
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+.resolution-input { font: 400 14px/1.4 var(--mono); color: var(--mute); }
+
+.resolution-body { display: flex; flex-direction: column; gap: 5px; min-inline-size: 0; }
+.resolution-name { font-size: 16px; line-height: 1.3; color: var(--ink0); }
+.resolution-name--warn { color: var(--less-ink); }
+.resolution-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--mute2);
+}
+
+.resolution-file { display: flex; flex-direction: column; gap: 6px; }
+.resolution-kinds { display: flex; gap: 6px; }
+.resolution-kind {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 12px;
+  cursor: pointer;
+}
+.resolution-kind:hover { border-color: var(--edge3); }
+/* Filed. Which group it went to is said in that group's own colour. */
+.resolution-kind.is-on {
+  border-color: var(--more-edge);
+  background: var(--more-bg2);
+  color: oklch(0.96 0.01 35);
+  font-weight: 600;
+}
+.resolution-kind.is-on[data-kind='dislike'] {
+  border-color: var(--less-edge);
+  background: var(--less-bg2);
+  color: oklch(0.96 0.01 95);
+}
+.resolution-kind.is-on[data-kind='skip'] {
+  border-color: var(--edge4);
+  background: var(--seg-on);
+  color: var(--ink0);
+}
+
+.resolution-rowactions { display: flex; gap: 8px; }
+.resolution-dismiss {
+  padding: 9px 14px;
+  border: 1px solid var(--edge2);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 12px;
+  cursor: pointer;
+}
+.resolution-dismiss:hover { border-color: var(--edge4); color: var(--ink0); }
+
+/* Found nothing: not saved, not thrown away. */
+.resolution-row--unmatched {
+  padding: 16px;
+  margin-block: 6px;
+  border: 1px dashed var(--edge2);
+  border-radius: 5px;
+  background: var(--sub);
+}
+
+/* ── a line that needs a decision ────────────────────────────────────────── */
+
+.resolution-alts {
+  overflow: hidden;
+  border: 1px solid var(--less-edge);
+  border-radius: 5px;
+  background: var(--sub);
+}
+.resolution-many {
+  padding: 14px 16px;
+  border-block-end: 1px solid var(--less-line);
+  background: var(--less-bg);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink2);
+}
+.resolution-altlist { display: flex; flex-direction: column; }
+.resolution-alt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-block-end: 1px solid var(--line);
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+.resolution-alt:hover,
+.resolution-alt.is-chosen { background: var(--raise); }
+/* The chosen row carries a filled marker, not only a tint. */
+.resolution-alt::before {
+  content: '';
+  inline-size: 16px;
+  block-size: 16px;
+  flex: none;
+  border: 2px solid var(--edge4);
+  border-radius: 50%;
+}
+.resolution-alt.is-chosen::before {
+  border-color: var(--more);
+  background: var(--more);
+  box-shadow: inset 0 0 0 3px var(--raise);
+}
+.resolution-altname { flex: 1; min-inline-size: 0; font-size: 15px; color: var(--ink); }
+.resolution-altmeta { font-size: 12px; color: var(--mute2); }
+.resolution-altprice { font: 500 14px/1 var(--mono); color: var(--ink2); flex: none; }
+
+.resolution-altfoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-block-start: 1px solid var(--less-line);
+  background: var(--less-bg);
+}
+.resolution-none {
+  padding: 9px 14px;
+  border: 1px dashed var(--edge3);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@media (min-width: 62rem) {
+  .resolution-head h2 { font-size: 30px; letter-spacing: -0.01em; }
+  /* Three columns, in the design's order: typed · match · file it in. */
+  .resolution-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 250px;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+  }
+  /* The two exceptions keep stacking: both are a panel, not a row. */
+  .resolution-row--unmatched,
+  .resolution-row:has(.resolution-alts) { display: flex; }
+  .resolution-row--unmatched { padding: 20px; }
+  .resolution-typedlabel { display: none; }
+  .resolution-row:not(:has(.resolution-file)) .resolution-rowactions { grid-column: 2 / -1; }
+  .resolution-row:has(.resolution-file) .resolution-rowactions { justify-content: flex-end; }
+  .resolution-altmeta { inline-size: 190px; }
+  .resolution-altprice { inline-size: 70px; text-align: end; }
+}
+
+/* ═══════════════════════════════════════════ motion between the sections ══ */
+
+/*
+ * The tab switch slides in the direction of travel: forward towards Find,
+ * backward towards My wines. Honoured only where motion is welcome.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation: fade-out 140ms ease-in both; }
+  ::view-transition-new(root) { animation: fade-in 180ms ease-out both; }
+  .forward::view-transition-new(root) { animation: slide-from-right 200ms ease-out both; }
+  .backward::view-transition-new(root) { animation: slide-from-left 200ms ease-out both; }
+}
+
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes slide-from-right { from { opacity: 0; translate: 12px 0; } }
+@keyframes slide-from-left { from { opacity: 0; translate: -12px 0; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }
-
-/*
- * The Screens palette.
- *
- * A warm near-neutral ramp — every surface is hue 70 at chroma 0.008, every
- * text tone hue 85 — with one terracotta accent doing all the pointing. It
- * replaces the Organic wine-and-espresso scheme wholesale; this is a different
- * design, not a retune of that one.
- *
- * Type does the work the colour is not doing: monospace for anything
- * structural (labels, prices, counts, controls) and Georgia for anything
- * written (headings, and the reason sentence the whole product turns on). The
- * split is legible at a glance and needs no third colour.
- *
- * Corners are 3px. Not pills: at this density a pill reads as a tag, and
- * almost everything here is a control or a row rather than a label.
- */
-:root{
-  color-scheme:dark;
-
-  /* surfaces — hue 70, chroma 0.008 */
-  /* Hex, not oklch, so the landing and the meta theme-color can agree
-     on one literal — a test compares them across files. */
-  --ground:#0e0c09;
-  --panel:#15120f;
-  --raise:#1c1916;
-  --raise2:#211e1b;
-  --sink:#0a0806;
-  --line:#2b2825;
-  --line2:#37342f;
-
-  /* text — hue 85 */
-  --ink2:#f4f1ec;
-  --ink:#c6c4be;
-  --mute:#9b9891;
-  --mute2:#7d7a74;
-
-  /* one accent, doing all the pointing */
-  --accent:#ea856b;
-  /* The header sits a step above the ground rather than on it. */
-  --chrome:#191613;
-  --accent-600:#d5735a;
-  --accent-hi:#f0a08c;
-  --accent-soft:#150a08;
-  --on-accent:#0e0c09;
-
-  /*
-   * The liked group is marked by a tinted surface, not by a second hue — the
-   * sage of the previous design is gone. `--leaf`, `--wine` and `--bad` all
-   * ended up pointing at this same accent, which is three names for one colour
-   * and three chances to pick the wrong one.
-   */
-  --marked:#171310;
-  --warn:#d9a05c;
-
-  /*
-   * Three faces, each with one job — and the base is SANS, not mono. Every
-   * screen frame in the design sets -apple-system as its font-family and
-   * reaches for monospace only where a thing is a label, a count or a price.
-   * An earlier pass made monospace the base, which is what made the app look
-   * like a terminal rather than a document.
-   */
-  --ui:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;
-  --display:Georgia,"Iowan Old Style","Times New Roman",serif;
-  --mono:ui-monospace,Menlo,"SF Mono",monospace;
-
-  --radius-sm:2px; --radius-md:3px; --radius-lg:5px;
-
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.5);
-  --shadow-md:0 6px 18px -6px rgba(0,0,0,0.65);
-  --shadow-lg:0 28px 60px -22px rgba(0,0,0,0.8);
-}
-
-body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);
-     -webkit-font-smoothing:antialiased;}
-a{color:var(--accent-hi);text-decoration:none;}
-a:hover{color:var(--ink2);}
-::selection{background:var(--accent);color:var(--on-accent);}
-
-.label{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;
-       text-transform:uppercase;color:var(--mute2);}
-
-.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
-                 overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-
-h1{font-size:1.6rem;font-family:var(--display);font-weight:400;}
-h2{font-size:1.05rem;margin-bottom:.3rem;font-family:var(--display);font-weight:400;}
-textarea,select,input[type="number"],input[type="text"]{
-  font:inherit;color:var(--ink2);background:var(--sink);
-  border:none;box-shadow:inset 0 0 0 1px var(--line);
-  border-radius:12px;padding:12px 14px;box-sizing:border-box;width:100%;}
-textarea:focus,select:focus,input:focus{outline:2px solid var(--accent-hi);
-  outline-offset:1px;}
-button{font:inherit;cursor:pointer;}
-button:disabled{opacity:.45;cursor:default;}
-button.secondary{background:transparent;}
-
-/* Tap feedback — there is no hover on a phone, so a pressed state is the
-   only confirmation a tap registered before the result appears. `scale`
-   (not transform: scale()) composites independently and won't clobber any
-   other transform already on the element. */
-button, .chip {
-  transition: background-color 140ms ease, box-shadow 140ms ease,
-              scale 100ms ease;
-}
-button:active:not(:disabled), .chip:active { scale: 0.98; }
-@media (prefers-reduced-motion: reduce) {
-  button:active:not(:disabled), .chip:active { scale: none; }
-}
-.hint{color:var(--mute);font-size:.9rem;margin-top:.2rem;}
-.warn{color:var(--warn);}
-.error{color:var(--accent);}
-.status{color:var(--mute);}
-.price{font-variant-numeric:tabular-nums;margin-left:.5rem;}
-.mywines-group + .mywines-group{margin-top:1.6rem;}
-
-/* Rows/cards that arrive after an async fetch rise in, staggered by an
-   inline --i custom property set in the React .map() (works everywhere,
-   no sibling-index() feature detection needed). `backwards` is mandatory —
-   without it every row is briefly visible at full opacity before its delay
-   elapses, which flashes worse than no animation at all. Delay is clamped
-   so a long list (e.g. My wines) can't push the last row's start past a
-   perceptible lag. */
-@keyframes rise-in {
-  from { opacity: 0; translate: 0 6px; }
-  to   { opacity: 1; translate: 0 0; }
-}
-.results-row, .mywines-row, .favourites-card {
-  animation: rise-in 260ms ease-out backwards;
-  animation-delay: min(calc(var(--i, 0) * 28ms), 300ms);
-}
-@media (prefers-reduced-motion: reduce) {
-  .results-row, .mywines-row, .favourites-card { animation: none; }
-}
-
-/* Favourites — promoted card */
-.favourites-card{border-radius:var(--radius-lg);background:var(--marked);
-    box-shadow:var(--shadow-sm);overflow:hidden;}
-.favourites-head{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;}
-.favourites-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;}
-.favourites-title{font-family:var(--display);font-size:19px;color:var(--ink);}
-.favourites-list{display:flex;flex-direction:column;}
-.favourites-row{display:flex;gap:12px;padding:11px 16px;
-    border-top:1px solid var(--line);align-items:baseline;}
-.favourites-body{flex:1;min-width:0;}
-.favourites-name{display:block;font-size:15px;color:var(--ink2);line-height:1.25;}
-.favourites-stock{font-size:12px;color:var(--mute2);margin-top:2px;}
-.favourites-price{font-size:15px;font-variant-numeric:tabular-nums;
-    color:var(--ink);flex:none;}
-
-/* Best matches — numbered rows */
-.results-section{display:flex;flex-direction:column;gap:2px;}
-.results-head{display:flex;align-items:baseline;justify-content:space-between;
-    padding-bottom:8px;}
-.results-count{font-size:12px;color:var(--mute2);}
-.results-list{display:flex;flex-direction:column;}
-.results-row{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line);}
-/* A filled disc rather than a bare numeral: the ranking is the point of this
-   list, and at 12px of mono on a warm ground it was barely there. */
-.results-rank{width:26px;height:26px;flex:none;border-radius:var(--radius-md);
-    background:var(--accent);color:var(--on-accent);
-    font-family:var(--display);font-size:13px;line-height:1;
-    display:flex;align-items:center;justify-content:center;}
-.results-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
-.results-name-row{display:flex;gap:10px;align-items:baseline;}
-.results-name{flex:1;min-width:0;font-size:16px;color:var(--ink2);line-height:1.25;}
-.results-price{font-size:15px;font-variant-numeric:tabular-nums;flex:none;color:var(--ink);}
-.results-stock{font-size:12px;color:var(--mute2);}
-.reason{margin:0;color:var(--mute);font-size:13px;line-height:1.4;text-wrap:pretty;}
-
-/* Prompt dialog */
-.prompt-actions{flex:1;display:flex;flex-direction:column;gap:6px;}
-.btn-note{font-family:var(--mono);font-size:12px;font-weight:400;
-    opacity:.65;margin-left:.5rem;}
-.prompt-include{display:flex;align-items:center;gap:6px;}
-.prompt-include>span{font-size:11px;color:var(--mute2);flex:none;}
-.prompt-include-seg{display:flex;gap:2px;padding:2px;background:var(--sink);
-    border-radius:9px;box-shadow:inset 0 0 0 1px var(--line);flex:1;
-    position:relative;}
-.prompt-include-seg button{flex:1;height:26px;margin:0;border:none;
-    border-radius:7px;background:transparent;color:var(--mute2);font-size:12px;
-    display:flex;align-items:center;justify-content:center;
-    position:relative;z-index:1;transition:color 160ms ease;}
-.prompt-include-seg button.active{color:var(--ink2);font-weight:600;}
-
-/* Sliding pill — fallback path. Three equal segments: 2px padding either
-   side and two 2px gaps, so each is (100% - 8px)/3. Sliding by its own
-   width plus one gap steps to the next. */
-.prompt-include-seg::before{content:'';position:absolute;
-    inset-block:2px;inset-inline-start:2px;
-    inline-size:calc((100% - 8px) / 3);
-    border-radius:7px;background:var(--raise2);
-    translate:0;}
-.prompt-include-seg[data-active="1"]::before{translate:calc(100% + 2px);}
-.prompt-include-seg[data-active="2"]::before{translate:calc(200% + 4px);}
-
-@media (prefers-reduced-motion: no-preference){
-  .prompt-include-seg::before{
-      transition:translate 220ms cubic-bezier(0.32,0.72,0,1);}
-}
-/* Not a bottom sheet (it's a centred card), so it gets a fade+scale entrance
-   rather than the .sheet primitive's slide — but the same three mandatory
-   top-layer properties: transition-behavior: allow-discrete, `overlay` in
-   the transition list, and @starting-style. */
-.prompt-dialog{background:var(--raise);color:var(--ink2);border:none;
-    border-radius:16px;padding:16px;max-width:92vw;width:26rem;
-    box-shadow:0 20px 60px rgba(0,0,0,0.6);
-    opacity:1;scale:1;
-    transition:opacity 200ms ease,scale 200ms ease,display 200ms allow-discrete,
-               overlay 200ms allow-discrete;
-    transition-behavior:allow-discrete;}
-.prompt-dialog:not([open]){opacity:0;scale:0.96;}
-.prompt-dialog[open]{@starting-style{opacity:0;scale:0.96;}}
-.prompt-dialog::backdrop{background:rgba(6,5,4,0);
-    transition:background-color 200ms ease,display 200ms allow-discrete,
-               overlay 200ms allow-discrete;}
-.prompt-dialog[open]::backdrop{
-    background:rgba(6,5,4,0.78);
-    @starting-style{background:rgba(6,5,4,0);}}
-
-@media (prefers-reduced-motion: reduce){
-  .prompt-dialog, .prompt-dialog:not([open]){opacity:1;scale:1;}
-}
-.prompt-dialog textarea{width:100%;font-family:var(--mono);font-size:.8rem;
-    box-sizing:border-box;min-height:16rem;user-select:text;}
-.prompt-dialog textarea.copy-failed{box-shadow:inset 0 0 0 2px var(--accent);
-    outline:2px solid var(--accent);outline-offset:1px;}
-.prompt-dialog-footer{display:flex;gap:10px;margin-top:12px;}
-/* .prompt-link is an <a>, not a <button> — it needs the flex centring and
-   text-decoration reset that a real button gets for free, plus an explicit
-   ink colour to override the global `a{color:var(--accent-hi)}` rule. */
-.prompt-link{display:flex;align-items:center;justify-content:center;
-    text-decoration:none;color:var(--ground);}
-.prompt-link.btn-secondary{color:var(--ink2);}
-.prompt-dialog-head{display:flex;align-items:center;justify-content:space-between;
-    gap:8px;}
-.prompt-dialog-head h2{margin:0;}
-/* Same 44px circular target as the wine-list remove control, so × means the
-   same thing everywhere. Negative margin keeps the optical alignment with the
-   heading without shrinking the tap area. */
-.icon-close{width:44px;height:44px;border-radius:50%;flex:none;
-    display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:22px;line-height:1;background:rgba(244,241,236,0.05);
-    border:none;padding:0;margin:-6px -6px -6px 0;}
-
-/* My wines — liked vs steer clear */
-.mywines-group--disliked{opacity:0.86;}
-.mywines-head{display:flex;align-items:center;gap:8px;padding-bottom:6px;}
-.mywines-badge{width:22px;height:22px;border-radius:50%;font-size:12px;
-    font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
-.mywines-badge--good{background:var(--accent);color:var(--ground);}
-.mywines-badge--bad{box-shadow:inset 0 0 0 1.5px var(--accent-hi);color:var(--accent-hi);}
-.mywines-title{font-family:var(--display);font-size:20px;color:var(--ink);}
-.mywines-title--quiet{color:var(--ink);}
-.mywines-count{font-size:13px;color:var(--mute2);}
-.mywines{list-style:none;padding:0;margin:0;}
-/* Liked and steer-clear now differ by fill, not by the colour of a 3px rule:
-   a sage-filled card against a dashed outline. The distinction survives a
-   glance in shop lighting, which a hairline did not. */
-.mywines-row{display:flex;gap:11px;align-items:center;padding:11px 14px;
-    border-radius:var(--radius-md);margin-bottom:8px;}
-.mywines-row--liked{background:var(--marked);}
-.mywines-row--disliked{border:1px dashed var(--line2);}
-.mywines-row--skipped{border:1px dashed var(--line);}
-/* The rule is gone; the fill carries the meaning now. */
-.mywines-rule{display:none;}
-.mywines-body{flex:1;min-width:0;}
-.mywines-name{font-size:16px;line-height:1.25;color:var(--ink2);}
-.mywines-row--disliked .mywines-name{color:var(--mute);}
-.mywines-region{font-size:12px;color:var(--mute2);margin-top:2px;}
-/* Inside the sage fill the neutral mute goes muddy; sage ink stays legible. */
-.mywines-row--liked .mywines-region{color:var(--ink);opacity:0.75;}
-.mywines-row--liked .mywines-name{color:var(--ink2);}
-.mywines-remove{width:44px;height:44px;border-radius:50%;flex:none;
-    display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:19px;background:rgba(244,241,236,0.05);border:none;padding:0;}
-
-/* Per-row actions. One quiet control rather than a re-file dropdown next to a
-   remove button — neither is a primary action, and together they crowded the
-   name they act on. */
-.mywines-menu-btn{width:44px;height:44px;border-radius:50%;flex:none;
-    display:flex;align-items:center;justify-content:center;color:var(--mute2);
-    font-size:19px;line-height:1;background:rgba(244,241,236,0.05);
-    border:none;padding:0;}
-.mywines-menu-btn:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
-
-.wine-menu{margin:0;padding:6px;min-width:14rem;border:1px solid var(--line2);
-    border-radius:14px;background:var(--raise);color:var(--ink2);
-    box-shadow:0 16px 40px rgba(0,0,0,0.55);
-    opacity:0;scale:0.96;
-    transition:opacity 140ms ease,scale 140ms ease,
-               display 140ms allow-discrete,overlay 140ms allow-discrete;
-    transition-behavior:allow-discrete;}
-.wine-menu:popover-open{opacity:1;scale:1;
-    @starting-style{opacity:0;scale:0.96;}}
-
-/* Tucked under the kebab where anchor positioning exists; centred by the
-   browser's own default where it does not. */
-@supports (position-area: block-end) {
-  .wine-menu{position-area:block-end span-inline-start;
-      position-try-fallbacks:flip-block,flip-inline;
-      inset:auto;margin:4px 0 0;}
-}
-
-.wine-menu-head{font-size:12px;color:var(--mute2);padding:6px 10px 8px;
-    border-bottom:1px solid var(--line);margin-bottom:4px;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.wine-menu-item{display:flex;align-items:center;gap:8px;width:100%;
-    padding:10px;border:none;background:none;border-radius:9px;
-    font:inherit;font-size:15px;color:var(--ink2);text-align:left;}
-.wine-menu-item[aria-pressed="true"]{color:var(--accent-hi);}
-.wine-menu-item--danger{color:var(--accent);margin-top:4px;
-    border-top:1px solid var(--line);border-radius:0 0 9px 9px;}
-.wine-menu-tick{width:1rem;flex:none;font-size:12px;}
-@media (hover:hover){.wine-menu-item:hover{background:var(--raise2);}}
-
-/* Don't recommend — a third, quieter list. Dimmer than "steer clear" because
-   it is bookkeeping rather than an opinion. */
-.mywines-group--skipped{opacity:0.72;margin-top:1.6rem;}
-.mywines-group--skipped > summary{list-style:none;cursor:pointer;
-    align-items:center;padding-block:6px;}
-.mywines-group--skipped > summary::-webkit-details-marker{display:none;}
-.mywines-group--skipped > summary::after{content:'▸';margin-left:auto;
-    color:var(--mute2);font-size:12px;transition:rotate 160ms ease;}
-.mywines-group--skipped[open] > summary::after{rotate:90deg;}
-.mywines-badge--quiet{box-shadow:inset 0 0 0 1.5px var(--mute2);color:var(--mute2);}
-.mywines-row--skipped .mywines-rule{background:var(--mute2);opacity:0.5;}
-.mywines-row--skipped .mywines-name{color:var(--mute);}
-
-/* A saved SKU the catalog could not resolve. Deliberately visible rather than
-   hidden: the React app showed these as a permanent "Loading 1 more…" that
-   could not be removed, so the row states the problem and offers the exit. */
-.mywines-row--unresolved .mywines-rule{background:var(--mute2);opacity:0.35;}
-.mywines-row--unresolved .mywines-name{color:var(--mute);font-variant-numeric:tabular-nums;}
-.mywines-row--unresolved .mywines-region{font-style:italic;}
-
-
-/* Backup block — the honest note at the foot of My Wines. */
-.backup{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);}
-.backup-summary{font-size:13px;color:var(--mute2);cursor:pointer;list-style:none;
-  padding:4px 0;}
-.backup-summary::-webkit-details-marker{display:none;}
-.backup-summary::before{content:'›';display:inline-block;width:14px;
-  color:var(--mute2);transition:rotate 160ms ease;}
-.backup[open] > .backup-summary::before{rotate:90deg;}
-.backup-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.backup-actions button{flex:1;min-width:9rem;}
-.backup-message{color:var(--ink2);margin-top:10px;}
-
-/* Shell */
-.shell{min-height:100dvh;max-width:30rem;margin-inline:auto;
-       display:flex;flex-direction:column;background:var(--ground);}
-/* Its own block with a divider, so "where am I / what am I filtering" stays
-   one thing you cannot scroll away from. */
-.shell-head{padding:12px 16px;display:flex;flex-direction:column;gap:12px;
-            border-bottom:1px solid var(--line);}
-.shell-body{flex:1;min-height:0;padding:0 16px 8px;
-            display:flex;flex-direction:column;gap:18px;}
-.shell-fade{height:26px;margin-top:-26px;position:sticky;bottom:0;z-index:2;
-            pointer-events:none;
-            background:linear-gradient(180deg,rgba(14,12,9,0) 0%,var(--ground) 90%);}
-.shell-foot{position:sticky;bottom:0;z-index:3;
-            border-top:1px solid var(--line);
-            background:rgba(25,22,19,0.92);backdrop-filter:blur(12px);
-            padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-            display:flex;gap:12px;align-items:stretch;}
-
-.head-about{font-size:12px;color:var(--mute2);text-decoration:none;
-  padding:2px 6px;border-radius:6px;}
-.head-about:hover{color:var(--ink2);}
-
-/* Catalog-fetch progress — conveys real information (page N of M), so
-   reduced motion de-animates the fill, it never hides the bar. Animating
-   `scale` with transform-origin: left rather than `width` keeps the update
-   on the compositor. */
-.progress{height:2px;background:var(--line);border-radius:2px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--accent-hi);transform-origin:left;
-                transition:scale 200ms ease-out;}
-
-/* Mode switch */
-.modeswitch{display:flex;gap:4px;padding:4px;background:var(--raise);
-            border-radius:var(--radius-md);position:relative;}
-
-/* The sliding pill. A pseudo-element, so it stays out of the DOM and the
-   accessibility tree. Track padding is 4px and the gap is 4px, so each
-   segment is (100% - 12px) / 2 = 50% - 6px wide; sliding it by its own
-   width plus the gap lands it exactly on the second segment. No measuring. */
-.modeswitch::before{content:'';position:absolute;
-    inset-block:4px;inset-inline-start:4px;inline-size:calc(50% - 6px);
-    border-radius:var(--radius-md);background:var(--sink);
-    box-shadow:none;
-    translate:0;
-    /* Its own transition name so it slides *during* the view transition.
-       Without this the header snapshot would hold it still and it would
-       jump into place when the snapshot lifts. */
-    view-transition-name:mode-thumb;}
-.modeswitch[data-mode="find"]::before{translate:calc(100% + 4px);}
-
-@media (prefers-reduced-motion: no-preference){
-  .modeswitch::before{transition:translate 280ms cubic-bezier(0.32,0.72,0,1);}
-}
-::view-transition-group(mode-thumb){
-    animation-duration:280ms;
-    animation-timing-function:cubic-bezier(0.32,0.72,0,1);}
-
-.modeswitch button{flex:1;height:40px;margin:0;border:none;background:none;
-                    border-radius:var(--radius-md);font-size:15px;color:var(--mute2);
-                    display:flex;align-items:center;justify-content:center;
-                    cursor:pointer;position:relative;z-index:1;
-                    transition:color 160ms ease;}
-/* Fill now comes from the pill, so the active button only changes its type. */
-.modeswitch button.active{font-family:var(--display);color:var(--ink);}
-
-/* Buttons */
-.btn-primary{flex:1;min-height:52px;border:none;border-radius:var(--radius-md);
-             background:var(--accent);color:var(--on-accent);font-size:17px;
-             font-family:var(--display);letter-spacing:-0.005em;
-             transition:background-color 160ms ease,color 160ms ease,
-                        scale 100ms ease;}
-.btn-secondary{flex:1;min-height:52px;border:none;border-radius:var(--radius-md);
-               background:transparent;color:var(--ink);font-size:16px;
-               font-family:var(--display);
-               box-shadow:inset 0 0 0 1px var(--line2);}
-/* The deep red is dark, so it lightens rather than darkens on press. */
-.btn-primary:hover{background:var(--accent-600);}
-.btn-primary:active:not(:disabled){background:var(--accent-600);}
-
-/* Chips — open the branch / filter sheets */
-.chip-row{display:flex;gap:8px;}
-.chip{border-radius:var(--radius-md);height:46px;border:none;border-radius:12px;background:var(--raise);
-      color:var(--ink2);display:flex;align-items:center;gap:8px;
-      padding:0 14px;font-size:15px;font:inherit;cursor:pointer;}
-.chip-branch{flex:1;min-width:0;justify-content:flex-start;}
-.chip-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none;}
-.chip-branch-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
-                   white-space:nowrap;text-align:left;}
-.chip-change{font-size:13px;color:var(--mute2);flex:none;}
-.chip-filter{flex:none;}
-
-/* Sheet primitive (Sheet.tsx) — bottom sheet on native <dialog>.
-   Animated once here, not per sheet (BranchSheet/FilterSheet/AddWinesSheet/
-   the prompt dialog all share it). Top-layer elements need three things
-   together to animate open→closed: transition-behavior: allow-discrete (so
-   `display` can transition), `overlay` in the transition list (so the
-   element stays in the top layer while exiting), and @starting-style (the
-   entry-from state). `overlay` is Chromium-only — Firefox/Safari show the
-   exit instantly, which is accepted graceful degradation; entry still
-   animates everywhere. No JS transitionend fallback. */
-.sheet{border:none;padding:0;background:transparent;max-width:none;width:100%;
-       max-height:100dvh;height:100dvh;margin:0;
-       transition-property:display,overlay;transition-duration:240ms;
-       transition-behavior:allow-discrete;}
-.sheet::backdrop{background:rgba(6,5,4,0);
-       transition:background-color 240ms ease,display 240ms allow-discrete,
-                  overlay 240ms allow-discrete;}
-.sheet[open]::backdrop{
-       background:rgba(6,5,4,0.78);
-       @starting-style{background:rgba(6,5,4,0);}}
-.sheet-inner{position:absolute;inset:auto 0 0 0;max-height:calc(100dvh - 96px);
-             border-radius:24px 24px 0 0;background:var(--raise);
-             box-shadow:0 -20px 50px -20px rgba(0,0,0,0.9),inset 0 1px 0 var(--line2);
-             display:flex;flex-direction:column;overflow:hidden;
-             max-width:30rem;margin-inline:auto;
-             translate:0 0;transition:translate 240ms cubic-bezier(0.32,0.72,0,1);}
-.sheet:not([open]) .sheet-inner{translate:0 100%;}
-.sheet[open] .sheet-inner{@starting-style{translate:0 100%;}}
-.sheet-full .sheet-inner{top:96px;}
-
-@media (prefers-reduced-motion: reduce){
-  .sheet .sheet-inner,
-  .sheet:not([open]) .sheet-inner{translate:none;}
-}
-.sheet-head{display:flex;flex-direction:column;gap:12px;padding:10px 16px 12px;}
-.sheet-grip{width:38px;height:4px;border-radius:2px;background:var(--line2);
-            align-self:center;}
-.sheet-titlerow{display:flex;align-items:center;justify-content:space-between;}
-.sheet-title{font-size:19px;font-weight:600;color:var(--ink2);}
-.sheet-cancel{background:none;border:none;font:inherit;font-size:15px;color:var(--mute);
-              padding:8px;margin:-8px;}
-.sheet-body{flex:1;min-height:0;overflow-y:auto;padding:0 16px;
-            display:flex;flex-direction:column;gap:16px;}
-.sheet-foot{padding:16px 16px calc(20px + env(safe-area-inset-bottom));
-            display:flex;flex-direction:column;gap:8px;}
-/* Two actions side by side in the pinned footer (Back / Save). Save keeps the
-   weight, so Back takes only the width its label needs. */
-.sheet-foot-row{display:flex;gap:8px;}
-.sheet-foot-row .btn-primary{flex:1;}
-.sheet-summary{font-size:12px;color:var(--mute2);text-align:center;margin:0;}
-
-/* Branch sheet */
-input.branch-filter{border-radius:var(--radius-md);height:46px;background:var(--sink);}
-.branch-group{display:flex;flex-direction:column;}
-.label--brass{color:var(--accent-hi);padding-bottom:6px;}
-.branch-row{display:flex;gap:11px;align-items:center;padding:10px 0;
-            border-top:1px solid var(--line);background:none;border-left:none;
-            border-right:none;width:100%;min-height:44px;text-align:left;
-            color:inherit;font:inherit;}
-.branch-radio{width:18px;height:18px;border-radius:50%;flex:none;
-              box-shadow:inset 0 0 0 1.5px var(--line2);display:flex;
-              align-items:center;justify-content:center;font-size:11px;
-              font-weight:700;color:var(--ground);}
-.branch-radio--on{background:var(--accent);color:var(--on-accent);box-shadow:none;}
-.branch-body{flex:1;min-width:0;}
-.branch-name{font-size:16px;color:var(--ink2);line-height:1.25;display:block;}
-.branch-address{font-size:12px;color:var(--mute2);margin-top:2px;display:block;}
-
-/* Filter sheet */
-.filtersheet-section{display:flex;flex-direction:column;gap:10px;}
-.filtersheet-pills{display:flex;flex-wrap:wrap;gap:8px;}
-.pill{height:44px;padding:0 18px;border-radius:var(--radius-md);font-size:15px;
-      color:var(--mute);background:none;border:none;font:inherit;
-      box-shadow:inset 0 0 0 1px var(--line2);display:flex;align-items:center;
-      justify-content:center;}
-.pill--brass{background:var(--accent);color:var(--on-accent);font-weight:600;box-shadow:none;}
-.pill--raised{background:var(--raise2);color:var(--ink2);font-weight:600;
-              box-shadow:inset 0 0 0 1px var(--line2);}
-.filtersheet-pricehead{display:flex;align-items:baseline;justify-content:space-between;}
-.filtersheet-priceband{font-size:15px;color:var(--ink2);font-variant-numeric:tabular-nums;}
-.filtersheet-numbers{display:flex;gap:10px;padding-top:2px;}
-.filtersheet-numberbox{flex:1;height:52px;border-radius:var(--radius-md);background:var(--sink);
-                        box-shadow:inset 0 0 0 1px var(--line);padding:0 14px;
-                        display:flex;flex-direction:column;justify-content:center;
-                        gap:2px;}
-.filtersheet-numberbox .label{padding:0;}
-.filtersheet-numberbox input{background:none;box-shadow:none;border-radius:0;
-                              padding:0;height:auto;font-size:17px;
-                              color:var(--ink2);font-variant-numeric:tabular-nums;}
-.filtersheet-note{display:flex;gap:9px;align-items:flex-start;padding:12px 14px;
-                   border-radius:12px;background:rgba(244,241,236,0.04);}
-.filtersheet-note div{font-size:13px;line-height:1.45;color:var(--mute);}
-.filtersheet-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);
-                  flex:none;margin-top:6px;}
-
-/* Add-wines sheet */
-.addwines-heading{font-size:26px;line-height:1.2;letter-spacing:-0.02em;color:var(--ink2);}
-.addwines-sub{font-size:15px;line-height:1.45;color:var(--mute);margin-top:10px;}
-.seedinput{display:flex;flex-direction:column;gap:12px;}
-.seedinput-panel{border-radius:16px;background:var(--raise);
-                  box-shadow:inset 0 0 0 1px var(--line);padding:14px;
-                  display:flex;flex-direction:column;gap:10px;}
-.seedinput-panel textarea{background:none;box-shadow:none;padding:0;
-                           min-height:150px;font-size:16px;line-height:1.6;}
-
-/* Resolution table — per-row like/steer-clear assignment */
-.resolution{display:flex;flex-direction:column;gap:12px;}
-.resolution-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
-/* The dismiss sits top-right against the name, not vertically centred against
-   a two-line body. */
-.resolution-row{display:flex;gap:8px;align-items:flex-start;padding:10px 0;
-                 border-top:1px solid var(--line);}
-.resolution-body{flex:1;min-width:0;display:flex;flex-direction:column;
-                  align-items:flex-start;gap:2px;}
-.resolution-name{font-size:15px;color:var(--ink2);line-height:1.3;}
-.resolution-meta{font-size:12px;color:var(--mute2);}
-.resolution-name--warn{color:var(--warn);}
-.resolution-meta--warn{color:var(--warn);opacity:0.8;}
-/* The kind picker. A select rather than three buttons: this is the primary
-   action per row, so it should show its current state at a glance. Sitting
-   under the name rather than beside it gives a long wine name the full width
-   — the reason three 44px buttons had to go. */
-.resolution-kind{width:auto;max-width:100%;margin-top:5px;font-size:13px;
-                  color:var(--ink2);background:var(--raise2);
-                  border:1px solid var(--line2);border-radius:9px;
-                  padding:7px 8px;
-                  /* The global `select` rule paints an inset 1px border via
-                     box-shadow; left on, it doubles up with the real border. */
-                  box-shadow:none;}
-.resolution-kind:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
-
-/* Drop one line from the batch — deliberately not another option inside the
-   picker, since it is not a verdict on the wine but a refusal to file it. */
-.resolution-dismiss{width:34px;height:38px;flex:none;border-radius:10px;
-                     display:flex;align-items:center;justify-content:center;
-                     font-size:19px;line-height:1;color:var(--mute2);
-                     background:none;border:none;padding:0;}
-.resolution-dismiss:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
-@media (hover:hover){.resolution-dismiss:hover{color:var(--accent);}}
-
-/* ---- Mode transition -------------------------------------------------
-   The header holds the mode switch itself, so it must stay put while the
-   content slides under it — otherwise the control you just tapped moves.
-   Naming head and body separately takes them out of the root snapshot;
-   root then covers the footer, which cross-fades because its buttons
-   differ between modes. */
-.shell-head{view-transition-name:app-head;}
-.shell-body{view-transition-name:app-body;}
-
-::view-transition-group(app-head){animation-duration:0s;}
-::view-transition-group(app-body){
-    animation:280ms cubic-bezier(0.32,0.72,0,1) both;}
-::view-transition-group(root){animation:180ms ease both;}
-
-/* Animate transform, not inset properties — it stays off the layout path. */
-/* A full-width slide, with no opacity. An earlier version faded to 0 over a
-   24% shift, and the fade swallowed the movement completely — mid-transition
-   the content area was simply blank, which reads as a flicker rather than a
-   direction. Old and new are already stacked by the transition, so moving
-   them past each other is the whole effect. */
-@keyframes vt-out-left  { to   { transform:translateX(-100%); } }
-@keyframes vt-in-right  { from { transform:translateX(100%);  } }
-@keyframes vt-out-right { to   { transform:translateX(100%);  } }
-@keyframes vt-in-left   { from { transform:translateX(-100%); } }
-
-/* plus-lighter is what the UA uses to keep a crossfade from dipping in
-   brightness. With a slide there is no crossfade, and it instead blows out
-   the overlap into a bright band. */
-::view-transition-old(app-body),
-::view-transition-new(app-body){mix-blend-mode:normal;}
-
-html:active-view-transition-type(forward)::view-transition-old(app-body){
-    animation-name:vt-out-left;}
-html:active-view-transition-type(forward)::view-transition-new(app-body){
-    animation-name:vt-in-right;}
-html:active-view-transition-type(backward)::view-transition-old(app-body){
-    animation-name:vt-out-right;}
-html:active-view-transition-type(backward)::view-transition-new(app-body){
-    animation-name:vt-in-left;}
-
-@media (prefers-reduced-motion: reduce){
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*){animation:none !important;}
-}
-
-/* ---- Segmented pills: anchor-positioned enhancement -------------------
-   The fallbacks above slide by arithmetic, which assumes equal-width
-   segments. Where anchor positioning is available the pill simply tethers
-   to whichever segment is active — any count, any width, nothing to
-   recompute if a label changes length or a segment is added.
-   Chrome 150 supports this; Safari 18.4 does not, and falls back. */
-@supports (anchor-name: --probe) {
-  .modeswitch button.active{anchor-name:--mode-active;}
-  .modeswitch::before{
-      position-anchor:--mode-active;
-      /* Inset properties, not position-area — position-area cannot be
-         transitioned. */
-      inset-inline-start:anchor(left);
-      inset-inline-end:anchor(right);
-      inline-size:auto;
-      translate:none;}
-  .modeswitch[data-mode="find"]::before{translate:none;}
-
-  .prompt-include-seg button.active{anchor-name:--include-active;}
-  .prompt-include-seg::before{
-      position-anchor:--include-active;
-      inset-inline-start:anchor(left);
-      inset-inline-end:anchor(right);
-      inline-size:auto;
-      translate:none;}
-  .prompt-include-seg[data-active="1"]::before,
-  .prompt-include-seg[data-active="2"]::before{translate:none;}
-
-  @media (prefers-reduced-motion: no-preference){
-    .modeswitch::before,
-    .prompt-include-seg::before{
-        transition:inset 280ms cubic-bezier(0.32,0.72,0,1);}
-    .prompt-include-seg::before{transition-duration:220ms;}
-  }
-}
-
-/* SAQ community rating. Sits on the same meta line as stock, so it reads as
-   one more fact about the bottle rather than a badge competing with price. */
-.rating{margin-left:.5rem;font-variant-numeric:tabular-nums;}
-.rating-score{color:var(--ink);}
-.rating-outof,.rating-count{color:var(--mute2);}
-/* Fewer than five reviews: dimmed so a 100/100 off three votes doesn't
-   out-shout a 90 off two hundred. */
-.rating--thin{opacity:.55;}
-
-/* Find-tab empty state. The React app showed a disabled button and nothing
-   else, so a first visitor met a dead control with no way to learn what it
-   wanted. */
-.find-empty{display:flex;flex-direction:column;align-items:flex-start;gap:10px;
-  padding:28px 0 8px;}
-.find-empty h2{margin:0;font-size:22px;color:var(--ink2);line-height:1.2;
-  max-width:22ch;}
-.find-empty .hint{margin:0;max-width:44ch;}
-.find-empty button{margin-top:6px;}
-
-/* Alternatives picker in the resolution table. Only appears when the catalog
-   offered more than one, so an unambiguous match doesn't sprout a control
-   that implies doubt. */
-.resolution-alt{margin-top:6px;font-size:13px;padding:8px 10px;}
-
-/*
- * The mark.
- *
- * The Screens design reduces it to a single accent dot beside the wordmark.
- * The Organic bottle — black glass, white label, red X clipped inside it —
- * was drawn in CSS here and is gone with the design that asked for it. Kept
- * as one rule rather than an element tree, because that is all it now is.
- */
-.mark{inline-size:12px;block-size:12px;flex:none;border-radius:50%;
-  background:var(--accent);}
-.mark-label{display:none;}
-
-/* Header lockup: brand on the left, controls pushed to the right. */
-.head-row{display:flex;align-items:center;gap:10px;}
-.head-brand{display:flex;align-items:center;gap:10px;min-width:0;margin-right:auto;}
-.head-row .label{font-family:var(--display);font-size:19px;color:var(--ink);
-  letter-spacing:0;text-transform:none;}
-
-/* FR/EN switch. Two buttons rather than one toggle: with two languages a
-   single control cannot say whether its label is the state or the action. */
-.langtoggle{display:flex;gap:2px;padding:2px;border-radius:var(--radius-md);
-  background:var(--raise);flex:none;}
-.langtoggle button{min-width:34px;height:28px;padding:0 8px;border:none;
-  border-radius:var(--radius-md);background:none;color:var(--mute2);
-  font-family:var(--display);font-size:12px;line-height:1;
-  display:flex;align-items:center;justify-content:center;}
-.langtoggle button.active{background:var(--accent);color:var(--on-accent);}
-.langtoggle button:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px;}
-
-/* ═══════════════════════════════════════════════════════════ Screens design */
-
-/*
- * Desktop is a first-class layout, not a stretched phone.
- *
- * The shell was a 30rem column centred in whatever window it was given, which
- * is right in a shop aisle and wasteful at a desk — and building the list is a
- * keyboard task people do at a desk.
- */
-@media (min-width: 60rem) {
-  .shell { max-width: 72rem; }
-  .shell-body { padding-inline: 32px; }
-  .shell-head { padding-inline: 32px; }
-  .shell-foot { padding-inline: 32px; }
-}
-
-/* My wines — a summary line, then the three groups */
-.mywines-summary{font-size:13px;color:var(--mute2);padding-bottom:14px;}
-.mywines-groups{display:flex;flex-direction:column;gap:26px;}
-
-/* The three groups sit side by side once there is room: the distinction is
-   then spatial and does not need re-explaining on every visit. */
-@media (min-width: 60rem) {
-  .mywines-groups{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));
-    gap:24px;align-items:start;}
-  .mywines-group + .mywines-group{margin-top:0;}
-}
-
-.mywines-note{margin:0 0 10px;font-size:12px;line-height:1.4;color:var(--mute2);
-  text-wrap:pretty;}
-.mywines-group--skipped{opacity:0.82;}
-
-/* Results — the reason leads, so it takes the display face and the accent. */
-.results-title{font-family:var(--display);font-size:19px;color:var(--ink);}
-.results-against{font-family:var(--ui);font-size:12px;color:var(--mute2);
-  margin-left:8px;}
-.results-row .reason{font-family:var(--display);font-size:16px;line-height:1.35;
-  color:var(--accent-hi);margin:0 0 6px;}
-.results-meta{font-size:12px;color:var(--mute2);}
-.results-actions{display:flex;gap:8px;margin-top:8px;}
-.results-act{border:none;border-radius:var(--radius-md);padding:5px 12px;font-size:12px;
-  background:var(--raise);color:var(--mute);}
-.results-act:hover{background:var(--raise2);color:var(--ink2);}
-.rating--none{color:var(--mute2);font-style:italic;}
-.rating-count{margin-left:6px;}
-
-@media (min-width: 60rem) {
-  .results-list{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));
-    gap:0 28px;}
-  .find-columns{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);
-    gap:28px;align-items:start;}
-}
-
-/* Review step — three columns on a wide screen, stacked on a phone. */
-.resolution-head{padding-bottom:12px;}
-.resolution-head h2{font-family:var(--display);font-size:20px;margin:0 0 4px;}
-.resolution-row{display:grid;gap:6px 16px;padding:14px 0;
-  border-top:1px solid var(--line);align-items:start;}
-.resolution-typedlabel{display:block;font-family:var(--mono);font-size:10px;
-  letter-spacing:0.12em;text-transform:uppercase;color:var(--mute2);
-  margin-bottom:3px;}
-.resolution-input{font-size:14px;color:var(--mute);}
-.resolution-meta{font-size:12px;color:var(--mute2);}
-.resolution-kinds{display:flex;gap:4px;flex-wrap:wrap;}
-.resolution-kind{border:none;border-radius:var(--radius-md);padding:5px 11px;font-size:12px;
-  background:var(--raise);color:var(--mute);}
-.resolution-kind.is-on{background:var(--accent);color:var(--on-accent);}
-.resolution-alts{margin-top:8px;}
-.resolution-many{margin:0 0 6px;font-size:13px;color:var(--warn);}
-.resolution-altlist{display:flex;flex-direction:column;gap:2px;}
-button.resolution-alt{display:grid;grid-template-columns:1fr auto;gap:0 10px;
-  text-align:left;border:none;border-radius:var(--radius-sm);padding:7px 10px;
-  background:transparent;color:var(--ink);width:100%;}
-button.resolution-alt:hover{background:var(--raise);}
-button.resolution-alt.is-chosen{background:var(--raise2);
-  box-shadow:inset 0 0 0 1px var(--accent);}
-.resolution-altname{font-size:14px;}
-.resolution-altmeta{grid-column:1;font-size:11px;color:var(--mute2);}
-.resolution-altprice{grid-row:1;font-size:13px;font-variant-numeric:tabular-nums;
-  color:var(--mute);}
-.resolution-altfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;
-  margin-top:6px;}
-.resolution-none{border:none;background:none;color:var(--accent-hi);font-size:12px;
-  padding:0;}
-.resolution-rowactions{display:flex;gap:6px;align-items:start;}
-.filter-thin{color:var(--warn);}
-
-@media (min-width: 60rem) {
-  .resolution-row{grid-template-columns:12rem minmax(0,1fr) auto auto;}
-}
-
-/* First run — the screen an empty list gets instead of three empty groups. */
-.firstrun{display:flex;flex-direction:column;gap:22px;padding-top:8px;}
-.firstrun h2{font-family:var(--display);font-size:24px;margin:0 0 6px;}
-.firstrun-big{margin:0 0 6px;font-size:17px;color:var(--ink2);}
-.firstrun-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
-.firstrun-actions button{flex:0 1 auto;min-height:46px;padding-inline:20px;}
-.firstrun-panel{border-radius:var(--radius-lg);background:var(--raise);
-  padding:18px 20px;display:flex;flex-direction:column;gap:8px;}
-.firstrun-quote{margin:0;font-family:var(--display);font-size:17px;
-  color:var(--accent-hi);text-wrap:pretty;}
-.firstrun-groups{display:flex;flex-direction:column;gap:10px;margin:4px 0 2px;}
-.firstrun-group{border-radius:var(--radius-md);padding:10px 12px;
-  background:var(--ground);}
-.firstrun-group--liked{background:var(--marked);}
-.firstrun-groupname{font-family:var(--display);font-size:15px;color:var(--ink2);}
-.firstrun-groupnote{font-size:12px;color:var(--mute2);margin-top:2px;}
-.firstrun-foot{margin-top:2px;}
-
-/* Backup — four states, so the heading carries the state rather than a badge. */
-.backup-head{font-family:var(--display);font-size:17px;color:var(--ink2);
-  margin:8px 0 4px;}
-.backup--blocked .backup-summary{color:var(--warn);}
-
-/* Prompt — two steps, the second inert until the first has happened. */
-.prompt-steps{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;}
-.prompt-step{flex:1 1 12rem;display:flex;flex-direction:column;gap:6px;}
-.prompt-steplabel{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;
-  text-transform:uppercase;color:var(--mute2);}
-.prompt-step.is-pending{opacity:0.55;}
-.prompt-step.is-done .prompt-steplabel{color:var(--accent);}
-
-@media (min-width: 60rem) {
-  .firstrun{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);
-    gap:22px 28px;align-items:start;}
-  .firstrun-lead{grid-column:1;grid-row:1 / span 2;}
-  .firstrun-foot{grid-column:1 / -1;}
-  .firstrun-groups{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));}
-}
-
-/* ══════════════════════════════════════════════ Screens — type and surfaces */
-
-/*
- * The type split is the design's main device: monospace for anything
- * structural, Georgia for anything written. Sizes come from the document —
- * mono is small and tight (10–14px, line-height 1), Georgia is large and set
- * for reading.
- */
-body{font-family:var(--ui);font-size:14px;line-height:1.5;}
-
-h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:0;}
-h1{font-size:30px;line-height:1.15;}
-h2{font-size:24px;line-height:1.1;}
-h3{font-size:20px;line-height:1.25;}
-
-/* Small caps labels, everywhere a thing needs naming rather than saying. */
-.label{font-family:var(--mono);font-weight:500;font-size:11px;line-height:1;
-  letter-spacing:0.14em;text-transform:uppercase;color:var(--mute2);}
-
-.hint{font-family:var(--ui);font-size:12px;line-height:1.5;color:var(--mute);}
-
-/* Controls are rectangles, not pills, and monospace so they read as controls. */
-.btn-primary,.btn-secondary{font-family:var(--ui);font-weight:500;font-size:13px;
-  letter-spacing:0.02em;border-radius:var(--radius-md);min-height:44px;}
-.btn-primary{background:var(--accent);color:var(--on-accent);}
-.btn-secondary{background:transparent;color:var(--ink2);
-  box-shadow:inset 0 0 0 1px var(--line2);}
-
-.chip{font-family:var(--ui);font-size:12px;border-radius:var(--radius-md);
-  background:var(--raise);}
-
-/* Header — a rule under it, nothing else. */
-.shell-head{border-bottom:1px solid var(--line);background:var(--chrome);}
-.head-brand{align-items:baseline;gap:10px;}
-.head-row .label{font-family:var(--display);font-size:18px;color:var(--ink2);
-  letter-spacing:0;text-transform:none;}
-.head-about{font-family:var(--ui);font-size:11px;}
-
-/* Tab switch — a rule and a bar, rather than a sliding pill in a track. */
-.modeswitch{background:transparent;padding:0;gap:0;border-radius:0;
-  border-bottom:1px solid var(--line);}
-.modeswitch::before{inset-block:auto 0;block-size:2px;inset-inline-start:0;
-  inline-size:50%;background:var(--accent);border-radius:0;}
-.modeswitch[data-mode="find"]::before{translate:100%;}
-.modeswitch button{height:38px;border-radius:0;font-family:var(--ui);
-  font-size:12px;letter-spacing:0.06em;text-transform:uppercase;}
-.modeswitch button.active{font-family:var(--ui);font-weight:500;color:var(--ink2);}
-
-/* Language switch — the same rectangle vocabulary. */
-.langtoggle{background:var(--panel);border-radius:var(--radius-md);padding:1px;}
-.langtoggle button{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;
-  border-radius:2px;height:24px;min-width:30px;}
-.langtoggle button.active{background:var(--accent);color:var(--on-accent);}
-
-/* My wines — columns headed by a mono label and a count. */
-.mywines-summary{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;
-  text-transform:uppercase;color:var(--mute2);}
-.mywines-group{border-top:1px solid var(--line);padding-top:12px;}
-.mywines-head{align-items:baseline;}
-.mywines-title{font-family:var(--display);font-size:20px;color:var(--ink2);}
-.mywines-count{font-family:var(--mono);font-size:12px;color:var(--mute2);
-  margin-left:auto;}
-.mywines-note{font-family:var(--ui);font-size:12px;color:var(--accent-hi);}
-.mywines-row{border-radius:var(--radius-md);padding:10px 12px;}
-.mywines-row--liked{background:var(--marked);
-  box-shadow:inset 0 0 0 1px #33241e;}
-.mywines-row--disliked,.mywines-row--skipped{background:transparent;
-  box-shadow:inset 0 0 0 1px var(--line);border:none;}
-.mywines-name{font-size:14px;}
-.mywines-region{font-family:var(--mono);font-size:11px;}
-
-/* Results — the reason is the largest thing, and the only serif on the row. */
-.results-title{font-family:var(--display);font-size:24px;}
-.results-against,.results-count{font-family:var(--mono);font-size:11px;
-  letter-spacing:0.06em;color:var(--mute2);}
-.results-row .reason{font-family:var(--display);font-size:19px;line-height:1.35;
-  color:var(--ink2);}
-.results-rank{inline-size:22px;block-size:22px;border-radius:var(--radius-sm);
-  background:transparent;color:var(--mute2);font-family:var(--mono);
-  font-size:11px;box-shadow:inset 0 0 0 1px var(--line);}
-.results-name{font-family:var(--ui);font-size:14px;color:var(--ink);}
-.results-price{font-family:var(--mono);font-weight:500;font-size:22px;
-  color:var(--ink2);}
-.results-meta,.rating{font-family:var(--mono);font-size:11px;color:var(--mute2);}
-.results-act{font-family:var(--ui);font-size:11px;border-radius:var(--radius-md);
-  box-shadow:inset 0 0 0 1px var(--line);background:transparent;}
-
-/* Review step and first run inherit the same vocabulary. */
-.resolution-kind,.resolution-alt{border-radius:var(--radius-md);}
-.resolution-kind{font-family:var(--ui);font-size:11px;}
-.resolution-altprice{font-family:var(--mono);}
-.firstrun-quote{font-family:var(--display);font-size:19px;color:var(--ink2);}
-.firstrun-panel{background:var(--panel);border-radius:var(--radius-lg);
-  box-shadow:inset 0 0 0 1px var(--line);}
-.firstrun-group{border-radius:var(--radius-md);background:var(--ground);
-  box-shadow:inset 0 0 0 1px var(--line);}
-.firstrun-group--liked{background:var(--marked);}
-.firstrun-groupname{font-family:var(--display);font-size:16px;}
-.firstrun-groupnote{font-family:var(--ui);font-size:11px;}
-
-.backup{border-top:1px solid var(--line);}
-.backup-summary,.backup-head{font-family:var(--display);}
-.backup-summary{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;
-  text-transform:uppercase;}

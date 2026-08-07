@@ -11,6 +11,9 @@ import { t } from '../lib/lang'
 
 const DEBOUNCE_MS = 300
 
+/** Below this, the band is too narrow to rank against and the panel says so. */
+const THIN_BAND = 12
+
 /**
  * Colour and price band, with a live count of what they would return.
  *
@@ -81,7 +84,13 @@ export function openFilterSheet(): void {
           </label>
         </div>
       </div>
+      <!--
+        The count lives beside the controls that change it, not down in the
+        footer: it updates as you type, so you never apply a band blind.
+      -->
+      <div data-filter-count></div>
     `)
+    renderCount()
     // Values are set as properties rather than interpolated, so that typing in
     // one box is not undone when the other re-renders.
     const min = sheet.body.querySelector<HTMLInputElement>('[data-filter="min"]')!
@@ -90,19 +99,40 @@ export function openFilterSheet(): void {
     max.value = draft.priceMax === null ? '' : String(draft.priceMax)
   }
 
+  /**
+   * The live count, rendered in place.
+   *
+   * Only this block is redrawn as counts arrive, so a caret in one of the
+   * price boxes survives — re-rendering the whole body on every keystroke
+   * would take it with it. A band too thin to rank against says so rather
+   * than quietly returning four wines.
+   */
+  function renderCount(): void {
+    const slot = sheet.body.querySelector<HTMLElement>('[data-filter-count]')
+    if (!slot) return
+    if (count === null || count === 0) {
+      mount(slot, html``)
+      return
+    }
+    const thin = count < THIN_BAND
+    mount(slot, html`
+      <div class="${thin ? 'filter-count filter-thin' : 'filter-count'}">
+        <div class="filter-count-n">${count}</div>
+        <div class="filter-count-note">
+          ${t().winesFit(count)}${thin ? ` ${t().thinBand}` : ''}
+        </div>
+      </div>
+    `)
+  }
+
   function renderFoot(): void {
-    // The apply button carries the count, so the visitor never applies a band
-    // blind — and a thin band says so rather than just returning four wines.
+    // The apply button carries the count too, so the number is on the control
+    // that acts on it as well as beside the controls that changed it.
     const label = count === 0 ? t().showNone
       : count !== null ? t().searchTheseWines(count)
       : t().showWines
-    const thin = count !== null && count > 0 && count < 12
     sheet.setFoot(html`
       <button class="btn-primary" data-filter="apply">${label}</button>
-      ${count !== null && count > 0 && html`
-        <div class="sheet-summary">${t().winesFit(count)}</div>
-      `}
-      ${thin && html`<div class="sheet-summary filter-thin">${t().thinBand}</div>`}
       <div class="sheet-summary">${fullSummary(draft, branch ? branchName(branch) : t().thisBranch)}</div>
     `)
     setProp<HTMLButtonElement, 'disabled'>(
@@ -111,6 +141,7 @@ export function openFilterSheet(): void {
 
   function scheduleCount(): void {
     renderFoot()
+    renderCount()
     if (!branch) return
     clearTimeout(timer)
     const id = ++requestId
@@ -120,6 +151,7 @@ export function openFilterSheet(): void {
           if (id !== requestId) return
           count = n
           renderFoot()
+          renderCount()
         })
         .catch(() => { /* leave the previous count showing */ })
     }, DEBOUNCE_MS)

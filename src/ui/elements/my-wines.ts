@@ -88,7 +88,6 @@ function row(entry: CellarEntry, index: number): Html {
     // way to remove it. This row is explicit and removable.
     return html`
       <li class="mywines-row mywines-row--unresolved" style="${stagger}">
-        <span class="mywines-rule" aria-hidden="true"></span>
         <div class="mywines-body">
           <div class="mywines-name">${lang.t().unresolvedSku(entry.sku)}</div>
           <div class="mywines-region">${lang.t().unresolvedTitle}</div>
@@ -106,8 +105,11 @@ function row(entry: CellarEntry, index: number): Html {
   }
 
   return html`
-    <li class="mywines-row mywines-row--${KIND_CLASS[entry.kind]}" style="${stagger}">
-      <span class="mywines-rule" aria-hidden="true"></span>
+    <!--
+      No per-kind modifier here: the card this row sits in already carries the
+      group's colour, and tinting the row as well would say it twice.
+    -->
+    <li class="mywines-row" style="${stagger}">
       <div class="mywines-body">
         <div class="mywines-name">${wine.name}</div>
         ${wine.region && html`<div class="mywines-region">${wine.region}</div>`}
@@ -191,31 +193,42 @@ function firstRun(): Html {
   `
   return html`
     <section class="firstrun">
+      <!--
+        The argument, then the proof, then the action — all in one column. The
+        worked example sits under the buttons rather than in its own region:
+        it is what the button is promising, so it reads as part of the pitch.
+      -->
       <div class="firstrun-lead">
-        <h2>${t.startHere}</h2>
-        <p class="firstrun-big">${t.emptyListBegin}</p>
+        <div class="label firstrun-eyebrow">${t.startHere}</div>
+        <h2 class="firstrun-big">${t.emptyListBegin}</h2>
         <p class="hint">${t.emptyListHow}</p>
         <div class="firstrun-actions">
           <button type="button" class="btn-primary" data-act="add-wines">${t.addWines}</button>
           <button type="button" class="btn-secondary" data-act="import">${t.importBackup}</button>
           <input type="file" accept="application/json,.json" data-act="file" hidden />
         </div>
+
+        <div class="firstrun-panel firstrun-example">
+          <div class="label">${t.whatYouGetBack}</div>
+          <p class="firstrun-quote">${t.exampleReason}</p>
+          <p class="hint">${t.everyExplained}</p>
+        </div>
       </div>
 
+      <!--
+        The three groups, taught here because this is the only moment the
+        visitor has nothing else to read.
+      -->
       <div class="firstrun-panel">
-        <div class="label">${t.whatYouGetBack}</div>
-        <p class="firstrun-quote">${t.exampleReason}</p>
-        <p class="hint">${t.everyExplained}</p>
-      </div>
-
-      <div class="firstrun-panel">
-        <div class="label">${t.threePlaces}</div>
+        <div class="firstrun-panelhead">
+          <h3>${t.threePlaces}</h3>
+          <p class="hint">${t.moveAnyTime}</p>
+        </div>
         <div class="firstrun-groups">
           ${group('like', t.kindLikeNote)}
           ${group('dislike', t.kindDislikeNote)}
           ${group('skip', t.kindSkipNote)}
         </div>
-        <p class="hint">${t.moveAnyTime}</p>
       </div>
 
       <p class="hint firstrun-foot">${t.staysInBrowser}</p>

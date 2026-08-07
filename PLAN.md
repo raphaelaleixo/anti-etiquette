@@ -525,3 +525,73 @@ Your saved SKUs all resolve today, so nothing is wrong right now. But when SAQ d
 next page load silently swaps a different bottle into your liked list and `buildProfile` starts
 scoring against it — visible only by reading the name. One-line fix in the existing repo,
 independent of this plan: verify `wines[0].sku === sku` when the input is a SKU.
+
+---
+
+## Task 17 — `styles.css`, rewritten from scratch against the Screens design
+
+Three designs had passed through this file and each left sediment behind, so the app sat in a
+state that was recognisably none of them: wrong fonts, drifting alignments, a homepage with a
+different structure. Cutting was not working — the previous pass corrupted the file by removing
+rule blocks by line range. The instruction was to scratch it, and that was right.
+
+**Confirmed with the user before starting**, because all three answers changed the shape of the
+work: rewrite rather than keep cutting; desktop gets the design's inline panels rather than modal
+sheets; both phone 390 and desktop 1440 implemented properly rather than desktop first.
+
+**The single biggest thing wrong was the base font.** All seventeen design frames set
+`-apple-system` sans as the body face and reserve monospace for labels, counts and prices. An
+earlier pass had made monospace the base. That one substitution is what made the app read as a
+terminal and threw nearly every baseline off, because the two faces have different metrics — so
+most of the "alignments are weird" complaint was this, not the spacing values.
+
+**Colour is kept in the design's own notation.** The frames are authored in oklch; converting to
+hex would have introduced rounding at every step and made later comparison against the design
+impossible. Hue 70 at near-zero chroma carries the warm-neutral ramp, hue 85 the ink, and three
+hues each mean exactly one thing: 35 terracotta is the accent and "More like this", 95 brass is
+"Less like this", 145 green is a satisfied requirement. "Just hidden" gets no hue at all — it
+says nothing about taste, so it has no colour to say it with.
+
+The one exception is `--ground`, written `#15120f`. It is `oklch(0.185 0.008 70)`, but it also has
+to appear in a `<meta name="theme-color">` on both pages and in `landing.css`, so it is stated in
+the notation every one of those places can carry. `tests/landing.test.ts` holds all four in
+agreement; before this task the landing declared a `--ground` it did not actually paint.
+
+**Sheets become panels above 62rem**, which is what "keep the new, proposed design" meant. The
+same `<dialog>` markup is a thumb-reachable bottom sheet on a phone and the design's centred
+560px panel on a pointer — no second code path, and `filtersheet-section` flips from stacked to
+label-beside-pills with a single `flex-direction`. The filter count moved out of the footer and
+into the body beside the controls that change it, which is where the design puts it and where it
+can be read while typing a band.
+
+Markup changed only where the stylesheet could not express the design over it:
+
+- Results rows are now `[rank][body][price + actions]`, so price and the two exclusions share a
+  rail. They cannot be pulled into one from inside `.results-body` with CSS alone.
+- First run is the design's two columns: the worked example moved under the buttons in the lead
+  column, because it is what the button is promising.
+- The scope gate names **both** requirements and marks the satisfied one, per frame 05. Six new
+  message keys in each language. A screen that mentions only what is wrong never says what right
+  looks like.
+- Removed: the `.mywines-rule` decorative span and the per-kind row modifier, both leftovers. The
+  group card already carries the colour; a row repeating it says the same thing twice.
+
+**Done.** 476 tests green, typecheck clean, build green. Five new tests cover the gate and three
+mutations confirm they bite: showing only the missing requirement, marking every requirement met,
+and always offering the add-wines action each fail the assertions written for them. Two existing
+`my-wines` assertions were retargeted from the deleted row modifier onto the group card — the
+thing that actually carries the filing now — and a mutation making every group claim to be
+"liked" still fails both.
+
+A mechanical audit of every class in the markup against every rule in the stylesheet reports no
+orphans in either direction.
+
+**Not done, and deliberately named rather than left to be discovered:**
+
+- Frame 05 draws the branch list *on the page* beside the gate on desktop, in a `1fr 620px` grid.
+  It is still a dialog here — styled as the design's panel, but opened over the page rather than
+  living in it. Genuinely inlining it restructures Find-mode's desktop layout.
+- Frame 03 pins the "31 wines saved, never exported — Export now" line in the footer bar. It is
+  in the backup panel's summary row instead.
+- "How to allow storage" still links to instructions that do not exist.
+- The phone header's "⋯" overflow menu in the design has no defined contents.

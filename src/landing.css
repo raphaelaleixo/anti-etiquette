@@ -17,8 +17,13 @@
 :root {
   color-scheme: dark;
 
-  --ground: #0e0c09;
-  --panel: #15120f;
+  /*
+   * The same ground the app paints, and for the same reason: these two pages
+   * link to each other, so a different value here is a flash on navigation.
+   * Both `<meta name="theme-color">` tags carry it too.
+   */
+  --ground: #15120f;
+  --panel: var(--ground);
   --panel-2: #191613;
   --raise: #1c1916;
   --line: #2b2825;

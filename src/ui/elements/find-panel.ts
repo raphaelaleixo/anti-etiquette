@@ -4,6 +4,7 @@ import * as cellar from '../../lib/cellar'
 import { productUrl } from '../../lib/catalog'
 import * as lang from '../../lib/lang'
 import { describeMatch } from '../../lib/reasons'
+import { branchName } from '../../lib/branches'
 import { openBranchSheet } from '../branchSheet'
 import { openFilterSheet } from '../filterSheet'
 import { openAddWines } from '../addWines'
@@ -91,6 +92,7 @@ function results(
       <div class="results-list">
         ${rows.map((scored, i) => html`
           <div class="results-row" style="--i:${i}" data-sku="${scored.wine.sku}">
+            <!-- A quiet ordinal, not a score. There is no score worth publishing. -->
             <div class="results-rank">${i + 1}</div>
             <div class="results-body">
               <!--
@@ -101,10 +103,16 @@ function results(
               <p class="reason">${describeMatch(scored, profile)}</p>
               <div class="results-name-row">
                 ${saqLink(scored.wine, 'results-name')}
-                <div class="results-price">${money(scored.wine.price)}</div>
+                <div class="results-meta">${provenance(scored.wine)}</div>
               </div>
-              <div class="results-meta">${provenance(scored.wine)}</div>
               <div class="results-stock">${rating(scored.wine)}</div>
+            </div>
+            <!--
+              Price and the two exclusions share a rail: both are things you do
+              with the bottle rather than reasons to want it.
+            -->
+            <div class="results-side">
+              <div class="results-price">${money(scored.wine.price)}</div>
               <div class="results-actions">
                 <button type="button" class="results-act" data-find="less"
                         data-sku="${scored.wine.sku}">${lang.t().lessLikeThis}</button>
@@ -154,25 +162,47 @@ export class FindPanel extends StoreElement {
    * What is missing before a search can run, said plainly.
    *
    * The React app showed a disabled button and nothing else, so a first
-   * visitor saw a dead control with no way to learn what it wanted. Both
-   * requirements are named, and the one that is missing is the one that gets
-   * the action.
+   * visitor saw a dead control with no way to learn what it wanted.
+   *
+   * Both requirements are always named and always in the same order, with the
+   * satisfied one marked. Listing only what is wrong never tells anyone what
+   * "right" looks like, and reordering the pair as they are met would make the
+   * screen jump under the reader.
    */
+  #requirement(met: boolean, name: string, note: string): Html {
+    return html`
+      <div class="${met ? 'gate-req is-met' : 'gate-req is-open'}">
+        <span class="gate-mark" aria-hidden="true">${met ? '✓' : ''}</span>
+        <div class="gate-body">
+          <div class="gate-name">${name}</div>
+          <div class="gate-note">${note}</div>
+        </div>
+      </div>
+    `
+  }
+
   #emptyState(likedCount: number, branch: string): Html | false {
     if (likedCount > 0 && branch) return false
+    const t = lang.t()
+    const noWines = likedCount === 0
     return html`
       <section class="find-empty">
-        ${likedCount === 0
-          ? html`
-            <h2>${lang.t().emptyNoWinesTitle}</h2>
-            <p class="hint">${lang.t().emptyNoWinesNote}</p>
-            <button type="button" class="btn-primary" data-find="add">${lang.t().addWines}</button>
-          `
-          : html`
-            <h2>${lang.t().emptyNoBranchTitle}</h2>
-            <p class="hint">${lang.t().emptyNoBranchNote}</p>
-            <button type="button" class="btn-primary" data-find="branch">${lang.t().chooseBranch}</button>
-          `}
+        <h2>${noWines ? t.emptyNoWinesTitle : t.emptyNoBranchTitle}</h2>
+        <div class="gate-reqs">
+          ${this.#requirement(
+            !noWines,
+            t.reqWines(lang.kindLabel('like')),
+            noWines ? t.reqWinesOpen : t.reqWinesMet(likedCount))}
+          ${this.#requirement(
+            branch !== '',
+            t.reqBranch,
+            branch ? t.reqBranchMet(branchName(branch)) : t.reqBranchOpen)}
+        </div>
+        <p class="hint">${noWines ? t.emptyNoWinesNote : t.emptyNoBranchNote}</p>
+        <!-- The action belongs to the requirement that is missing. -->
+        ${noWines
+          ? html`<button type="button" class="btn-primary" data-find="add">${t.addWines}</button>`
+          : html`<button type="button" class="btn-primary" data-find="branch">${t.chooseBranch}</button>`}
       </section>
     `
   }

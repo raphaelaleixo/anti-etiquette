@@ -116,6 +116,14 @@ export const fr: Messages = {
   emptyNoBranchNote:
     'L’inventaire change d’une SAQ à l’autre : la liste ne vaut quelque chose ' +
     'qu’une fois qu’elle sait quelle tablette elle lit.',
+  reqWines: group => `Des vins dans ${group}`,
+  reqWinesMet: n => `${n} enregistrés. Largement de quoi classer une tablette.`,
+  reqWinesOpen:
+    'Aucun pour l’instant. Nommez-en un ou deux que vous avez aimés et le ' +
+    'classement aura de quoi s’appuyer.',
+  reqBranch: 'Une succursale',
+  reqBranchMet: name => `${name}. Seules les bouteilles qu’elle a en tablette sont classées.`,
+  reqBranchOpen: 'Pas encore choisie. Choisissez-en une et la recherche pourra se lancer.',
   bestMatches: 'Meilleures correspondances',
   rankedAgainst: n => `classés selon vos ${n} vins`,
   resultCount: (shown, total) => `${shown} affichés · ${total} correspondent à vos filtres`,

@@ -50,13 +50,15 @@ export class ModeSwitch extends StoreElement {
     // it looks), and aria-current="" is not one of the spec's tokens.
     const current = (m: Mode) => (mode === m ? 'true' : 'false')
     // The count rides inside the tab as a badge rather than in its label, so
-    // the two tabs stay the same shape as the number grows.
+    // the two tabs stay the same shape as the number grows. `data-zero` keeps
+    // the badge neutral until there is something to count: an accent-filled
+    // zero reads as an achievement.
     mount(this, html`
       <button
         data-mode="wines"
         class="${mode === 'wines' ? 'active' : ''}"
         aria-current="${current('wines')}"
-      >${lang.t().myWines}<span class="seg-count">${count}</span></button>
+      >${lang.t().myWines}<span class="seg-count" data-zero="${count === 0 ? 'true' : 'false'}">${count}</span></button>
       <button
         data-mode="find"
         class="${mode === 'find' ? 'active' : ''}"

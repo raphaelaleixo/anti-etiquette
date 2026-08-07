@@ -63,6 +63,58 @@ describe('the chip row', () => {
   })
 })
 
+/**
+ * The gate the design draws: two requirements, both named, the satisfied one
+ * marked. A screen that mentions only what is wrong never says what right is.
+ */
+describe('the scope gate', () => {
+  const reqs = () => $$('.gate-req').map(r => ({
+    met: r.classList.contains('is-met'),
+    text: r.textContent!.replace(/\s+/g, ' ').trim(),
+  }))
+
+  it('names both requirements even when only one is missing', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect(reqs()).toHaveLength(2)
+    expect(reqs().map(r => r.met)).toEqual([true, false])
+  })
+
+  it('marks the branch met and the wines open in the other direction', () => {
+    appState.setBranch('23112')
+    mountPanel()
+    expect(reqs().map(r => r.met)).toEqual([false, true])
+  })
+
+  it('keeps the pair in one order whichever of them is missing', () => {
+    // Reordering as they are met would make the screen jump under whoever is
+    // reading it, so the branch is always second — met or not.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect(reqs()[1]!.text).toContain('A branch')
+
+    cellar.removeSeed('111')
+    appState.setBranch('23112')
+    expect(reqs()[1]!.text).toContain('A branch')
+  })
+
+  it('gives the action to the requirement that is missing', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect($('.find-empty .btn-primary').dataset.find).toBe('branch')
+
+    cellar.removeSeed('111')
+    expect($('.find-empty .btn-primary').dataset.find).toBe('add')
+  })
+
+  it('goes away entirely once both are satisfied', () => {
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    mountPanel()
+    expect($$('.find-empty')).toEqual([])
+  })
+})
+
 describe('results', () => {
   it('renders nothing before a search', () => {
     const el = mountPanel()

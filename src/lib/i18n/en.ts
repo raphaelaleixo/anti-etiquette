@@ -123,6 +123,14 @@ export const en = {
   emptyNoBranchNote:
     'Stock differs from one SAQ to the next, so the list is only worth ' +
     'anything once it knows which shelf it is reading.',
+  // Both requirements are named on the gate, not just the missing one: a
+  // screen that mentions only what is wrong never says what "right" is.
+  reqWines: (group: string) => `Wines in ${group}`,
+  reqWinesMet: (n: number) => `${n} saved. That is plenty to rank a shelf against.`,
+  reqWinesOpen: 'None yet. Name one or two you have enjoyed and the ranking has something to go on.',
+  reqBranch: 'A branch',
+  reqBranchMet: (name: string) => `${name}. Only the bottles it is holding get ranked.`,
+  reqBranchOpen: 'Not chosen yet. Pick one and the search can run.',
   bestMatches: 'Best matches',
   rankedAgainst: (n: number) => `ranked against your ${n} wines`,
   resultCount: (shown: number, total: number) => `${shown} shown · ${total} fit your filters`,
