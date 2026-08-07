@@ -141,7 +141,9 @@ export const en = {
   changeScope: 'Change scope',
   currentScope: 'Current scope',
   noBranch: 'No branch',
-  changeFilters: 'Change filters',
+  change: 'Change',
+  scopeBranch: 'Branch',
+  scopeFilters: 'Filters',
   onlyBottlesHeld: 'Only the bottles that branch is holding get ranked.',
 
   // ------------------------------------------------------------- search

@@ -1037,10 +1037,20 @@ button { font: inherit; color: inherit; }
   background: var(--panel);
   max-inline-size: 440px;
 }
-.scopepanel-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* One row per thing that can be changed: what it is, what it is set to, and
+   the way to change it. */
+.scopepanel-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.scopepanel-key {
+  flex: none;
+  inline-size: 4.5rem;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+/* The change link keeps the right edge, whatever the values beside it. */
+.scopepanel-row .scopelink { margin-inline-start: auto; }
 .scopepanel .scopechip { flex: none; padding: 8px 12px; cursor: default; }
-.scopepanel button.scopechip { cursor: pointer; }
-.scopepanel button.scopechip:hover { border-color: var(--edge3); color: var(--ink0); }
 /* The missing piece is dashed and tinted, so the gap is visible at a glance. */
 .scopechip--open {
   border-style: dashed;

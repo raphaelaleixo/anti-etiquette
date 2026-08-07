@@ -135,7 +135,9 @@ export const fr: Messages = {
   changeScope: 'Changer la portée',
   currentScope: 'Portée actuelle',
   noBranch: 'Aucune succursale',
-  changeFilters: 'Changer les filtres',
+  change: 'Changer',
+  scopeBranch: 'Succursale',
+  scopeFilters: 'Filtres',
   onlyBottlesHeld: 'Seules les bouteilles que cette succursale a en tablette sont classées.',
 
   // ------------------------------------------------------------- search

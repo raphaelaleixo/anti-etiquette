@@ -344,12 +344,24 @@ describe('the current-scope panel', () => {
     expect(chips().map(c => c.text).join(' ')).toContain('$15')
   })
 
-  it('offers the one part of the scope it can change', () => {
-    // Filters, not the branch: a second branch picker beside the first would
-    // be two controls for one decision.
+  it('gives each row its own way to change it', () => {
     cellar.saveWine(wine('111'), 'like')
     mountPanel()
-    expect($('.scopepanel .scopelink').dataset.find).toBe('filters')
+
+    const rows = $$('.scopepanel-row')
+    expect(rows).toHaveLength(2)
+    expect(rows.map(r => r.querySelector('.scopepanel-key')!.textContent!.trim()))
+      .toEqual(['Branch', 'Filters'])
+    expect(rows.map(r => r.querySelector<HTMLElement>('.scopelink')!.dataset.find))
+      .toEqual(['branch', 'filters'])
+  })
+
+  it('keeps the values as values, and the links as the controls', () => {
+    // Chips report; links act. Making a chip clickable as well would give one
+    // decision two controls sitting next to each other.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect($$('.scopepanel button.scopechip')).toEqual([])
   })
 })
 

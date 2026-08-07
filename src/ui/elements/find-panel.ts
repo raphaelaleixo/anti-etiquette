@@ -278,23 +278,26 @@ export class FindPanel extends StoreElement {
           the filters carry over from last time and are otherwise invisible
           until after a search has already used them.
         -->
+        <!--
+          A row per thing that can be changed, rather than one run of chips.
+          A deviation from the frame, which puts all four on one line: with a
+          branch name and two filter values the row wrapped anyway, and where
+          it wrapped had nothing to do with what the chips meant.
+        -->
         <div class="scopepanel">
           <div class="label">${t.currentScope}</div>
-          <div class="scopepanel-chips">
-            <!--
-              A control, not a label, whenever the inline picker is not on the
-              page to do the job instead. Without this the commonest state in
-              the app — a saved list and a branch, before any search — offered
-              no way to change branch at all: the scope bar waits for a result,
-              and the picker has already been answered.
-            -->
-            <button type="button" data-find="branch"
-                    class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
+          <div class="scopepanel-row">
+            <span class="scopepanel-key">${t.scopeBranch}</span>
+            <span class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
               ${branch ? branchName(branch) : t.noBranch}
-            </button>
+            </span>
+            <button type="button" class="scopelink" data-find="branch">${t.change}</button>
+          </div>
+          <div class="scopepanel-row">
+            <span class="scopepanel-key">${t.scopeFilters}</span>
             <span class="scopechip">${colourLabel(filters.colour)}</span>
             <span class="scopechip">${priceLabel(filters)}</span>
-            <button type="button" class="scopelink" data-find="filters">${t.changeFilters}</button>
+            <button type="button" class="scopelink" data-find="filters">${t.change}</button>
           </div>
         </div>
         <!-- The action belongs to the requirement that is missing — or, when
