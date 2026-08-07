@@ -139,18 +139,6 @@ has wines keeps both.
 
 Adding the page to your Home Screen exempts it from the iOS eviction window.
 
-## Relationship to the private version
-
-This began as a fork of a private, two-person app backed by Firebase. That app
-still exists and still runs; this is not a replacement for it and shares no
-data with it. There is no migration path between the two, by choice — reading
-the old database would mean shipping the Firebase SDK that dropping it saved
-most of 117 KB to remove.
-
-What carried over is the code that does the thinking: catalogue access,
-parsing, scoring, the taste profile, the reason strings and the prompt. What
-did not is everything that assumed a server.
-
 ## Legal
 
 Unofficial and unaffiliated. The app does not reproduce, store or redistribute
