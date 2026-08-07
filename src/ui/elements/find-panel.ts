@@ -141,7 +141,7 @@ export class FindPanel extends StoreElement {
 
   connectedCallback(): void {
     delegate(this, 'click', '[data-find]', (_e, el) => {
-      if (el.dataset.find === 'branch') openBranchSheet()
+      if (el.dataset.find === 'branch') this.#goToBranchPicker()
       else if (el.dataset.find === 'search') void runSearch()
       else if (el.dataset.find === 'filters') openFilterSheet()
       else if (el.dataset.find === 'add') openAddWines()
@@ -175,6 +175,27 @@ export class FindPanel extends StoreElement {
    * "right" looks like, and reordering the pair as they are met would make the
    * screen jump under the reader.
    */
+  /**
+   * Take the visitor to the branch picker, whichever one is on screen.
+   *
+   * A phone gets the sheet: one-handed, thumb-reachable, dismissible. A wide
+   * screen already has the list on the page beside the gate, so opening a
+   * modal over it would be a second copy of a control that is right there.
+   *
+   * The test is whether the inline panel is actually rendering, not how wide
+   * the window is — the panel is hidden by CSS, so asking the page is both
+   * simpler and impossible to get out of step with the stylesheet.
+   */
+  #goToBranchPicker(): void {
+    const panel = this.querySelector<HTMLElement>('branch-panel')
+    if (panel === null || panel.offsetParent === null) {
+      openBranchSheet()
+      return
+    }
+    panel.scrollIntoView({ block: 'nearest' })
+    panel.querySelector<HTMLInputElement>('[data-branch-q]')?.focus()
+  }
+
   #requirement(met: boolean, name: string, note: string): Html {
     return html`
       <div class="${met ? 'gate-req is-met' : 'gate-req is-open'}">
@@ -202,8 +223,10 @@ export class FindPanel extends StoreElement {
     const { filters } = appState.getSnapshot()
     const noWines = likedCount === 0
     const ready = likedCount > 0 && branch !== ''
-    // The inline picker only appears when the branch is the missing piece.
-    const panelShown = !noWines && !ready
+    // The picker stays on the page for the whole of the gate, not just while
+    // the branch is missing — on a wide screen it is how the branch gets
+    // changed, so taking it away once answered is what created a dead end.
+    const panelShown = !noWines
     const title = ready ? t.gateReadyTitle
       : noWines ? t.emptyNoWinesTitle
       : t.emptyNoBranchTitle
@@ -241,14 +264,10 @@ export class FindPanel extends StoreElement {
               no way to change branch at all: the scope bar waits for a result,
               and the picker has already been answered.
             -->
-            ${panelShown
-              ? html`<span class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
-                  ${branch ? branchName(branch) : t.noBranch}
-                </span>`
-              : html`<button type="button" data-find="branch"
-                      class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
-                  ${branch ? branchName(branch) : t.noBranch}
-                </button>`}
+            <button type="button" data-find="branch"
+                    class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
+              ${branch ? branchName(branch) : t.noBranch}
+            </button>
             <span class="scopechip">${colourLabel(filters.colour)}</span>
             <span class="scopechip">${priceLabel(filters)}</span>
             <button type="button" class="scopelink" data-find="filters">${t.changeFilters}</button>

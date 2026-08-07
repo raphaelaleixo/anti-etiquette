@@ -123,8 +123,9 @@ describe('the scope gate', () => {
     // the same control twice on one screen is the defect this replaced.
     expect($$('.find-empty .btn-primary')).toEqual([])
     expect($<HTMLButtonElement>('app-foot [data-act="search"]').disabled).toBe(false)
-    // And the picker steps aside: there is nothing left for it to answer.
-    expect($$('branch-panel')).toEqual([])
+    // The picker stays: on a wide screen it is how the branch gets changed,
+    // and taking it away once answered is what created a dead end.
+    expect($$('branch-panel')).toHaveLength(1)
   })
 
   it('renders nothing only once a search has actually run', () => {
@@ -185,8 +186,11 @@ describe('nothing is a dead end', () => {
     expect(canChangeFilters()).toBe(true)
   })
 
-  it('opens the picker from the scope panel when the inline one is gone', () => {
-    cellar.saveWine(wine('111'), 'like')
+  it('opens the sheet when there is no inline picker to reach', () => {
+    // Which control the chip reaches is a question about the page rather than
+    // the viewport, so it is asked of the DOM. With no wines saved the panel
+    // is not rendered at all, which is the same situation a phone is in once
+    // the stylesheet has hidden it.
     appState.setBranch('23112')
     mountPanel()
     expect($$('branch-panel')).toEqual([])
@@ -195,6 +199,22 @@ describe('nothing is a dead end', () => {
       new MouseEvent('click', { bubbles: true }))
 
     expect(document.querySelector('dialog [data-branch]')).toBeTruthy()
+  })
+
+  it('goes to the inline picker instead of opening a sheet over it', () => {
+    // The design is explicit that desktop uses inline panels, not sheets. A
+    // modal covering a list that is already on the page is the same control
+    // twice, and the worse copy of the two.
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    mountPanel()
+    expect($$('branch-panel')).toHaveLength(1)
+
+    $('.scopepanel [data-find="branch"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+
+    expect(document.querySelector('dialog')).toBe(null)
+    expect(document.activeElement).toBe($('branch-panel [data-branch-q]'))
   })
 })
 
@@ -276,9 +296,9 @@ describe('the inline branch panel', () => {
 
     expect(appState.getSnapshot().branch).toBe(id)
     // The card beside it flips to satisfied — that is the confirmation — and
-    // the picker, having been answered, takes itself off the page.
+    // the list stays put, ready to be changed again.
     expect($$('.gate-req').map(r => r.classList.contains('is-met'))).toEqual([true, true])
-    expect($$('branch-panel')).toEqual([])
+    expect($$('branch-panel')).toHaveLength(1)
   })
 
   it('keeps a half-typed search when the panel is rebuilt under it', () => {
