@@ -80,12 +80,18 @@ describe('the find tab with nothing to search from', () => {
     expect($('[data-find="branch"]')).toBeTruthy()
   })
 
-  it('gets out of the way once both are satisfied', async () => {
+  it('says it is ready once both are satisfied, rather than going blank', () => {
+    // It used to return nothing here, which is the commonest state in the app
+    // — saved wines, a chosen branch, no search yet — and it rendered an empty
+    // page. A blank screen is not neutral; it reads as broken.
     cellar.saveWine(wine('111'), 'like')
     appState.setBranch('23112')
     mountFind()
 
-    expect(document.querySelector('.find-empty')).toBe(null)
+    expect(document.querySelector('.find-empty')).not.toBe(null)
+    expect([...document.querySelectorAll('.gate-req')].every(r => r.classList.contains('is-met')))
+      .toBe(true)
+    expect($('.find-empty [data-find="search"]')).toBeTruthy()
     expect($<HTMLButtonElement>('[data-act="search"]').disabled).toBe(false)
   })
 

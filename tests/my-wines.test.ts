@@ -32,6 +32,10 @@ describe('the three groups', () => {
     // filing now — a row no longer repeats its own group's colour.
     expect(el.querySelector('.group--liked .mywines-name')!.textContent).toBe('Wine 111')
     expect(el.querySelector('.group--disliked .mywines-name')!.textContent).toBe('Wine 222')
+    // "Just hidden" opens on demand: it is the biggest group and says nothing
+    // about your taste, so it starts as a count rather than a column of names.
+    expect(el.querySelector('.group--skipped .mywines-name')).toBe(null)
+    el.querySelector<HTMLButtonElement>('.group--skipped .group-toggle')!.click()
     expect(el.querySelector('.group--skipped .mywines-name')!.textContent).toBe('Wine 333')
   })
 
@@ -94,6 +98,53 @@ describe('no loading gap', () => {
   })
 })
 
+/**
+ * The three columns sit side by side, so no one of them may run away with the
+ * page height. Frame 03 caps each list and collapses the largest group.
+ */
+describe('long groups', () => {
+  const fill = (n: number, kind: 'like' | 'skip' = 'like') => {
+    for (let i = 0; i < n; i++) cellar.saveWine(wine(String(100 + i)), kind)
+  }
+
+  it('never hides a visitor\'s own list behind a control', () => {
+    // The frames show "+ 5 more" on desktop and "+ 6 more" on the phone for
+    // the same nine wines — the artboard eliding to fit, not a rule. Capping
+    // here would hide someone's own list for no reason.
+    fill(9)
+    const el = mountList()
+    expect(el.querySelectorAll('.group--liked .mywines-row')).toHaveLength(9)
+  })
+
+  it('starts the hidden group closed, with its count still honest', () => {
+    fill(6, 'skip')
+    const el = mountList()
+    expect(el.querySelector('.group--skipped .mywines-row')).toBe(null)
+    expect(el.querySelector('.group--skipped .group-count')!.textContent).toBe('6')
+
+    el.querySelector<HTMLButtonElement>('.group--skipped .group-toggle')!.click()
+    expect(el.querySelectorAll('.group--skipped .mywines-row')).toHaveLength(6)
+  })
+
+  it('keeps the hidden group open across an unrelated re-render', () => {
+    fill(6, 'skip')
+    const el = mountList()
+    el.querySelector<HTMLButtonElement>('.group--skipped .group-toggle')!.click()
+
+    cellar.saveWine(wine('777'), 'dislike')
+
+    expect(el.querySelectorAll('.group--skipped .mywines-row')).toHaveLength(6)
+  })
+
+  it('says what an empty group is for, rather than nothing', () => {
+    cellar.saveWine(wine('111'), 'like')
+    const el = mountList()
+    const empty = el.querySelector('.group--disliked .group-empty')!
+    expect(empty.querySelector('.label')!.textContent).toContain('Empty group')
+    expect(empty.textContent!.length).toBeGreaterThan(20)
+  })
+})
+
 describe('row actions', () => {
   it('re-files a wine between kinds', () => {
     cellar.saveWine(wine('111'), 'like')
@@ -122,6 +173,9 @@ describe('row actions', () => {
   it('marks the current kind as pressed in the menu', () => {
     cellar.saveWine(wine('111'), 'skip')
     const el = mountList()
+    // The hidden group has to be opened before its rows — and their menus —
+    // are on the page at all.
+    el.querySelector<HTMLButtonElement>('.group--skipped .group-toggle')!.click()
 
     const pressed = [...el.querySelectorAll('[data-act="set-kind"][data-sku="111"]')]
       .filter(b => b.getAttribute('aria-pressed') === 'true')

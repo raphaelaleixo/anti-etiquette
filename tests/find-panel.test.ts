@@ -107,11 +107,25 @@ describe('the scope gate', () => {
     expect($('.find-empty .btn-primary').dataset.find).toBe('add')
   })
 
-  it('goes away entirely once both are satisfied', () => {
+  it('turns into a ready state once both are satisfied, never a blank page', () => {
     cellar.saveWine(wine('111'), 'like')
     appState.setBranch('23112')
     mountPanel()
-    expect($$('.find-empty')).toEqual([])
+
+    expect($$('.gate-req').map(r => r.classList.contains('is-met'))).toEqual([true, true])
+    // The action becomes the thing that has not happened, not a missing input.
+    expect($('.find-empty .btn-primary').dataset.find).toBe('search')
+    // And the picker steps aside: there is nothing left for it to answer.
+    expect($$('branch-panel')).toEqual([])
+  })
+
+  it('renders nothing only once a search has actually run', () => {
+    // The guard is "has a search run", not "are both requirements met". That
+    // difference is the whole of the blank-page bug: the commonest state in
+    // the app fell between the two and drew zero bytes.
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    expect(mountPanel().innerHTML.trim().length).toBeGreaterThan(0)
   })
 })
 
@@ -149,8 +163,10 @@ describe('the inline branch panel', () => {
     row.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
     expect(appState.getSnapshot().branch).toBe(id)
-    // Both requirements are now met, so the gate has gone entirely.
-    expect($$('.find-gate')).toEqual([])
+    // The card beside it flips to satisfied — that is the confirmation — and
+    // the picker, having been answered, takes itself off the page.
+    expect($$('.gate-req').map(r => r.classList.contains('is-met'))).toEqual([true, true])
+    expect($$('branch-panel')).toEqual([])
   })
 
   it('keeps a half-typed search when the panel is rebuilt under it', () => {

@@ -240,6 +240,16 @@ export class MyWines extends StoreElement {
   /** Result of the last export or import, shown until the next render. */
   #message: string | null = null
 
+  /**
+   * Which groups are showing everything.
+   *
+   * Held on the element rather than in a store: it is how this one screen is
+   * being looked at, not something the rest of the app or another tab has any
+   * business knowing. The element outlives its own `mount()`, so it survives
+   * every re-render.
+   */
+  #expanded = new Set<SeedKind>()
+
   protected sources() {
     return [cellar.subscribe, lang.subscribe]
   }
@@ -277,6 +287,12 @@ export class MyWines extends StoreElement {
   }
 
   connectedCallback(): void {
+    delegate(this, 'click', '[data-act="toggle"]', (_e, el) => {
+      const kind = el.dataset.kind as SeedKind
+      if (this.#expanded.has(kind)) this.#expanded.delete(kind)
+      else this.#expanded.add(kind)
+      this.render()
+    })
     delegate(this, 'click', '[data-act="add-wines"]', () => openAddWines())
     delegate(this, 'click', '[data-act="export"]', () => this.#export())
     delegate(this, 'click', '[data-act="import"]', () => {
@@ -324,6 +340,20 @@ export class MyWines extends StoreElement {
     const note = kind === 'like' ? t.kindLikeNote
       : kind === 'dislike' ? t.kindDislikeNote
       : t.kindSkipNote
+
+    // "Just hidden" starts closed. The design says so in as many words — it is
+    // the largest group and the least interesting, because nothing in it says
+    // anything about your taste — so it gets a count and a way in rather than
+    // a column of names.
+    //
+    // The other two are NOT capped. The frames show "+ 5 more" on desktop and
+    // "+ 6 more" on the phone for the same nine wines, which means the artboard
+    // is eliding to fit, not specifying a rule. Copying that literally would
+    // hide a visitor's own list behind a control for no reason.
+    const open = this.#expanded.has(kind)
+    const collapsible = kind === 'skip'
+    const shown = collapsible && !open ? [] : entries
+
     return html`
       <section class="group group--${KIND_CLASS[kind]}">
         <header class="group-head">
@@ -331,14 +361,27 @@ export class MyWines extends StoreElement {
             <span class="group-dot" aria-hidden="true"></span>
             <span class="group-name">${lang.kindLabel(kind)}</span>
             <span class="group-count">${entries.length}</span>
+            ${collapsible && entries.length > 0 && html`
+              <button type="button" class="group-toggle" data-act="toggle" data-kind="${kind}"
+                      aria-expanded="${open ? 'true' : 'false'}">
+                ${open ? t.hide : t.show}
+              </button>
+            `}
           </div>
           <p class="group-note">${note}</p>
         </header>
-        <div class="group-body">
-          ${entries.length === 0
-            ? html`<p class="group-empty">${emptyHint}</p>`
-            : list(entries)}
-        </div>
+        ${entries.length === 0
+          ? html`
+            <div class="group-empty">
+              <div class="label">${t.emptyGroup}</div>
+              <p>${emptyHint}</p>
+            </div>
+          `
+          : html`
+            <div class="group-body">
+              ${shown.length > 0 && list(shown)}
+            </div>
+          `}
       </section>
     `
   }

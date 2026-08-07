@@ -219,16 +219,26 @@ describe('the filter sheet', () => {
     expect(appState.getSnapshot().filters.colour).toBe('red')
   })
 
-  it('resets to the defaults from the header action', () => {
+  it('resets to the defaults from the footer, beside what it undoes', () => {
+    // Reset used to sit in the title row, where the design puts the name of
+    // the branch being narrowed. It belongs next to the apply button.
     openFilterSheet()
     $$('[data-filter="preset"]')[0]!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect($<HTMLInputElement>('[data-filter="max"]').value).toBe('15')
 
-    $('[data-sheet="cancel"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    $('[data-filter="reset"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
     expect($<HTMLInputElement>('[data-filter="min"]').value).toBe('15')
     expect($<HTMLInputElement>('[data-filter="max"]').value).toBe('30')
     expect(document.querySelector('dialog')).not.toBe(null) // reset, not dismiss
+  })
+
+  it('names the branch it is narrowing, and calls itself what the design does', () => {
+    appState.setBranch('23112')
+    openFilterSheet()
+    expect($('.sheet-title').textContent).toContain('Narrow the shelf')
+    expect($('.sheet-scope').textContent!.trim().length).toBeGreaterThan(0)
+    expect($('.sheet-scope').textContent).not.toContain('Reset')
   })
 
   it('does not rebuild the number inputs while they are being typed into', () => {

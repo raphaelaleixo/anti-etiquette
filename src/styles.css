@@ -625,7 +625,26 @@ button { font: inherit; color: inherit; }
   color: var(--mute);
 }
 .group-note { font-size: 12px; line-height: 1.4; color: var(--mute2); }
-.group-empty { padding: 16px; font-size: 13px; line-height: 1.5; color: var(--mute2); }
+/*
+ * An empty group states what it is for rather than sitting blank. It keeps the
+ * card's shape so the three columns still read as three of the same thing.
+ */
+.group-empty { display: flex; flex-direction: column; gap: 11px; padding: 18px; }
+.group-empty p { font-size: 14px; line-height: 1.5; color: var(--mute); }
+
+
+.group-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mute2);
+  font-size: 13px;
+  cursor: pointer;
+}
+.group-toggle:hover { color: var(--ink0); }
+/* The count keeps its right edge; the toggle follows it. */
+.group-titlerow .group-count { margin-inline-start: auto; }
+.group-titlerow .group-toggle { margin-inline-start: 0; }
 
 .group--liked { border-color: var(--more-line); }
 .group--liked .group-head { border-block-end-color: var(--more-line); background: var(--more-bg); }
@@ -1104,6 +1123,7 @@ button { font: inherit; color: inherit; }
 
 .results-list { display: flex; flex-direction: column; gap: 12px; }
 
+
 .results-row {
   display: grid;
   grid-template-areas:
@@ -1289,6 +1309,34 @@ button { font: inherit; color: inherit; }
 }
 .sheet-cancel:hover { color: var(--ink0); }
 
+/*
+ * The same slot, when what belongs there is a statement rather than a control:
+ * the branch these filters are narrowing.
+ */
+.sheet-scope {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute3);
+  text-align: end;
+  cursor: default;
+}
+
+/* Reset sits in the footer beside the button that applies what it undoes. */
+.sheet-reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mute2);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.sheet-reset:hover { color: var(--ink0); }
+
 .sheet-body {
   flex: 1;
   min-block-size: 0;
@@ -1309,6 +1357,8 @@ button { font: inherit; color: inherit; }
   background: var(--raise2);
 }
 .sheet-foot > .btn-primary { padding-block: 15px; font-size: 15px; }
+.sheet-foot:has(.sheet-reset) { flex-direction: row; align-items: center; gap: 12px; }
+.sheet-foot:has(.sheet-reset) > .btn-primary { flex: 1; }
 .sheet-foot-row { display: flex; gap: 9px; }
 .sheet-foot-row > * { flex: 1; }
 .sheet-summary { font-size: 12px; line-height: 1.4; color: var(--mute2); text-align: center; }
@@ -1370,10 +1420,11 @@ button { font: inherit; color: inherit; }
 .filtersheet-pricehead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .filtersheet-priceband { font: 500 13px/1 var(--mono); color: var(--ink0); }
 
-.filtersheet-numbers { display: flex; align-items: flex-end; gap: 10px; }
-.filtersheet-numberbox { flex: 1; display: flex; flex-direction: column; gap: 6px; min-inline-size: 0; }
-.filtersheet-numberbox input {
-  inline-size: 100%;
+.filtersheet-numbers { display: flex; align-items: center; gap: 10px; }
+.filtersheet-to { font-size: 14px; color: var(--mute3); flex: none; }
+.filtersheet-numbers input {
+  flex: 1;
+  min-inline-size: 0;
   padding: 12px 14px;
   border: 1px solid var(--edge4);
   border-radius: 3px;
@@ -1381,7 +1432,7 @@ button { font: inherit; color: inherit; }
   color: var(--ink0);
   font: 500 15px/1 var(--mono);
 }
-.filtersheet-numberbox input::placeholder { color: var(--mute3); font-weight: 400; }
+.filtersheet-numbers input::placeholder { color: var(--mute3); font-weight: 400; }
 
 /*
  * The live count, in the body where the design puts it: the visitor never

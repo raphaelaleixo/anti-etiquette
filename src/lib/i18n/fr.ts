@@ -124,6 +124,10 @@ export const fr: Messages = {
   reqBranch: 'Une succursale',
   reqBranchMet: name => `${name}. Seules les bouteilles qu’elle a en tablette sont classées.`,
   reqBranchOpen: 'Pas encore choisie. Choisissez-en une et la recherche pourra se lancer.',
+  gateReadyTitle: 'Prêt. Lisons cette tablette.',
+  gateReadyNote:
+    'Rien n’a encore été chargé — la recherche lit ce que la succursale a en ' +
+    'tablette en ce moment, ce qui prend quelques secondes.',
   bestMatches: 'Meilleures correspondances',
   rankedAgainst: n => `classés selon vos ${n} vins`,
   resultCount: (shown, total) => `${shown} affichés · ${total} correspondent à vos filtres`,
@@ -218,6 +222,7 @@ export const fr: Messages = {
   price: 'Prix',
   min: 'Min',
   max: 'Max',
+  to: 'à',
   any: 'Tous',
   showCount: n => `Afficher ${n} vin${s(n)}`,
   showNone: 'Aucun vin dans cette fourchette',

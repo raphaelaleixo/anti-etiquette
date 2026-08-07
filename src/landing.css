@@ -38,7 +38,10 @@
   --accent-hi: #f0a08c;
   --on-accent: #0e0c09;
   /* The one other hue in the design: a green dot against the privacy line. */
-  --ok: #6bbf8a;
+  --ok: oklch(0.72 0.13 145);
+  --ok-line: oklch(0.32 0.03 145);
+  --ok-bg: oklch(0.22 0.012 145);
+  --ok-ink: oklch(0.84 0.02 145);
 
   --sans: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   --display: Georgia, "Iowan Old Style", "Times New Roman", serif;
@@ -92,10 +95,21 @@ a { color: inherit; text-decoration: none; }
 }
 .brand-name { font-family: var(--display); font-size: 20px; line-height: 1; color: var(--ink2); }
 
-.site-nav { display: flex; align-items: center; gap: clamp(1rem, 2vw, 2.25rem); flex-wrap: wrap; }
-.site-links { display: flex; align-items: center; gap: 1.75rem; font-size: 14px; }
+.site-nav { display: flex; align-items: center; gap: 36px; }
+.site-links { display: flex; align-items: center; gap: 28px; font-size: 14px; }
 .site-links a { color: var(--mute); }
 .site-links a:hover { color: var(--ink2); }
+
+/*
+ * On a phone the header is the wordmark and the language switch, and nothing
+ * else. The design is explicit about this and it is the right call: three
+ * anchors and a button wrap into two cluttered rows at 390px, and every one
+ * of them is reachable by scrolling the page they sit above.
+ */
+@media (max-width: 52rem) {
+  .site-links,
+  .site-head .btn { display: none; }
+}
 
 .langtoggle {
   display: flex;
@@ -139,10 +153,10 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
   display: grid;
   grid-template-columns: 1fr;
   gap: 40px;
-  padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter);
+  padding: clamp(2.5rem, 7vw, 5.5rem) var(--gutter) clamp(2.5rem, 6vw, 5rem);
 }
 @media (min-width: 62rem) {
-  .hero { grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: start; }
+  .hero { grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
 }
 
 .hero-copy { display: flex; flex-direction: column; gap: 26px; align-items: flex-start; }
@@ -158,10 +172,13 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--ok-line);
   border-radius: 4px;
-  background: var(--raise);
+  background: var(--ok-bg);
+  max-inline-size: 520px;
   font-size: 14px;
+  line-height: 1.45;
+  color: var(--ok-ink);
 }
 .reassure::before {
   content: '';
@@ -181,13 +198,16 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
 .hero-figure {
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: var(--raise);
-  min-block-size: 22rem;
-  display: grid;
-  place-items: center;
-  padding: 2rem;
-  text-align: center;
-  font: 500 11px/1.4 var(--mono);
+  background-color: oklch(0.21 0.008 70);
+  background-image: repeating-linear-gradient(
+    135deg, oklch(0.235 0.008 70) 0 9px, oklch(0.205 0.008 70) 9px 18px);
+  block-size: clamp(12.5rem, 30vw, 27.5rem);
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  font: 500 10px/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--mute2);
 }
 
@@ -204,7 +224,7 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
-  margin-block-end: 2rem;
+  margin-block-end: 44px;
 }
 .steps h2 { font-size: clamp(1.5rem, 3vw, 2.125rem); line-height: 1.1; }
 
@@ -224,9 +244,11 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
   flex-direction: column;
   gap: 12px;
   padding-block-start: 18px;
-  border-block-start: 1px solid var(--line2);
+  border-block-start: 2px solid var(--line2);
 }
-.step-num { font: 500 12px/1 var(--mono); color: var(--accent); }
+.step:first-child { border-block-start-color: var(--accent); }
+.step:first-child .step-num { color: var(--accent); }
+.step-num { font: 500 12px/1 var(--mono); color: var(--mute2); }
 .step h3 { font-size: 20px; line-height: 1.25; }
 .step p { font-size: 14px; color: var(--mute); }
 
@@ -244,12 +266,28 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
 }
 .plainly h2 { font-size: clamp(1.5rem, 3vw, 2.125rem); line-height: 1.1; margin-block-end: 24px; }
 
-.nots { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 4px; }
-.nots li { display: flex; align-items: baseline; gap: 14px; padding: 18px 20px; flex-wrap: wrap; }
-.nots li + li { border-block-start: 1px solid var(--line); }
-.not-mark { font: 500 13px/1 var(--mono); color: var(--accent); }
+.nots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.nots li {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 18px 20px;
+  flex-wrap: wrap;
+  background: var(--panel-2);
+}
+.not-mark { font: 500 13px/1 var(--mono); color: var(--ok); }
 .not-name { font-size: 15px; color: var(--ink2); }
-.not-why { font-size: 14px; color: var(--mute); flex: 1 1 14rem; }
+.not-why { font-size: 14px; color: var(--mute2); margin-inline-start: auto; }
 
 .about { display: flex; flex-direction: column; gap: 20px; }
 .about p { font-size: 15px; color: var(--ink); }
@@ -263,6 +301,7 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
   gap: 40px;
   padding: clamp(2.5rem, 5vw, 3.5rem) var(--gutter);
   border-block-start: 1px solid var(--line);
+  background: var(--panel-2);
   flex-wrap: wrap;
 }
 .closing-copy { display: flex; flex-direction: column; gap: 8px; }
@@ -271,6 +310,7 @@ html[lang='fr'] .langtoggle button[data-set-lang='fr'] {
 
 .site-foot {
   padding: 24px var(--gutter);
+  letter-spacing: 0.04em;
   border-block-start: 1px solid var(--line);
   font: 500 12px/1.5 var(--mono);
   color: var(--mute2);

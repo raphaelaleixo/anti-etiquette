@@ -5,6 +5,7 @@ import { productUrl } from '../../lib/catalog'
 import * as lang from '../../lib/lang'
 import { describeMatch } from '../../lib/reasons'
 import { branchName } from '../../lib/branches'
+import { runSearch } from '../../lib/search'
 import { openBranchSheet } from '../branchSheet'
 import { openFilterSheet } from '../filterSheet'
 import { openAddWines } from '../addWines'
@@ -12,6 +13,7 @@ import type { ScoredWine, TasteProfile, Wine } from '../../lib/types'
 
 /** Below this, SAQ's community average is closer to noise than signal. */
 const THIN_SAMPLE = 5
+
 
 /**
  * SAQ's own community rating.
@@ -137,6 +139,7 @@ export class FindPanel extends StoreElement {
   connectedCallback(): void {
     delegate(this, 'click', '[data-find]', (_e, el) => {
       if (el.dataset.find === 'branch') openBranchSheet()
+      else if (el.dataset.find === 'search') void runSearch()
       else if (el.dataset.find === 'filters') openFilterSheet()
       else if (el.dataset.find === 'add') openAddWines()
       else if (el.dataset.find === 'prompt') {
@@ -181,14 +184,30 @@ export class FindPanel extends StoreElement {
     `
   }
 
-  #emptyState(likedCount: number, branch: string): Html | false {
-    if (likedCount > 0 && branch) return false
+  /**
+   * The gate, shown whenever there is nothing to show instead.
+   *
+   * It used to bow out the moment both requirements were met, which left the
+   * commonest state in the app — wines saved, branch chosen, search not yet
+   * run — rendering literally nothing. A blank page is not a neutral outcome;
+   * it reads as broken. The requirements are the same cards either way, and
+   * when both are satisfied the screen says so and offers the search.
+   */
+  #emptyState(likedCount: number, branch: string, searched: boolean): Html | false {
+    if (searched) return false
     const t = lang.t()
     const noWines = likedCount === 0
+    const ready = likedCount > 0 && branch !== ''
+    const title = ready ? t.gateReadyTitle
+      : noWines ? t.emptyNoWinesTitle
+      : t.emptyNoBranchTitle
+    const note = ready ? t.gateReadyNote
+      : noWines ? t.emptyNoWinesNote
+      : t.emptyNoBranchNote
     return html`
       <div class="find-gate">
       <section class="find-empty">
-        <h2>${noWines ? t.emptyNoWinesTitle : t.emptyNoBranchTitle}</h2>
+        <h2>${title}</h2>
         <div class="gate-reqs">
           ${this.#requirement(
             !noWines,
@@ -199,9 +218,12 @@ export class FindPanel extends StoreElement {
             t.reqBranch,
             branch ? t.reqBranchMet(branchName(branch)) : t.reqBranchOpen)}
         </div>
-        <p class="hint">${noWines ? t.emptyNoWinesNote : t.emptyNoBranchNote}</p>
-        <!-- The action belongs to the requirement that is missing. -->
-        ${noWines
+        <p class="hint">${note}</p>
+        <!-- The action belongs to the requirement that is missing — or, when
+             nothing is missing, to the thing that has not happened yet. -->
+        ${ready
+          ? html`<button type="button" class="btn-primary" data-find="search">${t.searchButton}</button>`
+          : noWines
           ? html`<button type="button" class="btn-primary" data-find="add">${t.addWines}</button>`
           : html`<button type="button" class="btn-primary" data-find="branch">${t.chooseBranch}</button>`}
       </section>
@@ -213,7 +235,7 @@ export class FindPanel extends StoreElement {
         Hidden below the desktop breakpoint, where the sheet is the right
         shape — so the button above stays the way in on a phone.
       -->
-      ${!noWines && html`<branch-panel></branch-panel>`}
+      ${!noWines && !ready && html`<branch-panel></branch-panel>`}
       </div>
     `
   }
@@ -232,7 +254,7 @@ export class FindPanel extends StoreElement {
     // bar saying where you are, above everything it applies to. Results take
     // the main column; what is not the ranking sits beside it.
     mount(this, html`
-      ${this.#emptyState(likedCount, branch)}
+      ${this.#emptyState(likedCount, branch, search !== null && search !== undefined)}
       ${search && html`
         <div class="find-grid">
           <div class="find-main">

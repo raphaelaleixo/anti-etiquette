@@ -2,7 +2,7 @@ import { html, mount, delegate, setProp } from './dom'
 import { openSheet } from './sheet'
 import { countMatches, type CatalogFilters, type WineColour } from '../lib/catalog'
 import {
-  COLOURS, PRICE_PRESETS, DEFAULT_FILTERS, fullSummary, priceLabel,
+  COLOURS, PRICE_PRESETS, DEFAULT_FILTERS, priceLabel,
   colourLabel, presetLabel,
 } from '../lib/filters'
 import { branchName } from '../lib/branches'
@@ -29,20 +29,13 @@ export function openFilterSheet(): void {
   let requestId = 0
 
   const sheet = openSheet({
-    title: t().filtersTitle,
-    cancelLabel: t().resetFilters,
+    title: t().narrowTheShelf,
+    // The branch, not a control: it names what is being narrowed. Reset moved
+    // to the footer, beside the button that applies what it undoes.
+    cancelLabel: branch ? branchName(branch) : t().thisBranch,
     onClose: () => clearTimeout(timer),
   })
-
-  // "Reset" restores the defaults rather than dismissing — the sheet's own
-  // backdrop and Escape are the ways out.
-  sheet.dialog.querySelector('[data-sheet="cancel"]')!.addEventListener('click', e => {
-    e.stopImmediatePropagation()
-    draft = { ...DEFAULT_FILTERS }
-    count = null
-    renderBody()
-    scheduleCount()
-  }, true)
+  sheet.dialog.querySelector<HTMLElement>('.sheet-cancel')!.className = 'sheet-scope'
 
   function renderBody(): void {
     const activePreset = PRICE_PRESETS.find(p => p.min === draft.priceMin && p.max === draft.priceMax)
@@ -74,14 +67,11 @@ export function openFilterSheet(): void {
           `)}
         </div>
         <div class="filtersheet-numbers">
-          <label class="filtersheet-numberbox">
-            <span class="label">${t().min}</span>
-            <input type="number" min="0" inputmode="numeric" data-filter="min" placeholder="${t().any}" />
-          </label>
-          <label class="filtersheet-numberbox">
-            <span class="label">${t().max}</span>
-            <input type="number" min="0" inputmode="numeric" data-filter="max" placeholder="${t().any}" />
-          </label>
+          <input type="number" min="0" inputmode="numeric" data-filter="min"
+                 placeholder="${t().any}" aria-label="${t().min}" />
+          <span class="filtersheet-to">${t().to}</span>
+          <input type="number" min="0" inputmode="numeric" data-filter="max"
+                 placeholder="${t().any}" aria-label="${t().max}" />
         </div>
       </div>
       <!--
@@ -132,8 +122,8 @@ export function openFilterSheet(): void {
       : count !== null ? t().searchTheseWines(count)
       : t().showWines
     sheet.setFoot(html`
+      <button type="button" class="sheet-reset" data-filter="reset">${t().resetFilters}</button>
       <button class="btn-primary" data-filter="apply">${label}</button>
-      <div class="sheet-summary">${fullSummary(draft, branch ? branchName(branch) : t().thisBranch)}</div>
     `)
     setProp<HTMLButtonElement, 'disabled'>(
       sheet.foot, '[data-filter="apply"]', 'disabled', count === 0)
@@ -185,6 +175,13 @@ export function openFilterSheet(): void {
     count = null
     const band = sheet.body.querySelector('[data-filter-band]')
     if (band) band.textContent = priceLabel(draft)
+    scheduleCount()
+  })
+
+  delegate(sheet.foot, 'click', '[data-filter="reset"]', () => {
+    draft = { ...DEFAULT_FILTERS }
+    count = null
+    renderBody()
     scheduleCount()
   })
 

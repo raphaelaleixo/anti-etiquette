@@ -131,6 +131,10 @@ export const en = {
   reqBranch: 'A branch',
   reqBranchMet: (name: string) => `${name}. Only the bottles it is holding get ranked.`,
   reqBranchOpen: 'Not chosen yet. Pick one and the search can run.',
+  gateReadyTitle: 'Ready. Read this shelf.',
+  gateReadyNote:
+    'Nothing has been fetched yet — the search reads what this branch is ' +
+    'holding right now, which takes a few seconds.',
   bestMatches: 'Best matches',
   rankedAgainst: (n: number) => `ranked against your ${n} wines`,
   resultCount: (shown: number, total: number) => `${shown} shown · ${total} fit your filters`,
@@ -226,6 +230,7 @@ export const en = {
   price: 'Price',
   min: 'Min',
   max: 'Max',
+  to: 'to',
   any: 'Any',
   showCount: (n: number) => `Show ${n} wines`,
   showNone: 'No wines in this band',
