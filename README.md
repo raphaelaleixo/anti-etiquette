@@ -20,7 +20,12 @@ That one call goes browser-direct to the SAQ's own CORS-open catalogue
 endpoint, the same one saq.com's JavaScript uses. Everything else — your list,
 your filters, your branch — lives in `localStorage` and never leaves the
 machine. There is no database, no serverless function, no environment
-variable, no secret, no account, and nothing to configure.
+variable, no account, and nothing to configure.
+
+The one credential in the source — the `x-api-key` in `src/lib/catalog.ts` —
+is SAQ's own storefront key, the one saq.com ships to every browser that
+visits it. It is public by construction, which is why it is checked in rather
+than hidden in a variable that would only pretend otherwise.
 
 **Zero runtime dependencies.** No framework:
 
@@ -28,7 +33,7 @@ variable, no secret, no account, and nothing to configure.
 "dependencies": {}
 ```
 
-The UI is custom elements and a 142-line rendering toolkit
+The UI is custom elements and a small rendering toolkit
 (`src/ui/dom.ts`). TypeScript and Vite are build tools; nothing ships to the
 browser but the app.
 
@@ -106,7 +111,7 @@ rather not be offered again.
 
 ### Reactivity
 
-Two stores (`cellar.ts`, `appState.ts`) with the same shape: an
+Three stores (`cellar.ts`, `appState.ts`, `lang.ts`) with the same shape: an
 identity-stable `getSnapshot()`, a `subscribe()`, and mutators that publish
 from inside themselves. Sections are light-DOM custom elements extending
 `StoreElement`, which subscribes on connect and unsubscribes on disconnect —
