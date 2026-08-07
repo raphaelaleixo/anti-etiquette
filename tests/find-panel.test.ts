@@ -260,6 +260,36 @@ describe('the inline filter panel', () => {
     expect($$('branch-panel')).toHaveLength(1)
   })
 
+  it('swaps back to the branch list rather than opening a sheet over the filters', () => {
+    // The column can be showing either picker, so "is my own element here" is
+    // the wrong question — with the filters up there is no branch panel to
+    // find, and asking that way opened a modal on top of a column that was
+    // right there.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    openFilters()
+    expect($$('filter-panel')).toHaveLength(1)
+
+    $('.scopepanel [data-find="branch"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+
+    expect(document.querySelector('dialog')).toBe(null)
+    expect($$('branch-panel')).toHaveLength(1)
+    expect($$('filter-panel')).toEqual([])
+  })
+
+  it('swaps to the filters rather than opening a sheet over the branch list', () => {
+    // The same question from the other side, so the two cannot drift apart.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect($$('branch-panel')).toHaveLength(1)
+
+    openFilters()
+
+    expect(document.querySelector('dialog')).toBe(null)
+    expect($$('filter-panel')).toHaveLength(1)
+  })
+
   it('falls back to the sheet when there is no column to use', () => {
     appState.setBranch('23112')
     mountPanel()

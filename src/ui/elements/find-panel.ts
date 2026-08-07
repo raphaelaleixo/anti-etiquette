@@ -182,24 +182,43 @@ export class FindPanel extends StoreElement {
    * screen jump under the reader.
    */
   /**
-   * Take the visitor to the branch picker, whichever one is on screen.
+   * The scope column, if this screen is currently showing one.
+   *
+   * Asked of the DOM rather than of the viewport: the column is hidden by the
+   * stylesheet, so reading the page cannot drift out of step with it the way a
+   * breakpoint copied into JavaScript would.
+   *
+   * One question, one answer, for both pickers. Asking it separately in each
+   * handler is what let them disagree: the branch one looked for its own
+   * element rather than for the column, so once the filters had taken the
+   * column over there was no branch panel to find and it opened a sheet on top
+   * of one that was already there.
+   */
+  #scopeColumn(): HTMLElement | null {
+    const el = this.querySelector<HTMLElement>('branch-panel, filter-panel')
+    return el !== null && el.offsetParent !== null ? el : null
+  }
+
+  /**
+   * Take the visitor to the branch picker, whichever one this screen has.
    *
    * A phone gets the sheet: one-handed, thumb-reachable, dismissible. A wide
-   * screen already has the list on the page beside the gate, so opening a
-   * modal over it would be a second copy of a control that is right there.
-   *
-   * The test is whether the inline panel is actually rendering, not how wide
-   * the window is — the panel is hidden by CSS, so asking the page is both
-   * simpler and impossible to get out of step with the stylesheet.
+   * screen has the list on the page beside the gate, so a modal over it would
+   * be a second copy of a control that is already there.
    */
   #goToBranchPicker(): void {
-    const panel = this.querySelector<HTMLElement>('branch-panel')
-    if (panel === null || panel.offsetParent === null) {
+    if (this.#scopeColumn() === null) {
       openBranchSheet()
       return
     }
-    panel.scrollIntoView({ block: 'nearest' })
-    panel.querySelector<HTMLInputElement>('[data-branch-q]')?.focus()
+    // The column may be showing the filters. Hand it back first.
+    if (this.#changingFilters) {
+      this.#changingFilters = false
+      this.render()
+    }
+    const panel = this.querySelector<HTMLElement>('branch-panel')
+    panel?.scrollIntoView({ block: 'nearest' })
+    panel?.querySelector<HTMLInputElement>('[data-branch-q]')?.focus()
   }
 
   /**
@@ -211,8 +230,7 @@ export class FindPanel extends StoreElement {
    * would stand between the visitor and the branch list.
    */
   #goToFilters(): void {
-    const column = this.querySelector<HTMLElement>('branch-panel, filter-panel')
-    if (column === null || column.offsetParent === null) {
+    if (this.#scopeColumn() === null) {
       openFilterSheet()
       return
     }
