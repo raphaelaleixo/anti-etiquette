@@ -147,10 +147,26 @@ export const fr: Messages = {
 
   // ---------------------------------------------------------- add wines
   addTitle: 'Ajouter des vins',
-  addHeading: 'Nommez quelques vins que vous avez bus et sur lesquels vous avez un avis.',
+  addHeading: 'Nommez les vins dont vous vous souvenez',
   addSub:
-    'Aimés ou détestés, les deux aident. Vous les trierez à l’étape suivante — ' +
-    'pas ceux que vous pensez acheter.',
+    'Un par ligne. Comme vous vous en souvenez — l’orthographe du catalogue, ' +
+    'c’est notre problème, pas le vôtre.',
+  linesEntered: n => `${n} ligne${s(n)} saisie${s(n)}`,
+  pasteAWholeList: 'Collez une liste entière si vous en gardez une quelque part.',
+  bothKindsHelp: 'Les deux aident',
+  bothKindsHelpNote:
+    'Les vins que vous n’avez pas aimés sont aussi utiles que ceux que vous ' +
+    'avez aimés — ils éloignent le classement de toute une famille de ' +
+    'bouteilles. Vous trierez chaque ligne à l’étape suivante.',
+  whatALineLooks: 'À quoi peut ressembler une ligne',
+  lineExamples: ['Duas Quintas 2019', 'grange des pères rouge', 'l’Etna Rosso de l’été dernier'],
+  vagueIsFine:
+    'Vague, c’est correct. Très vague — « pinot noir » — vous donnera un choix ' +
+    'de correspondances.',
+  lookupStaysHere:
+    'Rien n’est envoyé ailleurs. La recherche au catalogue se fait pour les ' +
+    'noms que vous écrivez, et le résultat reste dans ce navigateur.',
+  nothingSavedUntil: 'Rien n’est enregistré tant que vous n’avez pas vérifié les correspondances.',
   onePerLine: 'Un par ligne',
   addPlaceholder: 'Château Bonnet\nRiesling Kabinett\nChianti Classico',
   lookUp: n => `Chercher ${n} vin${s(n)}`,

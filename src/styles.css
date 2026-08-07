@@ -1607,38 +1607,226 @@ button { font: inherit; color: inherit; }
 
 /* ═════════════════════════════════════════════════════════ adding wines ══ */
 
+/* ── where you are in the two steps ──────────────────────────────────────── */
+
+.addsteps {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.addstep { padding: 5px 8px; border-radius: 2px; color: var(--mute3); }
+.addstep--on { background: var(--more-bg2); color: oklch(0.94 0.01 35); }
+/* A completed step is still a way back to the text you typed. */
+.addstep--done { color: var(--mute2); text-decoration: underline; }
+.addstep-arrow { color: var(--edge3); }
+
 /* ── step 1: a keyboard task, given a keyboard-sized page ────────────────── */
+
+.addwines-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.addwines-main { display: flex; flex-direction: column; gap: 18px; min-inline-size: 0; }
+.addwines-side { display: flex; flex-direction: column; gap: 16px; }
+
+.addwines-note {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 16px;
+  border: 1px solid var(--line4);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.addwines-note p { font-size: 13px; line-height: 1.55; color: var(--mute); }
+.addwines-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font: 400 13px/1.5 var(--mono);
+  color: var(--ink3);
+}
+/* The privacy claim is the one thing on this screen worth a colour. */
+.addwines-note--ok {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 11px;
+  border-color: var(--ok-line);
+  background: var(--ok-bg);
+}
+.addwines-note--ok p { color: var(--ok-ink); }
+.addwines-dot {
+  inline-size: 7px;
+  block-size: 7px;
+  flex: none;
+  margin-block-start: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.seedinput-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.seedinput-count { font: 500 13px/1 var(--mono); letter-spacing: 0.06em; color: var(--mute); }
 
 .addwines-heading { font-family: var(--display); font-size: 25px; line-height: 1.15; color: var(--ink0); }
 .addwines-sub { margin-block-start: 8px; font-size: 14px; line-height: 1.5; color: var(--mute); }
 
 .seedinput { display: flex; flex-direction: column; gap: 12px; }
-.seedinput-panel { display: flex; flex-direction: column; gap: 8px; }
-.seedinput textarea {
-  inline-size: 100%;
-  min-block-size: 220px;
-  padding: 14px;
+.seedinput-panel {
+  display: flex;
+  overflow: hidden;
   border: 1px solid var(--edge3);
   border-radius: 5px;
   background: var(--well);
+}
+/*
+ * The line numbers are a sibling of the textarea, not part of it, so they only
+ * stay aligned while lines do not wrap. That is why the textarea stops
+ * wrapping at the same breakpoint the gutter appears at — and why neither
+ * happens on a phone, where horizontal scrolling would be the worse trade.
+ */
+.seedinput-gutter { display: none; }
+.seedinput textarea {
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 220px;
+  padding: 14px;
+  border: 0;
+  background: transparent;
   color: var(--ink);
   /* The visitor's own words, so the reading face — not the measurement one. */
   font: 400 15px/1.75 var(--sans);
   resize: vertical;
 }
+.seedinput textarea:focus { outline: none; }
+.seedinput-panel:focus-within { border-color: var(--more); }
 .seedinput textarea::placeholder { color: var(--mute3); }
 
 @media (min-width: 62rem) {
+  .addwines-grid { grid-template-columns: 1fr 420px; gap: 48px; align-items: start; }
   .addwines-heading { font-size: 32px; letter-spacing: -0.01em; }
   .addwines-sub { font-size: 15px; line-height: 1.55; max-inline-size: 64ch; }
-  .seedinput textarea { min-block-size: 300px; padding: 20px; }
+  .addwines-note { padding: 20px; }
+  .addwines-note p { font-size: 14px; }
+  .seedinput textarea {
+    min-block-size: 300px;
+    padding: 20px;
+    /* Numbered lines can only line up while lines do not wrap. */
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .seedinput-gutter {
+    display: block;
+    flex: none;
+    min-inline-size: 42px;
+    padding: 20px 12px;
+    border-inline-end: 1px solid var(--line3);
+    background: var(--sub);
+    font: 400 15px/1.75 var(--mono);
+    text-align: end;
+    color: var(--faint);
+    white-space: pre;
+    overflow: hidden;
+    user-select: none;
+  }
 }
 
 /* ── step 2: where an ambiguous name gets settled ────────────────────────── */
 
 .resolution { display: flex; flex-direction: column; gap: 16px; }
-.resolution-head { display: flex; flex-direction: column; gap: 5px; }
+.resolution-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.resolution-head > div { display: flex; flex-direction: column; gap: 5px; }
 .resolution-head h2 { font-size: 22px; line-height: 1.15; }
+.resolution-willsave {
+  font: 500 12px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+
+/* Said once, at the top, instead of on every row. */
+.resolution-cols { display: none; }
+
+/* One "n other matches" link, not a picker implying doubt. */
+.resolution-others {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mute2);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.resolution-others:hover { color: var(--ink0); }
+
+/*
+ * Lines the catalogue could not place, gathered under one explanation.
+ * Interleaving them with the matches made a good batch look broken.
+ */
+.resolution-missing {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px dashed var(--edge2);
+  border-radius: 5px;
+  background: var(--sub);
+}
+.resolution-missing-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.resolution-missing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* An ambiguous line is a card, not a row: it has a question to ask. */
+.resolution-row--ambiguous {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--more-edge);
+  border-radius: 5px;
+  background: oklch(0.215 0.012 35);
+}
+.resolution-ambhead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+.resolution-ambhead .resolution-name { font-size: 15px; line-height: 1.4; }
+.resolution-ambhead > .hint { font-size: 13px; }
+.resolution-row--ambiguous .resolution-alts { border: 0; border-radius: 0; background: transparent; }
+.resolution-ambfoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-block-start: 1px solid var(--more-line);
+  background: var(--more-bg);
+}
+.resolution-ambfoot .resolution-kinds { flex: none; }
 
 .resolution-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 
@@ -1790,34 +1978,71 @@ button { font: inherit; color: inherit; }
   background: var(--less-bg);
 }
 .resolution-none {
-  padding: 9px 14px;
-  border: 1px dashed var(--edge3);
-  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  inline-size: 100%;
+  padding: 15px 16px;
+  border: 0;
+  border-block-start: 1px dashed var(--edge3);
   background: transparent;
   color: var(--ink3);
-  font-size: 13px;
+  font-size: 15px;
+  text-align: start;
   cursor: pointer;
 }
+.resolution-none:hover { background: var(--raise); color: var(--ink0); }
+.resolution-x { font-size: 16px; line-height: 1; }
+
+/* The three groups, in the colours they will land in. */
+.addtally { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--mute); }
+.addtally-part { display: flex; align-items: center; gap: 7px; }
+.addtally-dot { inline-size: 8px; block-size: 8px; border-radius: 2px; }
+.addtally-dot--like { background: var(--more); }
+.addtally-dot--dislike { background: var(--less); }
+.addtally-dot--skip { background: var(--faint); }
 
 @media (min-width: 62rem) {
   .resolution-head h2 { font-size: 30px; letter-spacing: -0.01em; }
-  /* Three columns, in the design's order: typed · match · file it in. */
+
+  /* Four columns, in the design's order: typed · match · file it in · drop. */
+  .resolution-cols,
   .resolution-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 250px 32px;
+    align-items: center;
+    gap: 16px;
+  }
+  .resolution-cols {
+    padding-block-end: 10px;
+    border-block-end: 1px solid var(--line3);
+    font: 500 11px/1 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mute3);
+  }
+  .resolution-row { padding: 14px 0; }
+  /* The ambiguous card is a panel, not a row, so it keeps its own layout. */
+  .resolution-row--ambiguous { display: block; }
+  .resolution-ambhead {
     display: grid;
     grid-template-columns: 220px 1fr 250px;
     align-items: center;
     gap: 16px;
-    padding: 14px 0;
+    padding: 18px 20px;
   }
-  /* The two exceptions keep stacking: both are a panel, not a row. */
-  .resolution-row--unmatched,
-  .resolution-row:has(.resolution-alts) { display: flex; }
-  .resolution-row--unmatched { padding: 20px; }
-  .resolution-typedlabel { display: none; }
-  .resolution-row:not(:has(.resolution-file)) .resolution-rowactions { grid-column: 2 / -1; }
-  .resolution-row:has(.resolution-file) .resolution-rowactions { justify-content: flex-end; }
+  .resolution-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .resolution-missing-row { flex-wrap: nowrap; }
+  .resolution-rowactions { justify-content: flex-end; }
   .resolution-altmeta { inline-size: 190px; }
   .resolution-altprice { inline-size: 70px; text-align: end; }
+  .resolution-name-row .resolution-altprice { inline-size: auto; }
 }
 
 /* ═══════════════════════════════════════════ motion between the sections ══ */

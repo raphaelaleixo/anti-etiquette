@@ -118,17 +118,21 @@ describe('the sheet does not subscribe', () => {
 })
 
 describe('step two: checking the matches', () => {
-  it('shows one row per line, matched or not', async () => {
+  it('accounts for every line, matched or not', async () => {
+    // Lines that found nothing are gathered under one explanation rather than
+    // interleaved with the matches, which made a good batch look broken.
     stubResolve([wine('111'), null])
     openAddWines()
     type('Good One\nNonsense')
     $<HTMLButtonElement>('[data-add="lookup"]').click()
-    await vi.waitFor(() => expect($$('.resolution-row')).toHaveLength(2))
+    await vi.waitFor(() => expect($$('.resolution-row')).toHaveLength(1))
 
-    expect($('.resolution-row:not(.resolution-row--unmatched) .resolution-name').textContent)
-      .toBe('Wine 111')
-    expect($('.resolution-row--unmatched .resolution-input').textContent).toBe('Nonsense')
+    expect($('.resolution-row .resolution-name').textContent).toBe('Wine 111')
+    expect($('.resolution-missing-row .resolution-input').textContent).toBe('Nonsense')
+    expect($('.resolution-missing-head').textContent).toContain('Found nothing')
     expect($('.resolution-head').textContent).toContain('1 found nothing')
+    // Nothing is silently dropped: two lines in, two lines accounted for.
+    expect($('.resolution-willsave').textContent).toContain('2')
   })
 
   it('shows the price and the line it came from', async () => {
@@ -138,7 +142,7 @@ describe('step two: checking the matches', () => {
     $<HTMLButtonElement>('[data-add="lookup"]').click()
     await vi.waitFor(() => expect($('.resolution-meta')).toBeTruthy())
 
-    expect($('.resolution-meta').textContent).toContain('$19.95')
+    expect($('.resolution-altprice').textContent).toContain('$19.95')
     // What was typed is its own column now, not a parenthetical on the match.
     expect($('.resolution-input').textContent).toBe('Good One')
   })
@@ -318,9 +322,9 @@ describe('third-party names are data', () => {
     openAddWines()
     type('<script>window.pwned=1</script>')
     $<HTMLButtonElement>('[data-add="lookup"]').click()
-    await vi.waitFor(() => expect($('.resolution-row--unmatched')).toBeTruthy())
+    await vi.waitFor(() => expect($('.resolution-missing-row')).toBeTruthy())
 
-    expect(document.querySelector('.resolution-list script')).toBe(null)
+    expect(document.querySelector('.resolution script')).toBe(null)
     expect((globalThis as Record<string, unknown>).pwned).toBeUndefined()
   })
 })
@@ -330,6 +334,90 @@ describe('third-party names are data', () => {
  * and the React app resolved it to one arbitrary bottle with no way to see
  * that had happened. That bottle then shaped the taste profile.
  */
+/**
+ * The two-step chrome from frames 10 and 11. Both steps live in one sheet, so
+ * without it the second screen arrives with no sign a first one existed.
+ */
+describe('the two steps say where you are', () => {
+  it('marks step one on the way in, and step two after a lookup', async () => {
+    stubResolve([wine('111')])
+    openAddWines()
+    expect($$('.addstep').map(e => e.getAttribute('aria-current'))).toEqual(['true', 'false'])
+
+    type('Good One')
+    $<HTMLButtonElement>('[data-add="lookup"]').click()
+    await vi.waitFor(() => expect($('.resolution')).toBeTruthy())
+
+    expect($$('.addstep').map(e => e.getAttribute('aria-current'))).toEqual(['false', 'true'])
+  })
+
+  it('says what closing costs, rather than just "Cancel"', () => {
+    openAddWines()
+    expect($('[data-sheet="cancel"]').textContent).toContain('Close without saving')
+  })
+
+  it('promises nothing is saved before the matches are checked', () => {
+    openAddWines()
+    expect($('.sheet-foot').textContent).toContain('Nothing is saved until')
+  })
+})
+
+describe('the typing surface', () => {
+  it('counts the lines as they are typed, without rebuilding the box', () => {
+    openAddWines()
+    const box = $<HTMLTextAreaElement>('[data-add="text"]')
+    type('One\nTwo\nThree')
+
+    expect($('[data-add="count"]').textContent).toContain('3 lines')
+    // The same element, still: a rebuild here would take the caret with it.
+    expect($<HTMLTextAreaElement>('[data-add="text"]')).toBe(box)
+  })
+
+  it('numbers the lines, and grows the gutter to fit them', () => {
+    openAddWines()
+    const gutter = () => $('[data-add="gutter"]').textContent!.trim().split('\n')
+    expect(gutter()[0]).toBe('1')
+    const before = gutter().length
+
+    type(Array.from({ length: 30 }, (_, i) => `Wine ${i}`).join('\n'))
+
+    expect(gutter().length).toBeGreaterThan(before)
+    expect(gutter().at(-1)).toBe('30')
+  })
+
+  it('carries the design\'s three side notes, privacy included', () => {
+    openAddWines()
+    expect($$('.addwines-note')).toHaveLength(3)
+    expect($('.addwines-note--ok').textContent).toContain('Nothing is sent anywhere')
+    expect($('.addwines-examples').children.length).toBe(3)
+  })
+})
+
+describe('the review step names its columns', () => {
+  it('states the three questions once instead of on every row', async () => {
+    stubResolve([wine('111')])
+    openAddWines()
+    type('Good One')
+    $<HTMLButtonElement>('[data-add="lookup"]').click()
+    await vi.waitFor(() => expect($('.resolution-cols')).toBeTruthy())
+
+    const cols = [...$('.resolution-cols').children].map(c => c.textContent!.trim())
+    expect(cols.slice(0, 3)).toEqual(['You typed', 'Catalogue match', 'File it in'])
+  })
+
+  it('tallies what will be saved, in the colours it will land in', async () => {
+    stubResolve([wine('111'), wine('222')])
+    openAddWines()
+    type('One\nTwo')
+    $<HTMLButtonElement>('[data-add="lookup"]').click()
+    await vi.waitFor(() => expect($('.addtally')).toBeTruthy())
+
+    expect($$('.addtally-dot')).toHaveLength(3)
+    expect($('.addtally').textContent).toContain('2 More like this')
+    expect($('.resolution-willsave').textContent).toContain('2 will be saved')
+  })
+})
+
 describe('ambiguous names offer alternatives', () => {
   const candidates = [
     wine('111', { name: 'Bourgogne Pinot Noir', price: 24 }),
@@ -342,10 +430,25 @@ describe('ambiguous names offer alternatives', () => {
     openAddWines()
     type('Pinot Noir')
     $<HTMLButtonElement>('[data-add="lookup"]').click()
-    await vi.waitFor(() => expect($('[data-add="candidate"]')).toBeTruthy())
+    // Three of three is a confident match, so the alternatives start folded
+    // behind a link that says how many there are. Open them.
+    await vi.waitFor(() => expect($('[data-add="expand"]')).toBeTruthy())
+    $('[data-add="expand"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
   }
 
-  it('preselects the best match but lists the others outright', async () => {
+  it('never picks silently: a folded row still says the others exist', async () => {
+    stubCandidates([candidates])
+    openAddWines()
+    type('Pinot Noir')
+    $<HTMLButtonElement>('[data-add="lookup"]').click()
+    await vi.waitFor(() => expect($('[data-add="expand"]')).toBeTruthy())
+
+    // The safety property survives the design's compact row: a wrong top hit
+    // is one click from being seen, never a silent substitution.
+    expect($('[data-add="expand"]').textContent).toContain('2 other matches')
+  })
+
+  it('preselects the best match but lists the others on request', async () => {
     await openWithCandidates()
 
     expect($('.resolution-name').textContent).toBe('Bourgogne Pinot Noir')
@@ -382,9 +485,10 @@ describe('ambiguous names offer alternatives', () => {
       .dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
     // Different intention from dismissing: the line stays visible, so the
-    // typed text is not silently forgotten.
+    // typed text is not silently forgotten. Rejecting the top hit reopens the
+    // question, so the row becomes the card that asks it.
     expect($$('.resolution-row')).toHaveLength(1)
-    expect($('.resolution-row--unmatched')).toBeTruthy()
+    expect($('.resolution-row--ambiguous')).toBeTruthy()
     expect($<HTMLButtonElement>('[data-add="save"]').disabled).toBe(true)
   })
 
@@ -407,6 +511,9 @@ describe('ambiguous names offer alternatives', () => {
     await vi.waitFor(() => expect($$('.resolution-row')).toHaveLength(2))
 
     $$('[data-add="kind"][data-index="1"][data-kind="dislike"]')[0]!
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    // Row 0's alternatives are folded until asked for.
+    $('[data-add="expand"][data-index="0"]')
       .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     $('[data-add="candidate"][data-choice="1"]')
       .dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -440,7 +547,8 @@ describe('an ambiguous name says how ambiguous it is', () => {
 
   it('says how many of them it is showing', async () => {
     await openAmbiguous()
-    expect($('.resolution-altfoot').textContent).toContain('Showing 5 of 340')
+    // Said once, in the card's foot, beneath the choices it describes.
+    expect($('.resolution-ambfoot').textContent).toContain('Showing 5 of 340')
   })
 
   it('stays quiet when the catalog matched only what it returned', async () => {
@@ -449,8 +557,10 @@ describe('an ambiguous name says how ambiguous it is', () => {
     openAddWines()
     type('Something specific')
     $<HTMLButtonElement>('[data-add="lookup"]').click()
-    await vi.waitFor(() => expect($('.resolution-alts')).toBeTruthy())
+    await vi.waitFor(() => expect($('[data-add="expand"]')).toBeTruthy())
 
+    // Two of two is a choice, not an ambiguity: no card, no warning.
     expect(document.querySelector('.resolution-many')).toBe(null)
+    expect(document.querySelector('.resolution-row--ambiguous')).toBe(null)
   })
 })

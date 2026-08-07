@@ -154,10 +154,26 @@ export const en = {
 
   // ---------------------------------------------------------- add wines
   addTitle: 'Add wines',
-  addHeading: "Name a few wines you've drunk and had an opinion about.",
+  addHeading: 'Name the wines you remember',
   addSub:
-    "Loved or hated both help. You'll sort them in the next step — not ones " +
-    "you're thinking of buying.",
+    "One per line. As you remember them — the catalogue's spelling is our " +
+    'problem, not yours.',
+  linesEntered: (n: number) => `${n} line${s(n)} entered`,
+  pasteAWholeList: 'Paste a whole list if you keep one somewhere.',
+  bothKindsHelp: 'Both kinds help',
+  bothKindsHelpNote:
+    'Wines you disliked are as useful as wines you loved — they push the ' +
+    'ranking away from a whole family of bottles. You will sort each line ' +
+    'into a group in the next step.',
+  whatALineLooks: 'What a line can look like',
+  lineExamples: ['Duas Quintas 2019', 'grange des pères rouge', 'that Etna Rosso from last summer'],
+  vagueIsFine:
+    'Vague is fine. Very vague — "pinot noir" — will give you a choice of ' +
+    'matches to pick from.',
+  lookupStaysHere:
+    'Nothing is sent anywhere. The catalogue lookup happens for the names you ' +
+    'type, and the result stays in this browser.',
+  nothingSavedUntil: 'Nothing is saved until you have checked the matches.',
   onePerLine: 'One per line',
   addPlaceholder: 'Château Bonnet\nRiesling Kabinett\nChianti Classico',
   lookUp: (n: number) => `Look up ${n} wine${s(n)}`,

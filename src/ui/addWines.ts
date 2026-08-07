@@ -25,19 +25,100 @@ function parseNames(text: string): string[] {
   return text.split('\n').map(l => l.trim()).filter(Boolean)
 }
 
+/** Nothing came back at all. There is nothing to choose between. */
+function isMissing(r: Resolution): boolean {
+  return r.wine === null && (r.candidates?.length ?? 0) === 0
+}
+
+/**
+ * The line was too vague to guess at.
+ *
+ * The signal is the catalogue having far more matches than it handed back:
+ * "pinot noir" returns five of three hundred and forty. That is a different
+ * situation from a name that matched four bottles and got the right one, and
+ * the design treats them differently — a card that asks, versus a row that
+ * mentions the alternatives exist.
+ *
+ * A line the visitor has explicitly rejected with "None of these" counts too:
+ * they have said the top hit is wrong, so the question is open again.
+ */
+function isAmbiguous(r: Resolution): boolean {
+  if (isMissing(r)) return false
+  const shown = r.candidates?.length ?? 0
+  return r.wine === null || (r.candidateTotal ?? shown) > shown
+}
+
+/**
+ * Where you are in a two-step task, and the way out of it.
+ *
+ * Both steps live in one sheet, so without this the second screen arrives with
+ * no warning that a first one existed — and no sign that there is a way back
+ * to the text you typed. Step 1 stays clickable from step 2 for that reason.
+ */
+function stepBar(onReview: boolean): Html {
+  return html`
+    <div class="addsteps">
+      <span class="${onReview ? 'addstep addstep--done' : 'addstep addstep--on'}"
+            aria-current="${onReview ? 'false' : 'true'}">${t().stepName}</span>
+      <span class="addstep-arrow" aria-hidden="true">→</span>
+      <span class="${onReview ? 'addstep addstep--on' : 'addstep'}"
+            aria-current="${onReview ? 'true' : 'false'}">${t().stepCheck}</span>
+    </div>
+  `
+}
+
 // ---------------------------------------------------------------- step one
 
+/**
+ * The text area is the page, not a field on it.
+ *
+ * Numbered lines, room for many of them, and the count stated underneath — the
+ * design treats this as a keyboard task and gives it a keyboard-sized surface.
+ * The gutter is desktop-only: it can only stay aligned while lines do not wrap,
+ * which is why the textarea stops wrapping at the same breakpoint, and neither
+ * is a trade worth making on a 390px screen.
+ */
 function inputStep(text: string): Html {
+  const lines = Math.max(parseNames(text).length, text.split('\n').length)
   return html`
-    <div>
-      <div class="addwines-heading">${t().addHeading}</div>
-      <div class="addwines-sub">${t().addSub}</div>
-    </div>
-    <div class="seedinput">
-      <div class="seedinput-panel">
-        <div class="label">${t().onePerLine}</div>
-        <textarea rows="6" data-add="text" placeholder="${t().addPlaceholder}">${text}</textarea>
+    <div class="addwines-grid">
+      <div class="addwines-main">
+        <div>
+          <div class="addwines-heading">${t().addHeading}</div>
+          <div class="addwines-sub">${t().addSub}</div>
+        </div>
+        <div class="seedinput">
+          <div class="seedinput-panel">
+            <div class="seedinput-gutter" data-add="gutter" aria-hidden="true"
+            >${Array.from({ length: Math.max(lines, 14) }, (_, i) => i + 1).join('\n')}</div>
+            <textarea rows="6" data-add="text" placeholder="${t().addPlaceholder}"
+                      aria-label="${t().onePerLine}">${text}</textarea>
+          </div>
+          <div class="seedinput-foot">
+            <span class="seedinput-count" data-add="count">${t().linesEntered(parseNames(text).length)}</span>
+            <span class="hint">${t().pasteAWholeList}</span>
+          </div>
+        </div>
       </div>
+
+      <aside class="addwines-side">
+        <div class="addwines-note">
+          <div class="label">${t().bothKindsHelp}</div>
+          <p>${t().bothKindsHelpNote}</p>
+        </div>
+        <div class="addwines-note">
+          <div class="label">${t().whatALineLooks}</div>
+          <div class="addwines-examples">
+            ${t().lineExamples.map(e => html`<div>${e}</div>`)}
+          </div>
+          <p class="hint">${t().vagueIsFine}</p>
+        </div>
+        <!-- The one claim on this screen worth making in colour. -->
+        <div class="addwines-note addwines-note--ok">
+          <span class="addwines-dot" aria-hidden="true"></span>
+          <p>${t().lookupStaysHere}</p>
+        </div>
+      </aside>
     </div>
   `
 }
@@ -60,9 +141,18 @@ function inputStep(text: string): Html {
  * wine ends up shaping someone's taste. So when the catalog matched far more
  * than it returned, the row says so and shows the candidates outright.
  */
-function candidateList(r: Resolution, i: number): Html | false {
+function candidateList(r: Resolution, i: number, open: boolean, keepsCount = 0): Html | false {
   const candidates = r.candidates ?? []
   if (candidates.length < 2) return false
+  // A row the catalogue is confident about does not sprout a picker implying
+  // doubt: it says how many others there were, and opens them if asked.
+  if (r.wine !== null && !open) {
+    return html`
+      <button type="button" class="resolution-others" data-add="expand" data-index="${i}">
+        ${lang.t().otherMatches(candidates.length - 1)}
+      </button>
+    `
+  }
   const t = lang.t()
   const total = r.candidateTotal ?? candidates.length
   const chosen = r.wine === null ? -1 : candidates.findIndex(w => w.sku === r.wine!.sku)
@@ -86,15 +176,12 @@ function candidateList(r: Resolution, i: number): Html | false {
           </button>
         `)}
       </div>
-      <div class="resolution-altfoot">
-        <button type="button" class="resolution-none"
-                data-add="candidate" data-index="${i}" data-choice="-1">
-          ${t.noneDropLine}
-        </button>
-        ${total > candidates.length && html`
-          <span class="hint">${t.showingOf(candidates.length, total)}</span>
-        `}
-      </div>
+      <button type="button" class="resolution-none"
+              data-add="candidate" data-index="${i}" data-choice="-1">
+        <span>${t.noneDropLine}</span>
+        <span class="hint">${t.keepsTheRest(keepsCount)}</span>
+      </button>
+
     </div>
   `
 }
@@ -115,72 +202,126 @@ function kindPicker(r: Resolution, i: number): Html {
   `
 }
 
-function resolutionRow(r: Resolution, i: number): Html {
+/** A line the catalogue could not place at all: nothing to pick, only to fix. */
+function missingRow(r: Resolution, i: number): Html {
   const t = lang.t()
-  const ambiguous = r.wine === null && (r.candidates?.length ?? 0) > 0
+  return html`
+    <div class="resolution-missing-row">
+      <span class="resolution-input">${r.input}</span>
+      <div class="resolution-rowactions">
+        <button type="button" class="resolution-dismiss" data-add="edit"
+                aria-label="${t.editTheText}">${t.editTheText}</button>
+        <button type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
+                aria-label="${t.dismissUnmatched(r.input)}">${t.dropIt}</button>
+      </div>
+    </div>
+  `
+}
 
-  if (r.wine === null) {
-    return html`
-      <li class="resolution-row resolution-row--unmatched">
-        <div class="resolution-typed">
-          <span class="resolution-typedlabel">${t.colYouTyped}</span>
-          <span class="resolution-input">${r.input}</span>
-        </div>
+/**
+ * A line that matched too many things to guess at.
+ *
+ * "Pinot noir" is a grape, not a bottle, and picking the top hit silently is
+ * how a stranger's wine ends up shaping someone's taste. So this is its own
+ * card rather than a row: it states the problem, shows the candidates, and
+ * makes dropping the line an explicit alternative to choosing one.
+ */
+function ambiguousRow(r: Resolution, i: number, keeps: number): Html {
+  const t = lang.t()
+  return html`
+    <li class="resolution-row resolution-row--ambiguous">
+      <div class="resolution-ambhead">
+        <span class="resolution-input">${r.input}</span>
         <div class="resolution-body">
-          <div class="resolution-name resolution-name--warn">
-            ${ambiguous ? t.needsDecision : t.notSavedNotThrown}
-          </div>
-          ${!ambiguous && html`<p class="hint">${t.foundNothingWhy}</p>`}
-          ${candidateList(r, i)}
+          <div class="label label--brass">${t.needsDecision}</div>
+          <div class="resolution-name">${t.manyMatch(r.candidateTotal ?? 0)}</div>
         </div>
-        <div class="resolution-rowactions">
-          <button type="button" class="resolution-dismiss" data-add="edit"
-                  aria-label="${t.editTheText}">${t.editTheText}</button>
-          <button type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
-                  aria-label="${t.dismissUnmatched(r.input)}">${t.dropIt}</button>
-        </div>
-      </li>
-    `
-  }
+        <span class="hint">${t.pickOrDrop}</span>
+      </div>
+      ${candidateList(r, i, true, keeps)}
+      <div class="resolution-ambfoot">
+        <span class="hint">${r.candidateTotal !== undefined && (r.candidates?.length ?? 0) < r.candidateTotal
+          ? t.showingOf(r.candidates?.length ?? 0, r.candidateTotal)
+          : ''}</span>
+        ${kindPicker(r, i)}
+      </div>
+    </li>
+  `
+}
+
+function resolutionRow(r: Resolution, i: number, open: boolean, keeps: number): Html {
+  const t = lang.t()
+  if (isAmbiguous(r)) return ambiguousRow(r, i, keeps)
+  if (r.wine === null) return html``
 
   return html`
     <li class="resolution-row">
-      <div class="resolution-typed">
-        <span class="resolution-typedlabel">${t.colYouTyped}</span>
-        <span class="resolution-input">${r.input}</span>
-      </div>
+      <span class="resolution-input">${r.input}</span>
       <div class="resolution-body">
-        <div class="resolution-name">${r.wine.name}</div>
-        <div class="resolution-meta">
-          ${money(r.wine.price)} · ${[r.wine.region, r.wine.country].filter(Boolean).join(', ')}
+        <div class="resolution-name-row">
+          <span class="resolution-name">${r.wine.name}</span>
+          <span class="resolution-altprice">${money(r.wine.price)}</span>
+          <span class="resolution-meta">${[r.wine.region, r.wine.country].filter(Boolean).join(', ')}</span>
+          ${candidateList(r, i, open)}
         </div>
-        ${candidateList(r, i)}
       </div>
-      <div class="resolution-file">
-        <span class="resolution-typedlabel">${t.colFileIn}</span>
-        ${kindPicker(r, i)}
-      </div>
+      <div class="resolution-file">${kindPicker(r, i)}</div>
       <div class="resolution-rowactions">
-        <button type="button" class="resolution-dismiss" data-add="dismiss" data-index="${i}"
+        <button type="button" class="resolution-dismiss resolution-x" data-add="dismiss" data-index="${i}"
                 aria-label="${t.dismissMatched(r.wine.name)}">×</button>
       </div>
     </li>
   `
 }
 
-function resolutionStep(batch: Resolution[]): Html {
+function resolutionStep(batch: Resolution[], expanded: ReadonlySet<number>): Html {
   const t = lang.t()
-  const matched = batch.filter(r => r.wine !== null)
-  const ambiguous = batch.filter(r => r.wine === null && (r.candidates?.length ?? 0) > 0).length
-  const missing = batch.length - matched.length - ambiguous
+  const matched = batch.filter(r => r.wine !== null && !isAmbiguous(r))
+  const ambiguousCount = batch.filter(isAmbiguous).length
+  const missing = batch.map((r, i) => [r, i] as const).filter(([r]) => isMissing(r))
 
   return html`
     <section class="resolution">
       <div class="resolution-head">
-        <h2>${t.reviewHeading}</h2>
-        <p class="hint">${t.reviewTally(matched.length, ambiguous, missing)}</p>
+        <div>
+          <h2>${t.reviewHeading}</h2>
+          <p class="hint">${t.reviewTally(matched.length, ambiguousCount, missing.length)}</p>
+        </div>
+        <span class="resolution-willsave">${t.linesWillSave(batch.length, matched.length)}</span>
       </div>
-      <ul class="resolution-list">${batch.map(resolutionRow)}</ul>
+
+      <!--
+        Column headings, stated once. Every row repeats the same three
+        questions — what you typed, what was found, where it goes — and saying
+        them per row is what made the old layout read as a stack of cards.
+      -->
+      <div class="resolution-cols" aria-hidden="true">
+        <span>${t.colYouTyped}</span>
+        <span>${t.colMatch}</span>
+        <span>${t.colFileIn}</span>
+        <span></span>
+      </div>
+
+      <ul class="resolution-list">
+        ${batch.map((r, i) =>
+          isMissing(r) ? false : resolutionRow(r, i, expanded.has(i), batch.length - 1))}
+      </ul>
+
+      <!--
+        The lines that found nothing are gathered rather than scattered: they
+        share one explanation, and interleaving them with matches makes a good
+        batch look broken.
+      -->
+      ${missing.length > 0 && html`
+        <div class="resolution-missing">
+          <div class="resolution-missing-head">
+            <span class="label">${t.foundNothing(missing.length)}</span>
+            <span class="hint">${t.notSavedNotThrown}</span>
+          </div>
+          ${missing.map(([r, i]) => missingRow(r, i))}
+          <p class="hint">${t.foundNothingWhy}</p>
+        </div>
+      `}
     </section>
   `
 }
@@ -192,8 +333,14 @@ export function openAddWines(): void {
   let batch: Resolution[] | null = null
   let busy = false
   let error: string | null = null
+  /** Rows whose alternatives the visitor asked to see. */
+  const expanded = new Set<number>()
 
-  const sheet = openSheet({ title: t().addTitle, full: true })
+  // The design labels the way out "Close without saving", which says what it
+  // costs. "Cancel" says nothing about the typing you are about to lose.
+  const sheet = openSheet({
+    title: t().addTitle, full: true, cancelLabel: t().closeWithoutSaving,
+  })
 
   function showError(): void {
     const existing = sheet.body.querySelector('.error')
@@ -223,6 +370,7 @@ export function openAddWines(): void {
     if (batch === null) {
       const n = parseNames(readText()).length
       sheet.setFoot(html`
+        <span class="sheet-summary">${t().nothingSavedUntil}</span>
         <button class="btn-primary" data-add="lookup">
           ${busy ? t().lookingUp : t().lookUp(n)}
         </button>
@@ -234,7 +382,14 @@ export function openAddWines(): void {
     const matched = kept.length
     const of = (k: SeedKind) => kept.filter(r => r.kind === k).length
     sheet.setFoot(html`
-      <div class="sheet-summary">${t().tally(of('like'), of('dislike'), of('skip'))}</div>
+      <div class="addtally">
+        ${KINDS.map(k => html`
+          <span class="addtally-part">
+            <span class="addtally-dot addtally-dot--${k}" aria-hidden="true"></span>
+            ${of(k)} ${lang.kindLabel(k)}
+          </span>
+        `)}
+      </div>
       <div class="sheet-foot-row">
         <button type="button" class="btn-secondary" data-add="back">${t().backToText}</button>
         <button class="btn-primary" data-add="save">
@@ -262,7 +417,10 @@ export function openAddWines(): void {
    */
   function renderStep(): void {
     sheet.setTitle(batch === null ? t().addTitle : t().reviewTitle)
-    mount(sheet.body, batch === null ? inputStep(text) : resolutionStep(batch))
+    mount(sheet.body, html`
+      ${stepBar(batch !== null)}
+      ${batch === null ? inputStep(text) : resolutionStep(batch, expanded)}
+    `)
     showError()
     renderFoot()
   }
@@ -314,10 +472,34 @@ export function openAddWines(): void {
     sheet.close()
   }
 
-  delegate(sheet.body, 'input', '[data-add="text"]', () => {
-    // Only the footer count changes as the user types. Re-rendering the body
-    // here would take the caret and the scroll position with it.
+  delegate(sheet.body, 'input', '[data-add="text"]', (_e, el) => {
+    // Only the footer count, the gutter and the line tally follow the typing.
+    // Re-rendering the body would take the caret and the scroll with it.
+    const value = (el as HTMLTextAreaElement).value
+    const gutter = sheet.body.querySelector('[data-add="gutter"]')
+    if (gutter) {
+      const n = Math.max(value.split('\n').length, 14)
+      gutter.textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n')
+    }
+    const count = sheet.body.querySelector('[data-add="count"]')
+    if (count) count.textContent = t().linesEntered(parseNames(value).length)
     renderFoot()
+  })
+
+  // The gutter is a separate element, so it has to be told when the textarea
+  // scrolls or the numbers drift away from the lines they belong to. Capture
+  // phase, not `delegate`: scroll does not bubble, so a delegated listener on
+  // the body would simply never run.
+  sheet.body.addEventListener('scroll', e => {
+    const el = e.target
+    if (!(el instanceof HTMLTextAreaElement)) return
+    const gutter = sheet.body.querySelector<HTMLElement>('[data-add="gutter"]')
+    if (gutter) gutter.scrollTop = el.scrollTop
+  }, true)
+
+  delegate(sheet.body, 'click', '[data-add="expand"]', (_e, el) => {
+    expanded.add(Number(el.dataset.index))
+    renderStep()
   })
 
   delegate(sheet.body, 'click', '[data-add="candidate"]', (_e, el) => {
