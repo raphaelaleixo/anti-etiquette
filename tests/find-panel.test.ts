@@ -115,6 +115,76 @@ describe('the scope gate', () => {
   })
 })
 
+/**
+ * The branch list beside the gate, as the design draws it on desktop.
+ *
+ * Whether it is *visible* is CSS — hidden below 62rem, where the sheet is the
+ * right shape — so these assert the DOM-level contract: when it exists, what
+ * a click on it means, and that typing in it survives a re-render.
+ */
+describe('the inline branch panel', () => {
+  it('sits beside the gate when the branch is what is missing', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect($$('branch-panel')).toHaveLength(1)
+    expect($$('branch-panel .branch-row').length).toBeGreaterThan(1)
+  })
+
+  it('stays away when the visitor has no wines yet', () => {
+    // Their next step is naming a wine; a shop to stand in answers a question
+    // they have not reached.
+    appState.setBranch('23112')
+    mountPanel()
+    expect($$('branch-panel')).toEqual([])
+  })
+
+  it('commits on click, unlike the sheet', () => {
+    // Nothing is covering the page, so there is nothing to come back from —
+    // and the requirement card flipping to satisfied is the confirmation.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    const row = $<HTMLElement>('branch-panel [data-branch]')
+    const id = row.dataset.branch!
+
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    expect(appState.getSnapshot().branch).toBe(id)
+    // Both requirements are now met, so the gate has gone entirely.
+    expect($$('.find-gate')).toEqual([])
+  })
+
+  it('keeps a half-typed search when the panel is rebuilt under it', () => {
+    // <find-panel> mounts by assigning innerHTML, so any publish destroys the
+    // search box. Losing what was typed to an unrelated cellar write is the
+    // bug this guards.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    const box = $<HTMLInputElement>('branch-panel [data-branch-q]')
+    box.value = 'atwater'
+    box.dispatchEvent(new Event('input', { bubbles: true }))
+    const narrowed = $$('branch-panel [data-branch]').length
+
+    cellar.saveWine(wine('222'), 'like')
+
+    expect($<HTMLInputElement>('branch-panel [data-branch-q]').value).toBe('atwater')
+    expect($$('branch-panel [data-branch]')).toHaveLength(narrowed)
+  })
+
+  it('starts clean again after a branch is chosen', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    const box = $<HTMLInputElement>('branch-panel [data-branch-q]')
+    box.value = 'atwater'
+    box.dispatchEvent(new Event('input', { bubbles: true }))
+
+    $<HTMLElement>('branch-panel [data-branch]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+    appState.setBranch('')
+
+    expect($<HTMLInputElement>('branch-panel [data-branch-q]').value).toBe('')
+  })
+})
+
 describe('results', () => {
   it('renders nothing before a search', () => {
     const el = mountPanel()

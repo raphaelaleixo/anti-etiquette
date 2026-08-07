@@ -995,14 +995,75 @@ button { font: inherit; color: inherit; }
 .gate-req.is-open .gate-mark { border: 2px solid var(--more); }
 .gate-req.is-open .gate-note { color: var(--less-ink); }
 
+/*
+ * The gate, and the branch list beside it.
+ *
+ * On a phone the list is a sheet, so this is one column and the panel is not
+ * rendered at all. On a desktop there is room for the answer to sit next to
+ * the question, which is the whole point of the layout.
+ */
+.find-gate { display: grid; grid-template-columns: 1fr; }
+.find-gate branch-panel { display: none; }
+
 @media (min-width: 62rem) {
+  .find-gate {
+    grid-template-columns: 1fr 620px;
+    gap: 56px;
+    align-items: start;
+    padding-inline-end: var(--pad);
+  }
+  .find-gate branch-panel { display: block; }
   .find-empty { gap: 26px; padding: 52px var(--pad) 44px; }
   .find-empty h2 { font-size: 38px; letter-spacing: -0.01em; max-inline-size: 20ch; }
   .find-empty .hint { font-size: 16px; line-height: 1.6; max-inline-size: 44ch; }
+  /*
+   * The list is right there, so the button that would open it is noise. The
+   * selector is narrow on purpose: when it is *wines* that are missing, the
+   * action is "Add wines" and it stays.
+   */
+  .find-empty .btn-primary[data-find='branch'] { display: none; }
   .gate-reqs { gap: 14px; }
   .gate-req { padding: 16px 18px; gap: 14px; }
   .gate-mark { inline-size: 20px; block-size: 20px; font-size: 12px; margin-block-start: 1px; }
 }
+
+/* ── the branch list, on the page ────────────────────────────────────────── */
+
+.branchpanel {
+  margin-block-start: 52px;
+  overflow: hidden;
+  border: 1px solid var(--line4);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.branchpanel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 14px;
+}
+.branchpanel-head h3 { font-size: 20px; line-height: 1.2; }
+.branchpanel-count {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute3);
+  flex: none;
+}
+.branchpanel-body { display: block; }
+.branchpanel-body .branch-filter { inline-size: calc(100% - 40px); margin: 0 20px 14px; }
+.branchpanel-body [data-branch-results] {
+  max-block-size: 30rem;
+  overflow-y: auto;
+  border-block-start: 1px solid var(--line2);
+  overscroll-behavior: contain;
+}
+.branchpanel-body .branch-group > .label { padding: 12px 20px 8px; }
+.branchpanel-body .branch-group + .branch-group > .label { border-block-start: 1px solid var(--line2); }
+.branchpanel-body .branch-row { padding: 14px 20px; border-radius: 0; }
+.branchpanel-body .branch-row[aria-pressed='true'] { background: var(--raise); }
+.branchpanel-body .hint { padding: 12px 20px 16px; }
 
 .find-grid {
   display: grid;

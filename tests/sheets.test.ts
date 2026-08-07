@@ -109,6 +109,23 @@ describe('the branch sheet', () => {
     expect($<HTMLButtonElement>('[data-branch-confirm]').disabled).toBe(true)
   })
 
+  it('opens on the full list, whatever was typed the time before', () => {
+    // The inline panel keeps its query, because it can be rebuilt underneath
+    // whoever is typing. The sheet cannot be, and an abandoned search
+    // reappearing in the next one is a filtered list nobody asked for.
+    openBranchSheet()
+    const box = $<HTMLInputElement>('[data-branch-q]')
+    box.value = 'atwater'
+    box.dispatchEvent(new Event('input', { bubbles: true }))
+    const narrowed = $$('[data-branch]').length
+    expect(narrowed).toBeLessThan(BRANCHES.length)
+    document.querySelector('dialog')!.remove()
+
+    openBranchSheet()
+    expect($<HTMLInputElement>('[data-branch-q]').value).toBe('')
+    expect($$('[data-branch]')).toHaveLength(BRANCHES.length)
+  })
+
   it('lists all branches alphabetically', () => {
     openBranchSheet()
     const names = $$('.branch-name').map(n => n.textContent!.trim())

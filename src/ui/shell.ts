@@ -10,6 +10,7 @@ import { AppFoot } from './elements/app-foot'
 import { MyWines } from './elements/my-wines'
 import { FindPanel } from './elements/find-panel'
 import { LangToggle } from './elements/lang-toggle'
+import { BranchPanel } from './elements/branch-panel'
 
 /**
  * The app entry point.
@@ -36,6 +37,7 @@ const ELEMENTS: Array<[string, CustomElementConstructor]> = [
   ['my-wines', MyWines],
   ['find-panel', FindPanel],
   ['lang-toggle', LangToggle],
+  ['branch-panel', BranchPanel],
 ]
 
 export function defineElements(): void {

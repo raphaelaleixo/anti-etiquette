@@ -208,6 +208,7 @@ export const fr: Messages = {
   useBranch: name => `Utiliser ${name}`,
   useBranchEmpty: 'Utiliser cette succursale',
   montrealOnly: n => `Succursales de Montréal seulement — ${n} au total.`,
+  nInMontreal: n => `${n} à Montréal`,
   inStockAt: n => ` · ${n} en tablette`,
 
   // ------------------------------------------------------------- filters

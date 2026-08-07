@@ -186,6 +186,7 @@ export class FindPanel extends StoreElement {
     const t = lang.t()
     const noWines = likedCount === 0
     return html`
+      <div class="find-gate">
       <section class="find-empty">
         <h2>${noWines ? t.emptyNoWinesTitle : t.emptyNoBranchTitle}</h2>
         <div class="gate-reqs">
@@ -204,6 +205,16 @@ export class FindPanel extends StoreElement {
           ? html`<button type="button" class="btn-primary" data-find="add">${t.addWines}</button>`
           : html`<button type="button" class="btn-primary" data-find="branch">${t.chooseBranch}</button>`}
       </section>
+      <!--
+        Only when the branch is the missing piece. Someone with no wines yet
+        has a different next step, and offering them a shop to stand in first
+        would be answering a question they have not reached.
+
+        Hidden below the desktop breakpoint, where the sheet is the right
+        shape — so the button above stays the way in on a phone.
+      -->
+      ${!noWines && html`<branch-panel></branch-panel>`}
+      </div>
     `
   }
 

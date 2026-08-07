@@ -595,3 +595,55 @@ orphans in either direction.
   in the backup panel's summary row instead.
 - "How to allow storage" still links to instructions that do not exist.
 - The phone header's "⋯" overflow menu in the design has no defined contents.
+
+---
+
+## Task 18 — The branch list on the page, not over it
+
+Frame 05 draws the branch picker inline beside the scope gate on desktop, in a `1fr 620px` grid:
+the visitor reads "a branch is missing" and the branches are right there, rather than being sent
+to a modal to fetch one. A phone has neither the room nor a spare thumb, so it keeps the sheet.
+
+**The picker was extracted, not copied.** `branchPicker.ts` owns the search box and the list;
+`branchSheet.ts` and the new `<branch-panel>` are both thin callers. The only thing that differs
+between them is what a click *means* — in the sheet it highlights and a footer button confirms,
+so the counts can be compared without committing, because the sheet covers everything behind it;
+inline there is nothing covered and nothing to come back from, so a click is the choice. That
+difference is the whole of the `onPick` contract.
+
+**`mount()` is an `innerHTML` assignment, and that shaped the design.** The sheet renders once and
+nothing can re-render it. The inline panel sits inside `<find-panel>`, which subscribes to the
+cellar, appState and language — so a write from another tab, or a language switch, wipes the
+subtree and takes a half-typed branch search with it. The panel therefore keeps its query outside
+the DOM and restores it on re-mount.
+
+The first attempt kept that query in one module-level variable, which promptly leaked in the
+other direction: an abandoned search in the sheet reappeared, pre-filtered, the next time the
+sheet opened. Two existing tests caught it. The fix is that the stash is opt-in — `rememberQuery`
+— and only the one caller that can be rebuilt underneath the visitor uses it; the sheet keeps its
+query in a closure and starts empty every time. **The scope of the state has to match the scope of
+the thing that can be destroyed**, which was the actual lesson, and there is now a regression test
+naming it.
+
+`<branch-panel>` subscribes to language only, deliberately not appState: committing a branch
+removes the panel from the page altogether, so there is nothing it would usefully redraw, and
+every extra subscription is another way for the search box to be rebuilt mid-keystroke.
+
+Visibility is CSS, not JavaScript — `display: none` below 62rem, no `matchMedia`, consistent with
+how the top bar and the sheets already switch. The "Choose a branch" button is hidden on desktop
+by a deliberately narrow selector (`[data-find="branch"]`), so that when it is *wines* that are
+missing the action is still "Add wines" and still shows. The panel is not rendered at all in that
+case: someone with no wines yet has a different next step, and offering them a shop to stand in
+first answers a question they have not reached.
+
+**Done.** 482 tests green, typecheck, build and the dependency gate clean. Six new tests, and five
+mutations confirm they bite: rendering the panel when wines are missing, making a click highlight
+instead of commit, sharing the query stash again, not restoring the query after a rebuild, and
+never clearing it on commit. The class audit still reports no orphans in either direction.
+
+**Still outstanding from the design**, unchanged by this task:
+
+- Frame 03 pins the "31 wines saved, never exported — Export now" line in the footer bar. It is in
+  the backup panel's summary row instead.
+- "How to allow storage" still links to instructions that do not exist.
+- The phone header's "⋯" overflow menu in the design has no defined contents.

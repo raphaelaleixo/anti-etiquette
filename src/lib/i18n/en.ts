@@ -216,6 +216,7 @@ export const en = {
   useBranch: (name: string) => `Use ${name}`,
   useBranchEmpty: 'Use branch',
   montrealOnly: (n: number) => `Montréal branches only — ${n} of them.`,
+  nInMontreal: (n: number) => `${n} in Montréal`,
   inStockAt: (n: number) => ` · ${n} in stock`,
 
   // ------------------------------------------------------------- filters
