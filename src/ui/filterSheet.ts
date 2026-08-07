@@ -6,6 +6,7 @@ import {
   colourLabel, presetLabel,
 } from '../lib/filters'
 import { branchName } from '../lib/branches'
+import { runSearch } from '../lib/search'
 import * as appState from '../lib/appState'
 import { t } from '../lib/lang'
 
@@ -15,27 +16,38 @@ const DEBOUNCE_MS = 300
 const THIN_BAND = 12
 
 /**
+ * Everything the controls need from whatever is holding them.
+ *
+ * A sheet satisfies this and so does an inline panel, which is the whole
+ * reason it is written down: the design shows one set of controls in two
+ * housings — a bottom sheet on a phone, a panel on the page on a desktop —
+ * and two housings should not mean two implementations.
+ */
+interface FilterHost {
+  readonly body: HTMLElement
+  readonly foot: HTMLElement
+  setFoot(markup: ReturnType<typeof html>): void
+  /** Done with it: dismiss the sheet, or hand the column back. */
+  close(): void
+}
+
+/**
  * Colour and price band, with a live count of what they would return.
  *
  * The count is of the *pending* draft, debounced. While a new count is in
  * flight the previous one keeps showing rather than flashing to zero, which
  * would read as "no wines" when it only means "has not answered yet".
  */
-export function openFilterSheet(): void {
+function runFilters(sheet: FilterHost, register: (stop: () => void) => void): void {
   const { branch, filters } = appState.getSnapshot()
   let draft: CatalogFilters = { ...filters }
   let count: number | null = null
   let timer: ReturnType<typeof setTimeout> | undefined
   let requestId = 0
-
-  const sheet = openSheet({
-    title: t().narrowTheShelf,
-    // The branch, not a control: it names what is being narrowed. Reset moved
-    // to the footer, beside the button that applies what it undoes.
-    cancelLabel: branch ? branchName(branch) : t().thisBranch,
-    onClose: () => clearTimeout(timer),
-  })
-  sheet.dialog.querySelector<HTMLElement>('.sheet-cancel')!.className = 'sheet-scope'
+  const stopCounting = () => clearTimeout(timer)
+  // The host owns dismissal, so it needs a way to stop a debounced count that
+  // would otherwise fire into a detached panel.
+  register(stopCounting)
 
   function renderBody(): void {
     const activePreset = PRICE_PRESETS.find(p => p.min === draft.priceMin && p.max === draft.priceMax)
@@ -180,10 +192,57 @@ export function openFilterSheet(): void {
   })
 
   delegate(sheet.foot, 'click', '[data-filter="apply"]', () => {
-    appState.setFilters(draft)
+    stopCounting()
+    // Close first, and mind the order. `setFilters` publishes, which re-renders
+    // the panel's host and detaches it — anything the host wanted to hear about
+    // dismissal has to be said while it is still on the page. The search runs
+    // last, so it reads the filters that were just applied rather than the ones
+    // being replaced.
     sheet.close()
+    appState.setFilters(draft)
+    void runSearch()
   })
 
   renderBody()
   scheduleCount()
+}
+
+/** The phone housing, and the one the results screen still uses. */
+export function openFilterSheet(): void {
+  let stop = () => {}
+  const { branch } = appState.getSnapshot()
+  const sheet = openSheet({
+    title: t().narrowTheShelf,
+    // The branch, not a control: it names what is being narrowed. Reset lives
+    // in the footer, beside the button that applies what it undoes.
+    cancelLabel: branch ? branchName(branch) : t().thisBranch,
+    onClose: () => stop(),
+  })
+  sheet.dialog.querySelector<HTMLElement>('.sheet-cancel')!.className = 'sheet-scope'
+  runFilters(sheet, fn => { stop = fn })
+}
+
+/**
+ * The desktop housing: the same controls, on the page.
+ *
+ * `done` is called when the visitor is finished with it — applying runs the
+ * search, so the column that held this has something else to show.
+ */
+export function mountFilterPanel(host: HTMLElement, done: () => void): void {
+  const { branch } = appState.getSnapshot()
+  mount(host, html`
+    <div class="filterpanel-head">
+      <h3>${t().narrowTheShelf}</h3>
+      <span class="filterpanel-scope">${branch ? branchName(branch) : t().thisBranch}</span>
+    </div>
+    <div class="filterpanel-body"></div>
+    <div class="filterpanel-foot"></div>
+  `)
+  const body = host.querySelector<HTMLElement>('.filterpanel-body')!
+  const foot = host.querySelector<HTMLElement>('.filterpanel-foot')!
+  let stop = () => {}
+  runFilters(
+    { body, foot, setFoot: markup => mount(foot, markup), close: () => { stop(); done() } },
+    fn => { stop = fn },
+  )
 }

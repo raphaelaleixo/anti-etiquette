@@ -7,6 +7,7 @@ import * as appState from '../src/lib/appState'
 import { runSearch } from '../src/lib/search'
 import { openPromptDialog } from '../src/ui/promptDialog'
 import { storage } from '../src/lib/storage'
+import { DEFAULT_FILTERS } from '../src/lib/filters'
 import type { Wine } from '../src/lib/types'
 import { wine } from './helpers'
 
@@ -23,6 +24,9 @@ beforeEach(() => {
   cellar.reload()
   appState.clearResults()
   appState.setBranch('')
+  // Filters live in the store, not only in storage, so clearing the key is not
+  // enough to stop one test's band leaking into the next.
+  appState.setFilters(DEFAULT_FILTERS)
   appState.setMode('find')
 })
 
@@ -215,6 +219,94 @@ describe('nothing is a dead end', () => {
 
     expect(document.querySelector('dialog')).toBe(null)
     expect(document.activeElement).toBe($('branch-panel [data-branch-q]'))
+  })
+})
+
+/**
+ * The filters, in whichever housing the screen can offer. Same fork as the
+ * branch picker: the design keeps sheets on a phone and puts panels on the
+ * page on a desktop.
+ */
+describe('the inline filter panel', () => {
+  const openFilters = () => {
+    $('.scopepanel [data-find="filters"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+  }
+
+  it('takes the scope column rather than opening a sheet over it', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect($$('branch-panel')).toHaveLength(1)
+
+    openFilters()
+
+    expect(document.querySelector('dialog')).toBe(null)
+    expect($$('filter-panel')).toHaveLength(1)
+    expect($$('branch-panel')).toEqual([])
+    // The same controls the sheet has, not a second implementation of them.
+    expect($$('filter-panel [data-filter="colour"]')).toHaveLength(5)
+    expect($$('filter-panel [data-filter="preset"]')).toHaveLength(4)
+  })
+
+  it('gives the column back when asked again', () => {
+    // Taking it over with no way out would stand between the visitor and the
+    // branch list, which is the other thing that column is for.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    openFilters()
+    openFilters()
+
+    expect($$('filter-panel')).toEqual([])
+    expect($$('branch-panel')).toHaveLength(1)
+  })
+
+  it('falls back to the sheet when there is no column to use', () => {
+    appState.setBranch('23112')
+    mountPanel()
+    expect($$('branch-panel')).toEqual([])
+
+    openFilters()
+
+    expect(document.querySelector('dialog [data-filter="colour"]')).toBeTruthy()
+  })
+
+  it('hands the column back even when the search that follows fails', async () => {
+    // The ordering guard. `setFilters` publishes and detaches the panel, so a
+    // host that only hears about dismissal afterwards never hears at all — and
+    // the column stays stuck on the filters. A failed search keeps the gate up,
+    // which is what makes the flag observable.
+    vi.spyOn(catalog, 'fetchBranchCatalog').mockRejectedValue(new Error('offline'))
+    vi.spyOn(catalog, 'countMatches').mockResolvedValue(6)
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    mountPanel()
+    openFilters()
+
+    $('filter-panel [data-filter="apply"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+    await vi.waitFor(() => expect(appState.getSnapshot().error).toBeTruthy())
+
+    expect($$('filter-panel')).toEqual([])
+    expect($$('branch-panel')).toHaveLength(1)
+  })
+
+  it('applies and searches, then hands the column back', async () => {
+    vi.spyOn(catalog, 'fetchBranchCatalog').mockResolvedValue([wine('900')])
+    vi.spyOn(catalog, 'countMatches').mockResolvedValue(6)
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    // Ready state: the column is showing the branch list.
+    mountPanel()
+    openFilters()
+
+    $('filter-panel [data-filter="colour"][data-value="white"]')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    $('filter-panel [data-filter="apply"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+
+    expect(appState.getSnapshot().filters.colour).toBe('white')
+    await vi.waitFor(() => expect($$('.results-row').length).toBeGreaterThan(0))
+    expect($$('filter-panel')).toEqual([])
   })
 })
 

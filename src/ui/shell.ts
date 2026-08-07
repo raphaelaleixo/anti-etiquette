@@ -11,6 +11,7 @@ import { MyWines } from './elements/my-wines'
 import { FindPanel } from './elements/find-panel'
 import { LangToggle } from './elements/lang-toggle'
 import { BranchPanel } from './elements/branch-panel'
+import { FilterPanel } from './elements/filter-panel'
 
 /**
  * The app entry point.
@@ -38,6 +39,7 @@ const ELEMENTS: Array<[string, CustomElementConstructor]> = [
   ['find-panel', FindPanel],
   ['lang-toggle', LangToggle],
   ['branch-panel', BranchPanel],
+  ['filter-panel', FilterPanel],
 ]
 
 export function defineElements(): void {

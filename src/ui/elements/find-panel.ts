@@ -133,6 +133,9 @@ function results(
 }
 
 export class FindPanel extends StoreElement {
+  /** Whether the scope column is showing the filters rather than the branches. */
+  #changingFilters = false
+
   protected sources() {
     // appState for the search itself; cellar so that re-filing a wine reflows
     // the list without another catalog fetch.
@@ -140,10 +143,13 @@ export class FindPanel extends StoreElement {
   }
 
   connectedCallback(): void {
+    // Applying hands the column back. Running the search is the filter panel's
+    // own business — doing it here as well would search twice.
+    this.addEventListener('filters-done', () => { this.#changingFilters = false })
     delegate(this, 'click', '[data-find]', (_e, el) => {
       if (el.dataset.find === 'branch') this.#goToBranchPicker()
       else if (el.dataset.find === 'search') void runSearch()
-      else if (el.dataset.find === 'filters') openFilterSheet()
+      else if (el.dataset.find === 'filters') this.#goToFilters()
       else if (el.dataset.find === 'add') openAddWines()
       else if (el.dataset.find === 'prompt') {
         // The footer owns assembling the prompt (it has the count control), so
@@ -194,6 +200,24 @@ export class FindPanel extends StoreElement {
     }
     panel.scrollIntoView({ block: 'nearest' })
     panel.querySelector<HTMLInputElement>('[data-branch-q]')?.focus()
+  }
+
+  /**
+   * Show the filters wherever this screen can show them.
+   *
+   * Same fork as the branch picker, and asked the same way: whether the scope
+   * column is actually rendering, not how wide the window is. Toggling rather
+   * than opening, because a panel that took over the column with no way back
+   * would stand between the visitor and the branch list.
+   */
+  #goToFilters(): void {
+    const column = this.querySelector<HTMLElement>('branch-panel, filter-panel')
+    if (column === null || column.offsetParent === null) {
+      openFilterSheet()
+      return
+    }
+    this.#changingFilters = !this.#changingFilters
+    this.render()
   }
 
   #requirement(met: boolean, name: string, note: string): Html {
@@ -289,7 +313,14 @@ export class FindPanel extends StoreElement {
         Hidden below the desktop breakpoint, where the sheet is the right
         shape — so the button above stays the way in on a phone.
       -->
-      ${panelShown && html`<branch-panel></branch-panel>`}
+      <!--
+        One column, two things it can be showing. The branch list by default;
+        the filters while they are being changed, because the design puts both
+        on the page at this width rather than over it.
+      -->
+      ${panelShown && (this.#changingFilters
+        ? html`<filter-panel></filter-panel>`
+        : html`<branch-panel></branch-panel>`)}
       </div>
     `
   }

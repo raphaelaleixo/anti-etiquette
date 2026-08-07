@@ -1060,16 +1060,20 @@ button { font: inherit; color: inherit; }
  * the question, which is the whole point of the layout.
  */
 .find-gate { display: grid; grid-template-columns: 1fr; }
-.find-gate branch-panel { display: none; }
+.find-gate branch-panel,
+.find-gate filter-panel { display: none; }
 
 @media (min-width: 62rem) {
-  .find-gate:has(branch-panel) {
+  /* Either occupant of the scope column earns it its width. */
+  .find-gate:has(branch-panel),
+  .find-gate:has(filter-panel) {
     grid-template-columns: 1fr 620px;
     gap: 56px;
     align-items: start;
     padding-inline-end: var(--pad);
   }
-  .find-gate branch-panel { display: block; }
+  .find-gate branch-panel,
+  .find-gate filter-panel { display: block; }
   .find-empty { gap: 26px; padding: 52px var(--pad) 44px; }
   .find-empty h2 { font-size: 38px; letter-spacing: -0.01em; max-inline-size: 20ch; }
   .find-empty .hint { font-size: 16px; line-height: 1.6; max-inline-size: 44ch; }
@@ -1082,6 +1086,51 @@ button { font: inherit; color: inherit; }
   .gate-reqs { gap: 14px; }
   .gate-req { padding: 16px 18px; gap: 14px; }
   .gate-mark { inline-size: 20px; block-size: 20px; font-size: 12px; margin-block-start: 1px; }
+}
+
+/* ── the filters, on the page ────────────────────────────────────────────── */
+
+.filterpanel {
+  display: block;
+  margin-block-start: 52px;
+  overflow: hidden;
+  border: 1px solid var(--line4);
+  border-radius: 5px;
+  background: var(--panel);
+  max-inline-size: 560px;
+}
+.filterpanel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-block-end: 1px solid var(--line2);
+}
+.filterpanel-head h3 { font-size: 20px; line-height: 1.2; }
+/* The branch being narrowed. A statement, like the sheet's title row. */
+.filterpanel-scope {
+  flex: none;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute3);
+}
+.filterpanel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+.filterpanel-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  border-block-start: 1px solid var(--line3);
+  background: var(--raise);
 }
 
 /* ── the branch list, on the page ────────────────────────────────────────── */
