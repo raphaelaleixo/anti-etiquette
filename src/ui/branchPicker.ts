@@ -52,9 +52,20 @@ function row(branch: Branch, selected: boolean, count: number | undefined): Html
       </span>
       <span class="branch-body">
         <span class="branch-name">${branch.name}</span>
-        <span class="branch-address">
-          ${branch.address}${count === undefined ? '' : t().inStockAt(count)}
-        </span>
+        <span class="branch-address">${branch.address}</span>
+      </span>
+      <!--
+        The stock count from the last visit, in its own column: it is the one
+        number worth comparing between branches, and buried in the address
+        line it could not be scanned down.
+      -->
+      <span class="branch-count">
+        ${count === undefined
+          ? html`<span class="branch-count-none">${t().notVisited}</span>`
+          : html`
+            <span class="branch-count-n">${t().winesLastTime(count)}</span>
+            <span class="branch-count-note">${t().lastTimeNote}</span>
+          `}
       </span>
     </button>
   `

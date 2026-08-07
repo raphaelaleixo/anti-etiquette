@@ -2,7 +2,7 @@ import { html, mount, delegate, setProp } from './dom'
 import { openSheet } from './sheet'
 import { countMatches, type CatalogFilters, type WineColour } from '../lib/catalog'
 import {
-  COLOURS, PRICE_PRESETS, DEFAULT_FILTERS, priceLabel,
+  COLOURS, PRICE_PRESETS, DEFAULT_FILTERS,
   colourLabel, presetLabel,
 } from '../lib/filters'
 import { branchName } from '../lib/branches'
@@ -53,10 +53,7 @@ export function openFilterSheet(): void {
         </div>
       </div>
       <div class="filtersheet-section">
-        <div class="filtersheet-pricehead">
-          <div class="label">${t().price}</div>
-          <div class="filtersheet-priceband" data-filter-band>${priceLabel(draft)}</div>
-        </div>
+        <div class="label">${t().price}</div>
         <div class="filtersheet-pills">
           ${PRICE_PRESETS.map(p => html`
             <button
@@ -108,9 +105,8 @@ export function openFilterSheet(): void {
     mount(slot, html`
       <div class="${thin ? 'filter-count filter-thin' : 'filter-count'}">
         <div class="filter-count-n">${count}</div>
-        <div class="filter-count-note">
-          ${t().winesFit(count)}${thin ? ` ${t().thinBand}` : ''}
-        </div>
+        <!-- The sentence continues from the number rather than repeating it. -->
+        <div class="filter-count-note">${thin ? t().winesFitThin : t().winesFitNote}</div>
       </div>
     `)
   }
@@ -173,8 +169,6 @@ export function openFilterSheet(): void {
     if (value !== null && Number.isNaN(value)) return
     draft = { ...draft, [el.dataset.filter === 'min' ? 'priceMin' : 'priceMax']: value }
     count = null
-    const band = sheet.body.querySelector('[data-filter-band]')
-    if (band) band.textContent = priceLabel(draft)
     scheduleCount()
   })
 

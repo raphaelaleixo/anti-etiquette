@@ -153,15 +153,23 @@ describe('the filter sheet', () => {
     expect($$('[data-filter="preset"]')).toHaveLength(4)
   })
 
-  it('shows the live price band beside the heading', () => {
+  it('counts what a typed band would return, without repeating the number', async () => {
+    // The design has no band readout beside the heading — that was mine, and
+    // it only said what the two boxes underneath already say. What it does
+    // have is a live count, so a band is never applied blind.
+    vi.spyOn(catalog, 'countMatches').mockResolvedValue(42)
+    appState.setBranch('23112')
     openFilterSheet()
-    expect($('[data-filter-band]').textContent).toContain('$15')
 
     const min = $<HTMLInputElement>('[data-filter="min"]')
     min.value = '25'
     min.dispatchEvent(new Event('input', { bubbles: true }))
+    await vi.waitFor(() => expect($('.filter-count')).toBeTruthy())
 
-    expect($('[data-filter-band]').textContent).toContain('$25')
+    expect($('.filter-count-n').textContent).toBe('42')
+    // The sentence continues from the number rather than restating it.
+    expect($('.filter-count-note').textContent).not.toContain('42')
+    expect($('.filter-count-note').textContent).toContain('wines fit')
   })
 
   it('marks the current colour', () => {

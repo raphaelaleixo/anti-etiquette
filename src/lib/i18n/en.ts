@@ -16,10 +16,7 @@ const s = (n: number) => (n === 1 ? '' : 's')
 
 export const en = {
   // ------------------------------------------------------------- chrome
-  appName: 'Anti-Étiquette',
-  myWinesTab: (n: number) => `My wines · ${n}`,
   findTab: 'Find a wine',
-  about: 'About',
   language: 'Language',
   myWines: 'My wines',
   exportBackup: 'Export a backup',
@@ -28,7 +25,6 @@ export const en = {
   alsoHere: 'Also here: wines you already know',
   alsoHereNote: 'From your own list, in stock at this branch.',
   askAnAi: 'Ask an AI about this shelf',
-  ranksContinue: (from: number, to: number) => `Ranks ${from} – ${to} continue`,
 
   // -------------------------------------------------------------- kinds
   //
@@ -45,7 +41,6 @@ export const en = {
   justHideIt: 'Just hide it',
   remove: 'Remove',
   show: 'Show',
-  andMore: (n: number) => `+ ${n} more`,
   savedShaping: (saved: number, shaping: number) =>
     `${saved} saved · ${shaping} shaping results`,
   emptyGroup: 'Empty group',
@@ -97,7 +92,6 @@ export const en = {
 
   // ------------------------------------------------------------- backup
   backupSummary: 'Saved in this browser only',
-  backupNag: ' · back it up',
   backupNote:
     'Nothing here is sent anywhere, which also means nothing here is anywhere ' +
     'else. Clearing site data removes it. On an iPhone, Safari drops it after ' +
@@ -113,16 +107,12 @@ export const en = {
 
   // --------------------------------------------------------------- find
   chooseBranch: 'Choose a branch',
-  changeBranch: 'Change',
   searchButton: "Find wines I'd like here",
   emptyNoWinesTitle: "First, name a wine or two you've liked.",
   emptyNoWinesNote:
     'Matches are built from wines you already know you enjoy, so there is ' +
     'nothing to go on until there is at least one.',
   emptyNoBranchTitle: 'Now pick your branch.',
-  emptyNoBranchNote:
-    'Stock differs from one SAQ to the next, so the list is only worth ' +
-    'anything once it knows which shelf it is reading.',
   // Both requirements are named on the gate, not just the missing one: a
   // screen that mentions only what is wrong never says what "right" is.
   reqWines: (group: string) => `Wines in ${group}`,
@@ -145,6 +135,10 @@ export const en = {
   fromReviews: (n: number) => `from ${n} reviews`,
   fromFewReviews: (n: number) => `from ${n} reviews — too few to lean on`,
   changeScope: 'Change scope',
+  currentScope: 'Current scope',
+  noBranch: 'No branch',
+  changeFilters: 'Change filters',
+  onlyBottlesHeld: 'Only the bottles that branch is holding get ranked.',
 
   // ------------------------------------------------------------- search
   fetchingCatalog: "Fetching this branch's catalog…",
@@ -179,20 +173,11 @@ export const en = {
   lookUp: (n: number) => `Look up ${n} wine${s(n)}`,
   lookingUp: 'Looking up…',
   reviewTitle: 'Check these matches',
-  back: 'Back',
   save: (n: number) => `Save ${n} wine${s(n)}`,
   saving: 'Saving…',
-  noMatch: 'no match — not added',
-  nothingChosen: 'nothing chosen — not added',
-  noneOfThese: 'None of these',
-  whichWine: (input: string) => `Which wine ${input} means`,
   whichList: (name: string) => `Which list ${name} belongs in`,
   dismissUnmatched: (input: string) => `Dismiss the unmatched line ${input}`,
   dismissMatched: (name: string) => `Do not add ${name}`,
-  fromInput: (price: string, input: string) => `${price} · from "${input}"`,
-  linesIgnored: (n: number) => `${n} line${s(n)} ignored · `,
-  batchSummary: (liked: number, steered: number) => `${liked} liked, ${steered} steered clear`,
-  batchSkipped: (n: number) => `, ${n} never recommended`,
   catalogUnreachable: (reason: string) => `Could not reach the SAQ catalog: ${reason}`,
   stepName: '1 · Name them',
   stepCheck: '2 · Check the matches',
@@ -223,12 +208,8 @@ export const en = {
     'Producers the SAQ does not carry, and vintages it has sold out of, will not ' +
     'be found. Nothing is wrong with your list.',
   backToText: 'Back to the text',
-  tally: (like: number, dislike: number, skip: number) =>
-    `${like} more like this · ${dislike} less · ${skip} hidden`,
 
   // ------------------------------------------------------------ branches
-  branchTitle: 'Which branch?',
-  branchFilter: (n: number) => `Filter ${n} Montréal branches`,
   branchFilterLabel: 'Filter branches',
   recent: 'Recent',
   allBranches: 'All branches · A–Z',
@@ -237,18 +218,17 @@ export const en = {
   useBranchEmpty: 'Use branch',
   montrealOnly: (n: number) => `Montréal branches only — ${n} of them.`,
   nInMontreal: (n: number) => `${n} in Montréal`,
-  inStockAt: (n: number) => ` · ${n} in stock`,
+  winesLastTime: (n: number) => `${n.toLocaleString('en-CA')} wines`,
+  lastTimeNote: 'last time',
+  notVisited: 'not visited',
 
   // ------------------------------------------------------------- filters
-  filtersTitle: 'Filters',
-  reset: 'Reset',
   colour: 'Colour',
   price: 'Price',
   min: 'Min',
   max: 'Max',
   to: 'to',
   any: 'Any',
-  showCount: (n: number) => `Show ${n} wines`,
   showNone: 'No wines in this band',
   showWines: 'Show wines',
   colourAll: 'All',
@@ -268,14 +248,16 @@ export const en = {
     `${colour} · ${price} · in stock at ${branch}`,
   thisBranch: 'this branch',
   narrowTheShelf: 'Narrow the shelf',
-  winesFit: (n: number) => `${n} wines fit your filters`,
-  thinBand: 'That is a thin band — widen it a little for a better ranking.',
+  // The number is set beside these, in the measurement face, so the sentence
+  // continues from it rather than repeating it.
+  winesFitNote: 'wines fit. Updates as you type — you never apply a band blind.',
+  winesFitThin:
+    'wines on this shelf fit. That is a thin band — widen it a little for a ' +
+    'better ranking.',
   searchTheseWines: (n: number) => `Search these ${n} wines`,
   resetFilters: 'Reset to all colours, any price',
   branchSearchPlaceholder: 'Name or street',
-  lastTime: 'last time',
   whichShop: 'Which shop are you standing in?',
-  winesReadyNoBranch: (n: number) => `${n} wines ready. No branch yet.`,
 
   // -------------------------------------------------------------- prompt
   promptTitle: 'Prompt',
@@ -298,13 +280,8 @@ export const en = {
     'take it by hand.',
   selectInstead: 'Select the text instead',
   close: 'Close',
-  promptMeta: (wines: number, chars: number) => `${wines} wines available · ${chars} characters`,
-  copy: 'Copy',
-  copied: 'Copied ✓',
-  copyManually: 'Select and copy manually',
   openChatGpt: 'Open ChatGPT ↗',
   include: 'Include',
-  includeAll: 'All',
 }
 
 export type Messages = typeof en

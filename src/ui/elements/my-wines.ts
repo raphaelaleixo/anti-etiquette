@@ -51,6 +51,13 @@ function menu(entry: CellarEntry, name: string): Html {
     <button class="mywines-menu-btn" popovertarget="${id}" aria-label="${lang.t().actionsFor(name)}">⋮</button>
     <div id="${id}" popover="auto" class="wine-menu">
       <div class="wine-menu-head">${name}</div>
+      <!--
+        Actions are phrased as actions. "More like this" names where a wine
+        already is; "Move to More like this" is the thing the press does, and
+        the design words the row controls that way for exactly that reason.
+        The current group keeps its plain name, because pressing it does
+        nothing.
+      -->
       ${KINDS.map(k => html`
         <button
           type="button"
@@ -61,7 +68,9 @@ function menu(entry: CellarEntry, name: string): Html {
           aria-pressed="${k === entry.kind ? 'true' : 'false'}"
         >
           <span class="wine-menu-tick" aria-hidden="true">${k === entry.kind ? '✓' : ''}</span>
-          ${lang.kindLabel(k)}
+          ${k === entry.kind ? lang.kindLabel(k)
+            : k === 'skip' ? lang.t().justHideIt
+            : lang.t().moveTo(lang.kindLabel(k))}
         </button>
       `)}
       <button
@@ -164,10 +173,17 @@ function backup(entryCount: number, nag: boolean, message: string | null): Html 
       <p class="hint">${t.backupNote}</p>
       ${!blocked && html`<p class="hint">${t.importMerges}</p>`}
       <div class="backup-actions">
-        <button type="button" class="btn-secondary" data-act="export">
+        <button type="button" class="${unbacked ? 'btn-primary' : 'btn-secondary'}" data-act="export">
           ${t.exportCount(entryCount)}
         </button>
-        <button type="button" class="btn-secondary" data-act="import">${t.importFile}</button>
+        <!--
+          A nag that cannot be dismissed is a nag people learn to scroll past.
+          "Not now" closes the panel and says nothing else; the summary line
+          above it keeps the fact visible without the argument.
+        -->
+        ${unbacked
+          ? html`<button type="button" class="btn-secondary" data-act="not-now">${t.notNow}</button>`
+          : html`<button type="button" class="btn-secondary" data-act="import">${t.importFile}</button>`}
         <input type="file" accept="application/json,.json" data-act="file" hidden />
       </div>
       ${message && html`<p class="hint backup-message">${message}</p>`}
@@ -250,6 +266,15 @@ export class MyWines extends StoreElement {
    */
   #expanded = new Set<SeedKind>()
 
+  /**
+   * Whether the export nag has been waved away this visit.
+   *
+   * Not persisted: it is a "not now", not a "never". The panel still says the
+   * list is unexported in its summary line — what this silences is the panel
+   * springing open, which is the part that becomes noise.
+   */
+  #dismissedNag = false
+
   protected sources() {
     return [cellar.subscribe, lang.subscribe]
   }
@@ -287,6 +312,10 @@ export class MyWines extends StoreElement {
   }
 
   connectedCallback(): void {
+    delegate(this, 'click', '[data-act="not-now"]', () => {
+      this.#dismissedNag = true
+      this.render()
+    })
     delegate(this, 'click', '[data-act="toggle"]', (_e, el) => {
       const kind = el.dataset.kind as SeedKind
       if (this.#expanded.has(kind)) this.#expanded.delete(kind)
@@ -389,7 +418,8 @@ export class MyWines extends StoreElement {
   protected render(): void {
     const snap = cellar.getSnapshot()
     const { entries } = snap
-    const nag = !isPersistent() || shouldSuggestExport(entries.length, Date.now())
+    const nag = !isPersistent()
+      || (!this.#dismissedNag && shouldSuggestExport(entries.length, Date.now()))
     const of = (kind: SeedKind) => entries.filter(e => e.kind === kind)
     const liked = of('like')
     const disliked = of('dislike')

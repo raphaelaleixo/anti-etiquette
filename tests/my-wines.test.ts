@@ -102,6 +102,28 @@ describe('no loading gap', () => {
  * The three columns sit side by side, so no one of them may run away with the
  * page height. Frame 03 caps each list and collapses the largest group.
  */
+describe('the export nag', () => {
+  it('can be waved away without pretending the list is backed up', () => {
+    for (let i = 0; i < 30; i++) cellar.saveWine(wine(String(200 + i)), 'like')
+    const el = mountList()
+    expect(el.querySelector<HTMLDetailsElement>('[data-backup]')!.open).toBe(true)
+    expect(el.querySelector('[data-act="not-now"]')).toBeTruthy()
+
+    el.querySelector<HTMLButtonElement>('[data-act="not-now"]')!.click()
+
+    // Closed, not silenced: the summary still says what is true.
+    expect(el.querySelector<HTMLDetailsElement>('[data-backup]')!.open).toBe(false)
+    expect(el.querySelector('.backup-summary')!.textContent!.length).toBeGreaterThan(0)
+  })
+
+  it('offers Import rather than Not now when it is not nagging', () => {
+    cellar.saveWine(wine('111'), 'like')
+    const el = mountList()
+    expect(el.querySelector('[data-act="not-now"]')).toBe(null)
+    expect(el.querySelector('[data-act="import"]')).toBeTruthy()
+  })
+})
+
 describe('long groups', () => {
   const fill = (n: number, kind: 'like' | 'skip' = 'like') => {
     for (let i = 0; i < n; i++) cellar.saveWine(wine(String(100 + i)), kind)

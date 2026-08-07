@@ -1010,6 +1010,38 @@ button { font: inherit; color: inherit; }
 .gate-req.is-met .gate-mark { background: var(--ok); color: var(--on-ok); }
 .gate-req.is-met .gate-note { color: var(--ok-ink); }
 
+/*
+ * What the search would run with, as it stands.
+ *
+ * The chips are inert here — they report rather than act — except the one
+ * link, because filters are the only part of the scope this panel can change
+ * without becoming a second branch picker.
+ */
+.scopepanel {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 18px 20px;
+  border: 1px solid var(--line3);
+  border-radius: 4px;
+  background: var(--panel);
+  max-inline-size: 440px;
+}
+.scopepanel-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.scopepanel .scopechip {
+  flex: none;
+  padding: 8px 12px;
+  cursor: default;
+}
+.scopepanel .scopechip:hover { border-color: var(--edge); }
+/* The missing piece is dashed and tinted, so the gap is visible at a glance. */
+.scopechip--open {
+  border-style: dashed;
+  border-color: var(--more-edge);
+  color: oklch(0.82 0.04 35);
+}
+
 .gate-req.is-open { border-color: oklch(0.38 0.04 95); background: var(--less-bg); }
 .gate-req.is-open .gate-mark { border: 2px solid var(--more); }
 .gate-req.is-open .gate-note { color: var(--less-ink); }
@@ -1327,12 +1359,12 @@ button { font: inherit; color: inherit; }
 
 /* Reset sits in the footer beside the button that applies what it undoes. */
 .sheet-reset {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--mute2);
-  font-size: 13px;
-  text-decoration: underline;
+  padding: 15px 18px;
+  border: 1px solid var(--edge2);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink3);
+  font-size: 15px;
   cursor: pointer;
 }
 .sheet-reset:hover { color: var(--ink0); }
@@ -1390,6 +1422,15 @@ button { font: inherit; color: inherit; }
   }
   /* The action goes last on a pointer, whatever order the markup emits it in. */
   .sheet-foot > .btn-primary { order: 9; padding: 11px 22px; font-size: 14px; }
+  /* With room to read it, Reset goes back to being a quiet link. */
+  .sheet-reset {
+    padding: 0;
+    border: 0;
+    color: var(--mute2);
+    font-size: 13px;
+    text-decoration: underline;
+  }
+  .sheet-reset:hover { color: var(--ink0); }
   .sheet-summary { text-align: start; }
   .sheet-full { inline-size: 620px; }
   .sheet-full .sheet-inner { block-size: 86svb; }
@@ -1416,9 +1457,6 @@ button { font: inherit; color: inherit; }
   color: oklch(0.96 0.01 35);
   font-weight: 600;
 }
-
-.filtersheet-pricehead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.filtersheet-priceband { font: 500 13px/1 var(--mono); color: var(--ink0); }
 
 .filtersheet-numbers { display: flex; align-items: center; gap: 10px; }
 .filtersheet-to { font-size: 14px; color: var(--mute3); flex: none; }
@@ -1457,10 +1495,7 @@ button { font: inherit; color: inherit; }
 /* On a pointer the label sits beside its pills, in one row, as drawn. */
 @media (min-width: 62rem) {
   .filtersheet-section { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
-  .filtersheet-section > .label,
-  .filtersheet-pricehead { inline-size: 60px; flex: none; }
-  .filtersheet-pricehead { display: block; }
-  .filtersheet-pricehead .filtersheet-priceband { margin-block-start: 5px; }
+  .filtersheet-section > .label { inline-size: 60px; flex: none; }
   .filtersheet-pills { flex: 1; }
   .pill { padding: 9px 14px; font-size: 13px; }
   .filtersheet-numbers { flex: 1 0 100%; margin-inline-start: 80px; max-inline-size: 320px; }
@@ -1513,6 +1548,21 @@ button { font: inherit; color: inherit; }
 .branch-body { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 3px; }
 .branch-name { font-size: 15px; color: var(--ink); }
 .branch-address { font-size: 12px; color: var(--mute2); }
+.branch-count {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font: 500 11px/1.3 var(--mono);
+  text-align: end;
+}
+.branch-count-n { color: var(--mute); }
+.branch-count-note { color: var(--mute3); }
+.branch-count-none { color: var(--mute3); }
+@media (min-width: 62rem) {
+  .branch-count { flex-direction: row; align-items: baseline; gap: 5px; font-size: 12px; }
+}
 
 /* ── the AI prompt ───────────────────────────────────────────────────────── */
 
@@ -1586,6 +1636,47 @@ button { font: inherit; color: inherit; }
 .prompt-step.is-pending { opacity: 0.45; }
 .prompt-step.is-done .prompt-steplabel { color: var(--ok-ink); }
 .prompt-link { justify-content: center; }
+
+/*
+ * Where the text went, and what to do with it now.
+ *
+ * Replaces the two steps rather than relabelling the button: "Copied" on a
+ * control that still looks like the next thing to press leaves the visitor
+ * holding a clipboard with nowhere to put it.
+ */
+.prompt-done {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--ok-line);
+  border-radius: 5px;
+  background: var(--ok-bg);
+}
+.prompt-done-head { display: flex; align-items: center; gap: 11px; }
+.prompt-done-tick {
+  inline-size: 20px;
+  block-size: 20px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ok);
+  color: var(--on-ok);
+  font-size: 12px;
+  font-weight: 700;
+}
+.prompt-done-count {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ok-ink);
+}
+.prompt-done h3 { font-size: 22px; line-height: 1.25; }
+.prompt-done p { font-size: 14px; line-height: 1.5; color: var(--ok-ink); }
+.prompt-done-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (min-width: 62rem) { .prompt-done { padding: 24px; gap: 16px; } }
 .copy-failed { color: var(--stop-ink); }
 
 @media (min-width: 62rem) {

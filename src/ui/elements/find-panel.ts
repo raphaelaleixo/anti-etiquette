@@ -4,12 +4,16 @@ import * as cellar from '../../lib/cellar'
 import { productUrl } from '../../lib/catalog'
 import * as lang from '../../lib/lang'
 import { describeMatch } from '../../lib/reasons'
-import { branchName } from '../../lib/branches'
+import { branchName, BRANCHES } from '../../lib/branches'
+import { colourLabel, priceLabel } from '../../lib/filters'
 import { runSearch } from '../../lib/search'
 import { openBranchSheet } from '../branchSheet'
 import { openFilterSheet } from '../filterSheet'
 import { openAddWines } from '../addWines'
 import type { ScoredWine, TasteProfile, Wine } from '../../lib/types'
+
+/** Said on the gate, because "which shop" is the question it is asking. */
+const BRANCH_COUNT = BRANCHES.length
 
 /** Below this, SAQ's community average is closer to noise than signal. */
 const THIN_SAMPLE = 5
@@ -196,6 +200,7 @@ export class FindPanel extends StoreElement {
   #emptyState(likedCount: number, branch: string, searched: boolean): Html | false {
     if (searched) return false
     const t = lang.t()
+    const { filters } = appState.getSnapshot()
     const noWines = likedCount === 0
     const ready = likedCount > 0 && branch !== ''
     const title = ready ? t.gateReadyTitle
@@ -203,7 +208,7 @@ export class FindPanel extends StoreElement {
       : t.emptyNoBranchTitle
     const note = ready ? t.gateReadyNote
       : noWines ? t.emptyNoWinesNote
-      : t.emptyNoBranchNote
+      : `${t.onlyBottlesHeld} ${t.montrealOnly(BRANCH_COUNT)}`
     return html`
       <div class="find-gate">
       <section class="find-empty">
@@ -219,6 +224,23 @@ export class FindPanel extends StoreElement {
             branch ? t.reqBranchMet(branchName(branch)) : t.reqBranchOpen)}
         </div>
         <p class="hint">${note}</p>
+
+        <!--
+          What the search would run with, as it stands. Stated here because
+          the filters carry over from last time and are otherwise invisible
+          until after a search has already used them.
+        -->
+        <div class="scopepanel">
+          <div class="label">${t.currentScope}</div>
+          <div class="scopepanel-chips">
+            <span class="${branch ? 'scopechip' : 'scopechip scopechip--open'}">
+              ${branch ? branchName(branch) : t.noBranch}
+            </span>
+            <span class="scopechip">${colourLabel(filters.colour)}</span>
+            <span class="scopechip">${priceLabel(filters)}</span>
+            <button type="button" class="scopelink" data-find="filters">${t.changeFilters}</button>
+          </div>
+        </div>
         <!-- The action belongs to the requirement that is missing — or, when
              nothing is missing, to the thing that has not happened yet. -->
         ${ready

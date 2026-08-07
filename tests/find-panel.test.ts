@@ -130,6 +130,49 @@ describe('the scope gate', () => {
 })
 
 /**
+ * What the search would run with, as it stands. The filters carry over from
+ * last time and are otherwise invisible until after a search has used them.
+ */
+describe('the current-scope panel', () => {
+  const chips = () => $$('.scopepanel .scopechip').map(c => ({
+    open: c.classList.contains('scopechip--open'),
+    text: c.textContent!.trim(),
+  }))
+
+  it('marks the branch as the piece that is missing', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect(chips()[0]!.open).toBe(true)
+    expect(chips()[0]!.text).toBe('No branch')
+    // The filters are set, so they are not marked.
+    expect(chips().slice(1).map(c => c.open)).toEqual([false, false])
+  })
+
+  it('names the branch, unmarked, once one is chosen', () => {
+    cellar.saveWine(wine('111'), 'like')
+    appState.setBranch('23112')
+    mountPanel()
+    expect(chips()[0]!.open).toBe(false)
+    expect(chips()[0]!.text).not.toBe('No branch')
+  })
+
+  it('reports the filters that would be applied', () => {
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect(chips().map(c => c.text).join(' ')).toContain('Red')
+    expect(chips().map(c => c.text).join(' ')).toContain('$15')
+  })
+
+  it('offers the one part of the scope it can change', () => {
+    // Filters, not the branch: a second branch picker beside the first would
+    // be two controls for one decision.
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    expect($('.scopepanel .scopelink').dataset.find).toBe('filters')
+  })
+})
+
+/**
  * The branch list beside the gate, as the design draws it on desktop.
  *
  * Whether it is *visible* is CSS — hidden below 62rem, where the sheet is the
@@ -371,7 +414,7 @@ describe('the prompt dialog', () => {
     document.body.innerHTML = ''
   })
 
-  function stubClipboard(impl: () => Promise<void>): void {
+  function stubClipboard(impl: (text: string) => Promise<void>): void {
     Object.defineProperty(navigator, 'clipboard', {
       value: { writeText: vi.fn(impl) }, configurable: true, writable: true,
     })
@@ -394,17 +437,34 @@ describe('the prompt dialog', () => {
     expect($('[data-prompt="chars"]').textContent).toContain('5 characters')
   })
 
-  it('copies, then moves the brass to Open ChatGPT', async () => {
+  it('replaces the steps with where the text went and what to do next', async () => {
     stubClipboard(async () => {})
     openPromptDialog('the prompt', 'Marché Central')
     expect($('[data-prompt="copy"]').className).toBe('btn-primary')
 
     $<HTMLButtonElement>('[data-prompt="copy"]').click()
-    await vi.waitFor(() => expect($('[data-prompt="copy"]').textContent).toContain('Copied'))
+    await vi.waitFor(() => expect($('.prompt-done')).toBeTruthy())
 
-    // Brass marks the next thing to tap. Nothing else moves.
-    expect($('[data-prompt="copy"]').className).toBe('btn-secondary')
-    expect($('[data-prompt="open"]').className).toContain('btn-primary')
+    // Relabelling the button left a control that still looked like the next
+    // thing to press, and a visitor holding a clipboard with nowhere to put
+    // it. The steps are replaced by the answer instead.
+    expect(document.querySelector('[data-prompt="copy"]')).toBe(null)
+    expect($('.prompt-done-count').textContent).toContain('Copied')
+    expect($('.prompt-done h3').textContent).toContain('Now open a chat')
+    expect($('.prompt-done-actions .btn-primary').textContent).toContain('ChatGPT')
+    expect($('[data-prompt="again"]').textContent).toContain('Copy again')
+  })
+
+  it('can copy again from the panel that says it copied', async () => {
+    const writes: string[] = []
+    stubClipboard(async text => { writes.push(text) })
+    openPromptDialog('the prompt', 'Marché Central')
+    $<HTMLButtonElement>('[data-prompt="copy"]').click()
+    await vi.waitFor(() => expect($('[data-prompt="again"]')).toBeTruthy())
+
+    $<HTMLButtonElement>('[data-prompt="again"]').click()
+    await vi.waitFor(() => expect(writes).toHaveLength(2))
+    expect(writes.every(w => w === 'the prompt')).toBe(true)
   })
 
   it('falls back to selecting the text when the clipboard refuses', async () => {

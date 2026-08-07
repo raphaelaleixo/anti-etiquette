@@ -18,10 +18,7 @@ const money = (n: number) => `${String(n).replace('.', ',')} $`
 
 export const fr: Messages = {
   // ------------------------------------------------------------- chrome
-  appName: 'Anti-Étiquette',
-  myWinesTab: n => `Mes vins · ${n}`,
   findTab: 'Trouver un vin',
-  about: 'À propos',
   language: 'Langue',
   myWines: 'Mes vins',
   exportBackup: 'Exporter une copie',
@@ -30,7 +27,6 @@ export const fr: Messages = {
   alsoHere: 'Aussi ici : des vins que vous connaissez',
   alsoHereNote: 'Tirés de votre liste, en tablette à cette succursale.',
   askAnAi: 'Interroger une IA sur cette tablette',
-  ranksContinue: (from, to) => `Les rangs ${from} à ${to} suivent`,
 
   // -------------------------------------------------------------- kinds
   kindLike: 'Plus comme ça',
@@ -43,7 +39,6 @@ export const fr: Messages = {
   justHideIt: 'Simplement masquer',
   remove: 'Retirer',
   show: 'Afficher',
-  andMore: n => `+ ${n} de plus`,
   savedShaping: (saved, shaping) => `${saved} gardés · ${shaping} influencent les résultats`,
   emptyGroup: 'Groupe vide',
   startHere: 'Commencez ici',
@@ -91,7 +86,6 @@ export const fr: Messages = {
 
   // ------------------------------------------------------------- backup
   backupSummary: 'Gardé dans ce navigateur seulement',
-  backupNag: ' · faites une copie',
   backupNote:
     'Rien n’est envoyé ailleurs, ce qui veut aussi dire que rien n’existe ' +
     'ailleurs. Effacer les données du site efface la liste. Sur iPhone, Safari ' +
@@ -106,16 +100,12 @@ export const fr: Messages = {
 
   // --------------------------------------------------------------- find
   chooseBranch: 'Choisir une succursale',
-  changeBranch: 'Changer',
   searchButton: 'Trouver des vins pour moi ici',
   emptyNoWinesTitle: 'D’abord, nommez un ou deux vins que vous avez aimés.',
   emptyNoWinesNote:
     'Les suggestions partent des vins que vous savez déjà apprécier : sans au ' +
     'moins un, il n’y a rien sur quoi s’appuyer.',
   emptyNoBranchTitle: 'Maintenant, choisissez votre succursale.',
-  emptyNoBranchNote:
-    'L’inventaire change d’une SAQ à l’autre : la liste ne vaut quelque chose ' +
-    'qu’une fois qu’elle sait quelle tablette elle lit.',
   reqWines: group => `Des vins dans ${group}`,
   reqWinesMet: n => `${n} enregistrés. Largement de quoi classer une tablette.`,
   reqWinesOpen:
@@ -138,6 +128,10 @@ export const fr: Messages = {
   fromReviews: n => `d’après ${n} avis`,
   fromFewReviews: n => `d’après ${n} avis — trop peu pour s’y fier`,
   changeScope: 'Changer la portée',
+  currentScope: 'Portée actuelle',
+  noBranch: 'Aucune succursale',
+  changeFilters: 'Changer les filtres',
+  onlyBottlesHeld: 'Seules les bouteilles que cette succursale a en tablette sont classées.',
 
   // ------------------------------------------------------------- search
   fetchingCatalog: 'Lecture du catalogue de cette succursale…',
@@ -172,20 +166,11 @@ export const fr: Messages = {
   lookUp: n => `Chercher ${n} vin${s(n)}`,
   lookingUp: 'Recherche…',
   reviewTitle: 'Vérifiez ces correspondances',
-  back: 'Retour',
   save: n => `Enregistrer ${n} vin${s(n)}`,
   saving: 'Enregistrement…',
-  noMatch: 'aucune correspondance — non ajouté',
-  nothingChosen: 'rien de choisi — non ajouté',
-  noneOfThese: 'Aucun de ceux-ci',
-  whichWine: input => `De quel vin il s’agit pour ${input}`,
   whichList: name => `Dans quelle liste classer ${name}`,
   dismissUnmatched: input => `Écarter la ligne sans correspondance ${input}`,
   dismissMatched: name => `Ne pas ajouter ${name}`,
-  fromInput: (price, input) => `${price} · d’après « ${input} »`,
-  linesIgnored: n => `${n} ligne${s(n)} ignorée${s(n)} · `,
-  batchSummary: (liked, steered) => `${liked} aimé${s(liked)}, ${steered} à éviter`,
-  batchSkipped: n => `, ${n} à ne pas proposer`,
   catalogUnreachable: reason => `Impossible de joindre le catalogue de la SAQ : ${reason}`,
   stepName: '1 · Nommez-les',
   stepCheck: '2 · Vérifiez les correspondances',
@@ -216,11 +201,8 @@ export const fr: Messages = {
     'Les producteurs que la SAQ ne distribue pas, et les millésimes épuisés, ' +
     'ne seront pas trouvés. Votre liste n’a rien d’anormal.',
   backToText: 'Retour au texte',
-  tally: (like, dislike, skip) => `${like} plus comme ça · ${dislike} moins · ${skip} masqués`,
 
   // ------------------------------------------------------------ branches
-  branchTitle: 'Quelle succursale ?',
-  branchFilter: n => `Filtrer ${n} succursales montréalaises`,
   branchFilterLabel: 'Filtrer les succursales',
   recent: 'Récentes',
   allBranches: 'Toutes les succursales · A–Z',
@@ -229,18 +211,17 @@ export const fr: Messages = {
   useBranchEmpty: 'Utiliser cette succursale',
   montrealOnly: n => `Succursales de Montréal seulement — ${n} au total.`,
   nInMontreal: n => `${n} à Montréal`,
-  inStockAt: n => ` · ${n} en tablette`,
+  winesLastTime: n => `${n.toLocaleString('fr-CA')} vins`,
+  lastTimeNote: 'la dernière fois',
+  notVisited: 'jamais visitée',
 
   // ------------------------------------------------------------- filters
-  filtersTitle: 'Filtres',
-  reset: 'Réinitialiser',
   colour: 'Couleur',
   price: 'Prix',
   min: 'Min',
   max: 'Max',
   to: 'à',
   any: 'Tous',
-  showCount: n => `Afficher ${n} vin${s(n)}`,
   showNone: 'Aucun vin dans cette fourchette',
   showWines: 'Afficher les vins',
   colourAll: 'Tous',
@@ -259,14 +240,14 @@ export const fr: Messages = {
   filterSummary: (colour, price, branch) => `${colour} · ${price} · en tablette à ${branch}`,
   thisBranch: 'cette succursale',
   narrowTheShelf: 'Restreindre la tablette',
-  winesFit: n => `${n} vins correspondent à vos filtres`,
-  thinBand: 'Fourchette étroite — élargissez-la un peu pour un meilleur classement.',
+  winesFitNote: 'vins correspondent. Se met à jour pendant que vous tapez.',
+  winesFitThin:
+    'vins en tablette correspondent. La fourchette est étroite — élargissez-la ' +
+    'un peu pour un meilleur classement.',
   searchTheseWines: n => `Chercher parmi ces ${n} vins`,
   resetFilters: 'Toutes les couleurs, tous les prix',
   branchSearchPlaceholder: 'Nom ou rue',
-  lastTime: 'la dernière fois',
   whichShop: 'Dans quelle succursale êtes-vous ?',
-  winesReadyNoBranch: n => `${n} vins prêts. Pas encore de succursale.`,
 
   // -------------------------------------------------------------- prompt
   promptTitle: 'Texte pour l’IA',
@@ -289,11 +270,6 @@ export const fr: Messages = {
     'sélectionnable — prenez-le à la main.',
   selectInstead: 'Sélectionner le texte',
   close: 'Fermer',
-  promptMeta: (wines, chars) => `${wines} vins disponibles · ${chars} caractères`,
-  copy: 'Copier',
-  copied: 'Copié ✓',
-  copyManually: 'Sélectionner et copier à la main',
   openChatGpt: 'Ouvrir ChatGPT ↗',
   include: 'Inclure',
-  includeAll: 'Tous',
 }
