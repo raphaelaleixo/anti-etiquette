@@ -684,6 +684,7 @@ button { font: inherit; color: inherit; }
 
 .mywines { list-style: none; margin: 0; padding: 0; }
 .mywines-row {
+  position: relative;   /* the containing block for this row's menu */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -739,14 +740,21 @@ button { font: inherit; color: inherit; }
 
 /* ── the per-row menu, on the popover API ────────────────────────────────── */
 
+/*
+ * A popover is `position: fixed; inset: 0; margin: auto` by UA default, which
+ * centres it in the viewport — a long way from the button that opened it.
+ *
+ * Switching it to `absolute` positions it against the nearest positioned
+ * ancestor instead, which is the row. Being in the top layer it still paints
+ * above everything and is not clipped by any ancestor's overflow, so this is
+ * position without the usual cost. Anchor positioning would be tidier but is
+ * not yet everywhere.
+ */
 .wine-menu {
-  /*
-   * `margin: auto` is what centres a popover — the UA stylesheet sets it, and
-   * overriding it with 0 pins the menu to the top-left corner of the viewport,
-   * detached from the row it belongs to. Anchor positioning would tie it to
-   * its button, but it is Chrome-only today, so centred is the honest default.
-   */
-  margin: auto;
+  position: absolute;
+  inset: auto 0 auto auto;
+  top: calc(100% + 6px);
+  margin: 0;
   padding: 6px;
   inline-size: min(20rem, calc(100vw - 32px));
   border: 1px solid var(--edge2);
@@ -788,6 +796,31 @@ button { font: inherit; color: inherit; }
 }
 .wine-menu-item--danger { color: var(--stop-ink); }
 .wine-menu-item--danger:hover { background: var(--stop-bg); color: var(--stop-ink); }
+
+/*
+ * Where anchor positioning exists, use it — it ties the menu to the button
+ * that opened it rather than to whichever ancestor happens to be positioned,
+ * and `position-try-fallbacks` flips it above when there is no room below,
+ * which the absolute version above cannot do.
+ *
+ * `popovertarget` establishes the invoker as the popover's implicit anchor, so
+ * no anchor-name is needed and nothing has to be generated per row.
+ */
+@supports (position-area: bottom) {
+  .wine-menu {
+    position: fixed;
+    inset: auto;
+    /* Block margin becomes the gap on whichever side it lands after a flip. */
+    margin: 6px 0;
+    /* Below the button, extending leftwards — it sits at the row's right
+       edge. Physical keywords throughout: mixing `bottom` with a logical
+       `span-inline-start` is invalid and computes to `none`. */
+    position-area: bottom span-left;
+    position-try-fallbacks: flip-block, flip-inline;
+    max-block-size: calc(100svb - 32px);
+    overflow-y: auto;
+  }
+}
 
 /* ═════════════════════════════════════════════════════════════ first run ══ */
 
@@ -1255,7 +1288,14 @@ button { font: inherit; color: inherit; }
 .results-row:first-child .results-rank { color: var(--more); }
 
 .results-body { grid-area: body; min-inline-size: 0; display: flex; flex-direction: column; gap: 8px; }
-.results-side { grid-area: side; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.results-side {
+  grid-area: side;
+  position: relative;   /* the containing block for this row's menu */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
 
 /*
  * The reason leads, in the largest type on the row and in the display face.
