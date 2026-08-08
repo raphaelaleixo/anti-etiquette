@@ -41,12 +41,55 @@ results rather than for how you felt:
 - **Just hidden** hides that exact bottle and says nothing about your taste —
   for the ones you have already bought, or already decided against.
 
-### A second opinion
+## The AI part is not built in, on purpose
 
-There is also a button that writes your taste and the current shelf out as
-plain text, for pasting into any AI chat. It leaves; nothing comes back. That
-is the only time anything about your list is meant to travel, and you are the
-one carrying it.
+There is a button that writes your taste and the shelf you are standing in
+front of out as plain text, ready to paste into a chat. It does not send it
+anywhere. You copy it, and you take it wherever you already talk to an AI.
+
+The obvious way to build this would have been to embed a model: an API key, a
+backend to keep the key in, a bill that grows with every question, a vendor to
+be locked into, and your list of wines travelling to a company you did not
+choose. That is a lot of machinery to add to an app whose whole argument is
+that it has none.
+
+The unobvious way is to notice that almost everyone already has a chat open
+somewhere, already knows how to use it, and already decided which one they
+trust. So the app does the part it is good at — knowing your taste and reading
+the shelf — writes it down, and hands it over.
+
+It costs nothing to run, works with whatever model you prefer, and keeps the
+promise below intact: nothing about your list travels unless you are the one
+carrying it. The button currently points at ChatGPT because that is where most
+people are; the text is plain and works anywhere, and more destinations are an
+easy addition.
+
+## What it costs to run
+
+Nothing that scales.
+
+There is no server to rent, no database to keep, and no model to pay by the
+question. The single call to the catalogue is made by the visitor's own
+browser, so it never arrives here as a bill — it is the same request their
+browser would make by visiting saq.com directly.
+
+What is left is bandwidth for static files, and there is very little of it:
+
+```
+landing page     6.1 KB gzipped
+the app         38.0 KB gzipped
+```
+
+At that size a free hosting tier's monthly allowance is worth something on the
+order of two million app loads, and returning visitors download nothing at all
+— filenames are content-hashed, so the browser reuses what it already has. The
+only thing here that has ever cost money is a domain name, and that is
+optional.
+
+The point is not that it is cheap today. It is that **the cost cannot grow
+with success**. The obvious version of this app — a backend holding an API
+key, a database of everyone's lists, a model answering questions — gets more
+expensive exactly when it starts working. This one has no shape that can.
 
 ## Privacy, and why it is structural
 
@@ -128,9 +171,10 @@ application is built so that it never becomes one:
 
 A deliberate posture, not a legal clearance.
 
-If the SAQ would like to talk about any of this — the tool, the name, or terms
-other than the ones below — the address named in their own terms is
-`demandes@saq.com`, and the conversation would be welcome.
+If you are from the SAQ and would like to talk about any of this — the tool,
+the name, or licence terms other than the public ones — please
+[open an issue](https://github.com/raphaelaleixo/anti-etiquette/issues). The
+conversation would be welcome.
 
 ## Licence
 
