@@ -139,6 +139,12 @@ has wines keeps both.
 
 Adding the page to your Home Screen exempts it from the iOS eviction window.
 
+## Licence
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — use it,
+change it, share it, but credit it, keep it non-commercial, and license what
+you build from it the same way. Full text in [`LICENSE`](LICENSE).
+
 ## Legal
 
 Unofficial and unaffiliated. The app does not reproduce, store or redistribute
