@@ -713,6 +713,24 @@ describe('the prompt dialog', () => {
     await vi.waitFor(() => expect($('.prompt-done')).toBeTruthy())
   }
 
+  it('leaves the text on screen after copying, which is why there is no "copy again"', async () => {
+    // The panel swaps only the action row. The prompt stays above it, readonly
+    // and selectable, so a clipboard that gets overwritten before the paste
+    // lands costs a drag rather than a lost trip. If this ever stops being
+    // true, the case for dropping "Copy again" goes with it.
+    stubClipboard(async () => {})
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+    $<HTMLButtonElement>('[data-prompt="copy"]').click()
+    await vi.waitFor(() => expect($('.prompt-done')).toBeTruthy())
+
+    const box = $<HTMLTextAreaElement>('[data-prompt="text"]')
+    expect(box).toBeTruthy()
+    expect(box.value).toBe('the prompt')
+    expect(box.readOnly).toBe(true)
+    // And it is not inside the region that got replaced.
+    expect($('[data-prompt="steps"]').contains(box)).toBe(false)
+  })
+
   it('offers nothing to open until the text has been copied', async () => {
     // A dimmed control you cannot use yet is not a preview of the sequence,
     // it is something to skip past.
