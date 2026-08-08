@@ -2,7 +2,7 @@
   "name": "anti-etiquette",
   "version": "0.1.0",
   "description": "A static, dependency-free SAQ wine matcher. Runs entirely in your browser.",
-  "license": "ISC",
+  "license": "CC-BY-NC-SA-4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
