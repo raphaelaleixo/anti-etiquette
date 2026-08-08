@@ -172,3 +172,25 @@ export abstract class StoreElement extends HTMLElement {
     this.#unsubs = []
   }
 }
+
+/**
+ * Close the popover a click came from, if any.
+ *
+ * **Call this before mutating.** A store mutation re-renders the section
+ * synchronously, which destroys the popover's own node mid-handler. It does
+ * not fail loudly — it fails as an occasional stuck overlay — which is why the
+ * order lives in a named helper rather than being remembered at each call site.
+ *
+ * Guarded because the Popover API is absent in some engines and in the test
+ * DOM, and because hidePopover() throws when the popover is not showing.
+ */
+export function closePopoverFrom(el: Element): void {
+  const popover = el.closest('[popover]')
+  if (!(popover instanceof HTMLElement)) return
+  if (typeof popover.hidePopover !== 'function') return
+  try {
+    popover.hidePopover()
+  } catch {
+    // Already hidden. Nothing to do, and nothing worth reporting.
+  }
+}

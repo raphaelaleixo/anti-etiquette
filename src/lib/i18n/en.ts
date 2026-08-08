@@ -24,11 +24,11 @@ export const en = {
   aboutProject: 'About this project',
   alsoHere: 'Also here: wines you already know',
   alsoHereNote: 'From your own list, in stock at this branch.',
-  askAnAi: 'Ask an AI about this shelf',
+  askAnAi: 'Ask AI',
   searchAgain: 'Search again',
-  onlyExclusionsHere:
-    'Only exclusions can be filed from here — a wine joins your taste after ' +
-    'you have drunk it. Changes apply straight away, no new search.',
+  filingFromHere:
+    'File a bottle here only if you have drunk it — that is what shapes the ' +
+    'ranking. Changes apply straight away, no new search.',
 
   // -------------------------------------------------------------- kinds
   //
@@ -132,7 +132,8 @@ export const en = {
   bestMatches: 'Best matches',
   rankedAgainst: (n: number) => `ranked against your ${n} wines`,
   resultCount: (shown: number, total: number) => `${shown} shown · ${total} fit your filters`,
-  lessLikeThis: 'Less like this',
+  fileThisWine: (name: string) => `File ${name}`,
+  fileIfDrunk: 'Only if you have drunk it — this shapes what gets ranked next.',
   hide: 'Hide',
   noRating: 'No community rating yet',
   ratingOf: (score: number) => `${score} / 100`,

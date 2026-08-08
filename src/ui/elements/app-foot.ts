@@ -71,7 +71,7 @@ export class AppFoot extends StoreElement {
 
   #promptBox(): Html {
     return html`
-      <span class="foot-note">${lang.t().onlyExclusionsHere}</span>
+      <span class="foot-note">${lang.t().filingFromHere}</span>
       <button class="btn-secondary" data-act="search">${lang.t().searchAgain}</button>
       <button class="btn-primary" data-act="prompt">${lang.t().askAnAi}</button>
     `

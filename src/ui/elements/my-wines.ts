@@ -1,4 +1,4 @@
-import { StoreElement, html, mount, delegate, setProp, type Html } from '../dom'
+import { StoreElement, html, mount, delegate, setProp, closePopoverFrom, type Html } from '../dom'
 import * as cellar from '../../lib/cellar'
 import type { CellarEntry } from '../../lib/cellar'
 import {
@@ -26,23 +26,6 @@ const KIND_CLASS: Record<SeedKind, string> = {
   like: 'liked',
   dislike: 'disliked',
   skip: 'skipped',
-}
-
-/**
- * Close the popover a click came from, if any.
- *
- * Guarded because the Popover API is absent in some engines and in the test
- * DOM, and because hidePopover() throws when the popover is not showing.
- */
-function closePopoverFrom(el: Element): void {
-  const popover = el.closest('[popover]')
-  if (!(popover instanceof HTMLElement)) return
-  if (typeof popover.hidePopover !== 'function') return
-  try {
-    popover.hidePopover()
-  } catch {
-    // Already hidden. Nothing to do, and nothing worth reporting.
-  }
 }
 
 function menu(entry: CellarEntry, name: string): Html {

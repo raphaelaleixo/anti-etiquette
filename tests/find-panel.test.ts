@@ -614,8 +614,10 @@ describe('the results footer', () => {
     // "Search again" and "Ask an AI" — and the note explaining why only
     // exclusions can be filed from a list of things you have not drunk.
     expect($('app-foot [data-act="search"]').textContent).toContain('Search again')
-    expect($('[data-act="prompt"]').textContent).toContain('Ask an AI')
-    expect($('.foot-note').textContent).toContain('Only exclusions')
+    // Short on purpose: the long label wrapped and broke the footer on a phone.
+    expect($('[data-act="prompt"]').textContent).toContain('Ask AI')
+    // The note has to agree with the menu: all three kinds can be filed now.
+    expect($('.foot-note').textContent).toContain('only if you have drunk it')
   })
 
   it('keeps the include control out of the footer', async () => {
@@ -753,12 +755,15 @@ describe('the prompt dialog', () => {
  * The design's row actions, and the one it deliberately does not have.
  */
 describe('acting on a result', () => {
+  const file = (sku: string, kind: string) =>
+    $(`[data-find="file"][data-kind="${kind}"][data-sku="${sku}"]`)
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
   it('pushes results away from a wine', async () => {
     mountPanel()
     await searchWith([wine('900'), wine('901')])
 
-    $('[data-find="less"][data-sku="900"]').dispatchEvent(
-      new MouseEvent('click', { bubbles: true }))
+    file('900', 'dislike')
 
     expect(cellar.getSnapshot().refs).toContainEqual({ sku: '900', kind: 'dislike' })
     // And it leaves the results immediately, without another search.
@@ -769,33 +774,99 @@ describe('acting on a result', () => {
     mountPanel()
     await searchWith([wine('900'), wine('901')])
 
-    $('[data-find="hide"][data-sku="900"]').dispatchEvent(
-      new MouseEvent('click', { bubbles: true }))
+    file('900', 'skip')
 
     expect(cellar.getSnapshot().refs).toContainEqual({ sku: '900', kind: 'skip' })
   })
 
-  it('offers no way to file a suggestion as liked', async () => {
-    // Filing a recommendation as liked would feed the ranking its own output,
-    // and the visitor has not drunk the bottle. The profile is built only from
-    // wines they have.
+  it('files a wine you have already drunk as liked', async () => {
+    // This used to be withheld, on the reasoning that filing a recommendation
+    // as liked feeds the ranking its own output. True of a bottle you have
+    // never tried — but plenty of results are wines you drank years ago and
+    // never added, and for those the omission left you unable to say the true
+    // thing. The menu carries the caveat instead.
+    mountPanel()
+    await searchWith([wine('900'), wine('901')])
+
+    file('900', 'like')
+
+    expect(cellar.getSnapshot().refs).toContainEqual({ sku: '900', kind: 'like' })
+    // Liked wines are not exclusions, so the row stays where it is.
+    expect($$('.results-row')).toHaveLength(2)
+  })
+
+  it('offers all three from one control, and says what filing means', async () => {
     mountPanel()
     await searchWith([wine('900')])
 
-    expect(document.querySelector('[data-find="more"]')).toBe(null)
-    expect($('.results-actions').textContent).not.toMatch(/more like this/i)
+    expect($$('[data-find="file"][data-sku="900"]').map(b => (b as HTMLElement).dataset.kind))
+      .toEqual(['like', 'dislike', 'skip'])
+    expect($('.results-menu-btn')).toBeTruthy()
+    expect($('.wine-menu-note').textContent).toContain('Only if you have drunk it')
   })
 })
 
-describe('the reason leads the row', () => {
-  it('comes before the name in the document', async () => {
+/**
+ * The same hazard the wines list has: the action re-renders this section
+ * synchronously, so calling it before hiding destroys the popover's own node
+ * mid-handler. It does not fail loudly — it fails as an occasional stuck
+ * overlay — so the order is asserted rather than trusted.
+ *
+ * happy-dom implements no Popover API, so the ordering is observed through a
+ * stub. Top-layer behaviour and anchor positioning stay a real-browser concern.
+ */
+describe('popover ordering on a result', () => {
+  const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'hidePopover')
+  let events: string[]
+  let unsub: () => void
+
+  beforeEach(() => {
+    events = []
+    Object.defineProperty(HTMLElement.prototype, 'hidePopover', {
+      configurable: true,
+      writable: true,
+      value: function hidePopover(this: HTMLElement) { events.push('hide') },
+    })
+    unsub = cellar.subscribe(() => events.push('mutate'))
+  })
+
+  afterEach(() => {
+    unsub()
+    if (original) Object.defineProperty(HTMLElement.prototype, 'hidePopover', original)
+    else delete (HTMLElement.prototype as Partial<HTMLElement>).hidePopover
+  })
+
+  it('hides the menu BEFORE filing, not after', async () => {
+    mountPanel()
+    await searchWith([wine('900')])
+    events.length = 0
+
+    $('[data-find="file"][data-kind="dislike"][data-sku="900"]')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+
+    expect(events.indexOf('hide')).toBeGreaterThanOrEqual(0)
+    expect(events.indexOf('hide')).toBeLessThan(events.indexOf('mutate'))
+  })
+})
+
+describe('the row leads with the bottle, then explains it', () => {
+  it('puts the name before the reason in the document', async () => {
+    // You are standing in front of a shelf matching the row against a label.
+    // The reason is what you read once the name has matched.
     mountPanel()
     await searchWith([wine('900', { grapes: ['Syrah'] })])
 
-    const body = $('.results-body')
-    const kids = [...body.children]
-    expect(kids.findIndex(k => k.classList.contains('reason')))
-      .toBeLessThan(kids.findIndex(k => k.classList.contains('results-name-row')))
+    const kids = [...$('.results-body').children]
+    expect(kids.findIndex(k => k.classList.contains('results-name-row')))
+      .toBeLessThan(kids.findIndex(k => k.classList.contains('reason')))
+  })
+
+  it('still gives the reason a voice of its own', async () => {
+    // Demoted, not discarded — it is still the one thing on the row that could
+    // not be copied off a price tag.
+    mountPanel()
+    await searchWith([wine('900', { grapes: ['Syrah'] })])
+    expect($('.reason').textContent!.trim().length).toBeGreaterThan(10)
   })
 
   it('shows provenance and grapes under it', async () => {

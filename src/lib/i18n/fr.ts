@@ -26,12 +26,12 @@ export const fr: Messages = {
   aboutProject: 'À propos du projet',
   alsoHere: 'Aussi ici : des vins que vous connaissez',
   alsoHereNote: 'Tirés de votre liste, en tablette à cette succursale.',
-  askAnAi: 'Interroger une IA sur cette tablette',
+  askAnAi: 'Interroger une IA',
   searchAgain: 'Chercher à nouveau',
-  onlyExclusionsHere:
-    'Seules les exclusions se font ici — un vin rejoint vos goûts une fois que ' +
-    'vous l’avez bu. Les changements s’appliquent tout de suite, sans nouvelle ' +
-    'recherche.',
+  filingFromHere:
+    'Classez une bouteille ici seulement si vous l’avez bue — c’est ce qui ' +
+    'oriente le classement. Les changements s’appliquent tout de suite, sans ' +
+    'nouvelle recherche.',
 
   // -------------------------------------------------------------- kinds
   kindLike: 'Plus comme ça',
@@ -126,7 +126,8 @@ export const fr: Messages = {
   bestMatches: 'Meilleures correspondances',
   rankedAgainst: n => `classés selon vos ${n} vins`,
   resultCount: (shown, total) => `${shown} affichés · ${total} correspondent à vos filtres`,
-  lessLikeThis: 'Moins comme ça',
+  fileThisWine: name => `Classer ${name}`,
+  fileIfDrunk: 'Seulement si vous l’avez bu — cela oriente les prochains classements.',
   hide: 'Masquer',
   noRating: 'Pas encore de note',
   ratingOf: score => `${score} / 100`,

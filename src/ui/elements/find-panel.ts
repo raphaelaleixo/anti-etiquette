@@ -1,4 +1,4 @@
-import { StoreElement, html, mount, delegate, money, type Html } from '../dom'
+import { StoreElement, html, mount, delegate, money, closePopoverFrom, type Html } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
 import { productUrl } from '../../lib/catalog'
@@ -10,7 +10,7 @@ import { runSearch } from '../../lib/search'
 import { openBranchSheet } from '../branchSheet'
 import { openFilterSheet } from '../filterSheet'
 import { openAddWines } from '../addWines'
-import type { ScoredWine, TasteProfile, Wine } from '../../lib/types'
+import { KINDS, type ScoredWine, type TasteProfile, type Wine } from '../../lib/types'
 
 /** Said on the gate, because "which shop" is the question it is asking. */
 const BRANCH_COUNT = BRANCHES.length
@@ -82,6 +82,38 @@ function favourites(rows: readonly Wine[]): Html | false {
   `
 }
 
+/**
+ * All three groups, on a wine you have not saved yet.
+ *
+ * The rows used to offer only "less" and "hide", on the reasoning that filing
+ * a recommendation as liked feeds the ranking its own output. That holds for a
+ * bottle you have never tried — but plenty of results are wines you have drunk
+ * and simply never got round to adding, and for those the omission just left
+ * you unable to say the true thing. So all three are here, and the menu says
+ * what filing one means rather than leaving it to be guessed.
+ */
+function fileMenu(wine: Wine): Html {
+  const t = lang.t()
+  const id = `file-${wine.sku}`
+  return html`
+    <button type="button" class="results-menu-btn" popovertarget="${id}"
+            aria-label="${t.fileThisWine(wine.name)}">⋮</button>
+    <div id="${id}" popover="auto" class="wine-menu">
+      <div class="wine-menu-head">
+        ${wine.name}
+        <span class="wine-menu-note">${t.fileIfDrunk}</span>
+      </div>
+      ${KINDS.map(k => html`
+        <button type="button" class="wine-menu-item" data-find="file"
+                data-kind="${k}" data-sku="${wine.sku}">
+          <span class="wine-menu-tick wine-menu-dot wine-menu-dot--${k}" aria-hidden="true"></span>
+          ${k === 'skip' ? t.justHideIt : lang.kindLabel(k)}
+        </button>
+      `)}
+    </div>
+  `
+}
+
 function results(
   rows: readonly ScoredWine[], profile: TasteProfile, seedCount: number,
 ): Html | false {
@@ -101,29 +133,25 @@ function results(
             <div class="results-rank">${i + 1}</div>
             <div class="results-body">
               <!--
-                The reason leads. It is the only thing on this row that could
-                not be copied off a price tag, and it is the product's claim to
-                being useful rather than arbitrary.
+                The name leads. You are standing in front of a shelf matching
+                what is on the row against what is on the bottle, and the
+                reason is what you read once the label has matched.
               -->
-              <p class="reason">${describeMatch(scored, profile)}</p>
               <div class="results-name-row">
                 ${saqLink(scored.wine, 'results-name')}
                 <div class="results-meta">${provenance(scored.wine)}</div>
               </div>
+              <!--
+                Still the only thing here that could not be copied off a price
+                tag, and still the product's claim to being useful rather than
+                arbitrary — it just no longer outranks the bottle it explains.
+              -->
+              <p class="reason">${describeMatch(scored, profile)}</p>
               <div class="results-stock">${rating(scored.wine)}</div>
             </div>
-            <!--
-              Price and the two exclusions share a rail: both are things you do
-              with the bottle rather than reasons to want it.
-            -->
             <div class="results-side">
               <div class="results-price">${money(scored.wine.price)}</div>
-              <div class="results-actions">
-                <button type="button" class="results-act" data-find="less"
-                        data-sku="${scored.wine.sku}">${lang.t().lessLikeThis}</button>
-                <button type="button" class="results-act" data-find="hide"
-                        data-sku="${scored.wine.sku}">${lang.t().hide}</button>
-              </div>
+              ${fileMenu(scored.wine)}
             </div>
           </div>
         `)}
@@ -157,14 +185,15 @@ export class FindPanel extends StoreElement {
         document.querySelector<HTMLElement>('app-foot')
           ?.querySelector<HTMLButtonElement>('[data-act="prompt"]')?.click()
       }
-      else if (el.dataset.find === 'less' || el.dataset.find === 'hide') {
-        const sku = el.dataset.sku
+      else if (el.dataset.find === 'file') {
+        const kind = el.dataset.kind
+        if (kind !== 'like' && kind !== 'dislike' && kind !== 'skip') return
         const wine = appState.getSnapshot().search?.results
-          .find(r => r.wine.sku === sku)?.wine
-        // There is no "more like this" here on purpose: the profile is built
-        // from wines the visitor has actually drunk, and filing a suggestion
-        // as liked would feed the ranking its own output.
-        if (wine) cellar.saveWine(wine, el.dataset.find === 'less' ? 'dislike' : 'skip')
+          .find(r => r.wine.sku === el.dataset.sku)?.wine
+        // Hide before mutating: saveWine publishes, which re-renders this
+        // section and destroys the popover's own node mid-handler.
+        closePopoverFrom(el)
+        if (wine) cellar.saveWine(wine, kind)
       }
     })
     super.connectedCallback()
