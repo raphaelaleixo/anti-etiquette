@@ -124,11 +124,13 @@ function runFilters(sheet: FilterHost, register: (stop: () => void) => void): vo
   }
 
   function renderFoot(): void {
-    // The apply button carries the count too, so the number is on the control
-    // that acts on it as well as beside the controls that changed it.
+    // Short labels. The count already sits in the body beside the controls
+    // that change it, so repeating it on the button only made the button long.
+    // Zero is the exception: it is the reason the button is dead, and nothing
+    // else on the panel says so.
     const label = count === 0 ? t().showNone
-      : count !== null ? t().searchTheseWines(count)
-      : t().showWines
+      : appState.getSnapshot().search ? t().searchAgain
+      : t().searchShort
     sheet.setFoot(html`
       <button type="button" class="sheet-reset" data-filter="reset">${t().resetFilters}</button>
       <button class="btn-primary" data-filter="apply">${label}</button>

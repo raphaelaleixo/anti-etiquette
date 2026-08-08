@@ -172,6 +172,31 @@ describe('the filter sheet', () => {
     expect($('.filter-count-note').textContent).toContain('wines fit')
   })
 
+  it('gives its two controls equal width', () => {
+    // Not the flex rule alone: with border-box, `flex-basis: 0` zeroes the
+    // border box, so each half starts at its own padding and any difference
+    // between them survives into the final width.
+    openFilterSheet()
+    const [reset, apply] = [$('[data-filter="reset"]'), $('[data-filter="apply"]')]
+    const pad = (el: Element) => getComputedStyle(el).paddingInlineStart
+    expect(pad(reset)).toBe(pad(apply))
+    expect(getComputedStyle(reset).flexBasis).toBe(getComputedStyle(apply).flexBasis)
+  })
+
+  it('keeps its two controls short', () => {
+    // Long labels wrap the footer. The panel says what a band would return in
+    // its own body, so the button does not have to carry the number too.
+    openFilterSheet()
+    expect($('[data-filter="reset"]').textContent!.trim()).toBe('Reset')
+    expect($('[data-filter="apply"]').textContent!.trim().split(/\s+/).length)
+      .toBeLessThanOrEqual(2)
+  })
+
+  it('says "Search", not "Search again", before anything has been searched', () => {
+    openFilterSheet()
+    expect($('[data-filter="apply"]').textContent!.trim()).toBe('Search')
+  })
+
   it('marks the current colour', () => {
     openFilterSheet()
     const active = $$('[data-filter="colour"]').filter(b => b.className.includes('pill--brass'))
@@ -181,10 +206,13 @@ describe('the filter sheet', () => {
 
   it('shows a debounced count of what the draft would return', async () => {
     openFilterSheet()
-    expect($('[data-filter="apply"]').textContent).toContain('Show wines')
-    // The count rides on the button, so a band is never applied blind.
-    await vi.waitFor(() => expect($('[data-filter="apply"]').textContent).toContain('42'))
-    expect($('[data-filter="apply"]').textContent).toContain('Search these 42 wines')
+    expect(document.querySelector('.filter-count')).toBe(null)
+
+    // A band is never applied blind. The count sits beside the controls that
+    // change it rather than on the button, which is why the button can be one
+    // word — the number is not hiding, it just is not repeated.
+    await vi.waitFor(() => expect($('.filter-count-n').textContent).toBe('42'))
+    expect($('[data-filter="apply"]').textContent!.trim()).toBe('Search')
   })
 
   it('disables applying when the band is empty', async () => {
@@ -198,7 +226,7 @@ describe('the filter sheet', () => {
 
   it('keeps the previous count showing while a new one is in flight', async () => {
     openFilterSheet()
-    await vi.waitFor(() => expect($('[data-filter="apply"]').textContent).toContain('42'))
+    await vi.waitFor(() => expect($('.filter-count-n').textContent).toBe('42'))
 
     vi.spyOn(catalog, 'countMatches').mockRejectedValue(new Error('down'))
     $$('[data-filter="colour"]')[2]!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -212,7 +240,7 @@ describe('the filter sheet', () => {
     openFilterSheet()
     $$('[data-filter="colour"]').find(b => (b as HTMLElement).dataset.value === 'white')!
       .dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    await vi.waitFor(() => expect($('[data-filter="apply"]').textContent).toContain('42'))
+    await vi.waitFor(() => expect($('.filter-count-n').textContent).toBe('42'))
 
     $('[data-filter="apply"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
 

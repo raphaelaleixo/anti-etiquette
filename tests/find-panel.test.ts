@@ -64,12 +64,32 @@ describe('the chip row', () => {
     expect($('[data-head="branch"]').textContent).not.toContain('Choose a branch')
   })
 
-  it('summarises the scope without opening anything', async () => {
+  it('opens the filters from its chip, offering to search again', async () => {
     mountPanel()
     await searchWith([wine('900')])
-    const chips = $$('.scopebar .scopechip').map(c => c.textContent!.trim())
-    expect(chips.join(' ')).toContain('Red')
-    expect(chips.join(' ')).toContain('$15')
+
+    $('.scopebar [data-head="filters"]').dispatchEvent(
+      new MouseEvent('click', { bubbles: true }))
+
+    expect($('dialog [data-filter="colour"]')).toBeTruthy()
+    // A search has run, so repeating it is what the button offers.
+    expect($('dialog [data-filter="apply"]').textContent!.trim()).toBe('Search again')
+  })
+
+  it('is two chips — one per thing that can be changed', async () => {
+    // It used to be three chips plus a "Change scope" link that opened the
+    // branch picker: the same thing the branch chip already did, so it was
+    // two controls for one action sitting side by side.
+    mountPanel()
+    await searchWith([wine('900')])
+
+    const chips = $$('.scopebar .scopechip')
+    expect(chips).toHaveLength(2)
+    expect(chips.map(c => (c as HTMLElement).dataset.head)).toEqual(['branch', 'filters'])
+    // The filters chip carries both values, so nothing is lost by merging.
+    expect(chips[1]!.textContent).toContain('Red')
+    expect(chips[1]!.textContent).toContain('$15')
+    expect($$('.scopebar .scopelink')).toEqual([])
   })
 })
 

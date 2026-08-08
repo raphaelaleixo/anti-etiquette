@@ -2,7 +2,7 @@ import { StoreElement, html, mount, delegate, type Html } from '../dom'
 import * as appState from '../../lib/appState'
 import * as cellar from '../../lib/cellar'
 import * as lang from '../../lib/lang'
-import { chipSummary, colourLabel, priceLabel } from '../../lib/filters'
+import { chipSummary } from '../../lib/filters'
 import { branchName } from '../../lib/branches'
 import { openBranchSheet } from '../branchSheet'
 import { openFilterSheet } from '../filterSheet'
@@ -25,7 +25,7 @@ export class AppHead extends StoreElement {
 
   connectedCallback(): void {
     delegate(this, 'click', '[data-head]', (_e, el) => {
-      if (el.dataset.head === 'branch' || el.dataset.head === 'scope') openBranchSheet()
+      if (el.dataset.head === 'branch') openBranchSheet()
       else if (el.dataset.head === 'filters') openFilterSheet()
     })
     super.connectedCallback()
@@ -58,18 +58,20 @@ export class AppHead extends StoreElement {
     const hidden = cellar.hiddenSkus(cellar.getSnapshot().refs)
     const shown = search?.results.filter(r => !hidden.has(r.wine.sku)).length ?? 0
     return html`
+      <!--
+        One chip per thing that can be changed, and each chip is the control.
+        There used to be a "Change scope" link beside them that opened the
+        branch picker — the same thing the branch chip already did, so it was
+        two controls for one action sitting next to each other.
+      -->
       <div class="scopebar">
         <div class="scopebar-chips">
-          <button type="button" class="scopechip is-set" data-head="branch">
+          <button type="button" class="scopechip" data-head="branch">
             ${branch ? branchName(branch) : t.chooseBranch}
           </button>
           <button type="button" class="scopechip" data-head="filters">
-            ${colourLabel(filters.colour)}
+            ${chipSummary(filters)}
           </button>
-          <button type="button" class="scopechip" data-head="filters">
-            ${priceLabel(filters)}
-          </button>
-          <button type="button" class="scopelink" data-head="scope">${t.changeScope}</button>
         </div>
         ${search && html`
           <div class="scopebar-count">${t.resultCount(shown, search.catalog.length)}</div>
@@ -87,6 +89,5 @@ export class AppHead extends StoreElement {
       return
     }
     mount(this, appState.getSnapshot().mode === 'wines' ? this.#wines() : this.#find())
-    void chipSummary
   }
 }

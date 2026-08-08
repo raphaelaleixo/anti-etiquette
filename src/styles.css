@@ -438,13 +438,6 @@ button { font: inherit; color: inherit; }
   white-space: nowrap;
 }
 .scopechip:hover { border-color: var(--edge3); }
-/* The branch is the scope's subject; the filters only narrow it. */
-.scopechip.is-set {
-  border-color: var(--edge2);
-  background: var(--chip);
-  color: var(--ink);
-  font-weight: 600;
-}
 
 .scopelink {
   padding: 0;
@@ -1173,14 +1166,13 @@ button { font: inherit; color: inherit; }
 }
 .filterpanel-foot {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
   gap: 12px;
-  flex-wrap: wrap;
   padding: 16px 20px;
   border-block-start: 1px solid var(--line3);
   background: var(--raise);
 }
+.filterpanel-foot > * { flex: 1 1 0; min-inline-size: 0; padding-inline: 18px; }
 
 /* ── the branch list, on the page ────────────────────────────────────────── */
 
@@ -1528,8 +1520,21 @@ button { font: inherit; color: inherit; }
   background: var(--raise2);
 }
 .sheet-foot > .btn-primary { padding-block: 15px; font-size: 15px; }
-.sheet-foot:has(.sheet-reset) { flex-direction: row; align-items: center; gap: 12px; }
-.sheet-foot:has(.sheet-reset) > .btn-primary { flex: 1; }
+/* Reset and the action are two halves of one decision, so they share the row
+   evenly rather than one taking whatever the other leaves. */
+.sheet-foot:has(.sheet-reset) { flex-direction: row; align-items: stretch; gap: 12px; }
+.sheet-foot:has(.sheet-reset) > .sheet-reset,
+.sheet-foot:has(.sheet-reset) > .btn-primary {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  /*
+   * Matching inline padding is what makes the halves equal, not the flex
+   * rule alone: with border-box, `flex-basis: 0` zeroes the *border* box, so
+   * each item starts at its own padding and any difference between them
+   * survives into the final width.
+   */
+  padding-inline: 18px;
+}
 .sheet-foot-row { display: flex; gap: 9px; }
 .sheet-foot-row > * { flex: 1; }
 .sheet-summary { font-size: 12px; line-height: 1.4; color: var(--mute2); text-align: center; }
@@ -1561,15 +1566,6 @@ button { font: inherit; color: inherit; }
   }
   /* The action goes last on a pointer, whatever order the markup emits it in. */
   .sheet-foot > .btn-primary { order: 9; padding: 11px 22px; font-size: 14px; }
-  /* With room to read it, Reset goes back to being a quiet link. */
-  .sheet-reset {
-    padding: 0;
-    border: 0;
-    color: var(--mute2);
-    font-size: 13px;
-    text-decoration: underline;
-  }
-  .sheet-reset:hover { color: var(--ink0); }
   .sheet-summary { text-align: start; }
   .sheet-full { inline-size: 620px; }
   .sheet-full .sheet-inner { block-size: 86svb; }

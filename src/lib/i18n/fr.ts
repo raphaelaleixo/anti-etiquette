@@ -133,7 +133,6 @@ export const fr: Messages = {
   ratingOf: score => `${score} / 100`,
   fromReviews: n => `d’après ${n} avis`,
   fromFewReviews: n => `d’après ${n} avis — trop peu pour s’y fier`,
-  changeScope: 'Changer la portée',
   currentScope: 'Portée actuelle',
   noBranch: 'Aucune succursale',
   change: 'Changer',
@@ -231,7 +230,6 @@ export const fr: Messages = {
   to: 'à',
   any: 'Tous',
   showNone: 'Aucun vin dans cette fourchette',
-  showWines: 'Afficher les vins',
   colourAll: 'Tous',
   colourRed: 'Rouge',
   colourWhite: 'Blanc',
@@ -252,8 +250,8 @@ export const fr: Messages = {
   winesFitThin:
     'vins en tablette correspondent. La fourchette est étroite — élargissez-la ' +
     'un peu pour un meilleur classement.',
-  searchTheseWines: n => `Chercher parmi ces ${n} vins`,
-  resetFilters: 'Toutes les couleurs, tous les prix',
+  resetFilters: 'Réinitialiser',
+  searchShort: 'Chercher',
   branchSearchPlaceholder: 'Nom ou rue',
   whichShop: 'Dans quelle succursale êtes-vous ?',
 

@@ -139,7 +139,6 @@ export const en = {
   ratingOf: (score: number) => `${score} / 100`,
   fromReviews: (n: number) => `from ${n} reviews`,
   fromFewReviews: (n: number) => `from ${n} reviews — too few to lean on`,
-  changeScope: 'Change scope',
   currentScope: 'Current scope',
   noBranch: 'No branch',
   change: 'Change',
@@ -237,7 +236,6 @@ export const en = {
   to: 'to',
   any: 'Any',
   showNone: 'No wines in this band',
-  showWines: 'Show wines',
   colourAll: 'All',
   colourRed: 'Red',
   colourWhite: 'White',
@@ -261,8 +259,8 @@ export const en = {
   winesFitThin:
     'wines on this shelf fit. That is a thin band — widen it a little for a ' +
     'better ranking.',
-  searchTheseWines: (n: number) => `Search these ${n} wines`,
-  resetFilters: 'Reset to all colours, any price',
+  resetFilters: 'Reset',
+  searchShort: 'Search',
   branchSearchPlaceholder: 'Name or street',
   whichShop: 'Which shop are you standing in?',
 
