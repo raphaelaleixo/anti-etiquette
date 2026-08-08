@@ -60,9 +60,13 @@ the shelf — writes it down, and hands it over.
 
 It costs nothing to run, works with whatever model you prefer, and keeps the
 promise below intact: nothing about your list travels unless you are the one
-carrying it. The button currently points at ChatGPT because that is where most
-people are; the text is plain and works anywhere, and more destinations are an
-easy addition.
+carrying it.
+
+The button offers ChatGPT, Claude, Gemini and Le Chat, and remembers whichever
+you pick — a preference rather than a setting, asked once by being used and
+never mentioned again. They are plain links, so choosing one navigates; it
+sends nothing. The text itself is plain too, and works in anything that can
+read a paste.
 
 ## What it costs to run
 

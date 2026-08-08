@@ -705,6 +705,43 @@ describe('the prompt dialog', () => {
     expect(chosen).toEqual([0])
   })
 
+  it('opens the chat you use, and lets you pick another', () => {
+    storage.removeItem('chat')
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+
+    // One press for the common case; the rest behind the caret.
+    expect($('.chatsplit-go').textContent).toContain('ChatGPT')
+    expect($<HTMLAnchorElement>('.chatsplit-go').href).toContain('chatgpt.com')
+    expect($$('[data-chat]').length).toBeGreaterThan(1)
+    expect($('[data-chat="chatgpt"]').getAttribute('aria-current')).toBe('true')
+  })
+
+  it('remembers the one you picked, for next time', () => {
+    storage.removeItem('chat')
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+
+    $('[data-chat="claude"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    document.querySelector('dialog')!.remove()
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+
+    expect($('.chatsplit-go').textContent).toContain('Claude')
+    expect($<HTMLAnchorElement>('.chatsplit-go').href).toContain('claude.ai')
+  })
+
+  it('keeps the menu items real links, so a modified click still works', () => {
+    // Saving the preference happens on the way past the click rather than by
+    // intercepting it, which is what keeps cmd-click and middle-click opening
+    // a background tab.
+    storage.removeItem('chat')
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+
+    for (const a of $$('[data-chat]')) {
+      expect(a.tagName).toBe('A')
+      expect((a as HTMLAnchorElement).href).toMatch(/^https:\/\//)
+      expect(a.getAttribute('rel')).toContain('noopener')
+    }
+  })
+
   it('names the branch and the prompt length', () => {
     openPromptDialog(promptSource('abcde'), 'Marché Central')
     expect($('.hint').textContent).toContain('Marché Central')

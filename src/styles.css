@@ -1779,7 +1779,29 @@ button { font: inherit; color: inherit; }
 /* Step 2 stays dim until step 1 has actually happened. */
 .prompt-step.is-pending { opacity: 0.45; }
 .prompt-step.is-done .prompt-steplabel { color: var(--ok-ink); }
-.prompt-link { justify-content: center; }
+/*
+ * A split control: the destination you use, and a way to pick another. The
+ * two halves share a border so they read as one thing, which is the whole
+ * point — picking is the rare case and should look like it.
+ */
+.chatsplit { position: relative; display: flex; }
+.chatsplit-go {
+  flex: 1;
+  justify-content: center;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.chatsplit-more {
+  flex: none;
+  padding-inline: 12px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+/* One hairline between the halves rather than two edges meeting. */
+.chatsplit-more.btn-primary { box-shadow: inset 1px 0 0 oklch(0.16 0.02 35 / 0.25); }
+.chatsplit-more.btn-secondary { border-inline-start-color: transparent; }
+.chatsplit-menu { inline-size: max-content; min-inline-size: 11rem; }
+.chatsplit-menu .wine-menu-item[aria-current='true'] { color: var(--ink0); font-weight: 600; }
 
 /*
  * Where the text went, and what to do with it now.

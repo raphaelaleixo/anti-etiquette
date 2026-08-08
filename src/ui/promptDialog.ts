@@ -1,4 +1,5 @@
-import { html, mount, delegate } from './dom'
+import { html, mount, delegate, closePopoverFrom, type Html } from './dom'
+import { CHAT_DESTINATIONS, getDestination, setDestination } from '../lib/chat'
 import { t } from '../lib/lang'
 
 /**
@@ -15,6 +16,41 @@ export interface PromptSource {
   counts: readonly number[]
   count: number
   onCount(n: number): void
+}
+
+/**
+ * Open the chat you use, with a way to pick a different one.
+ *
+ * A split control rather than a row of four: almost everyone wants the same
+ * destination every time, so the common case is one press and the choice is
+ * remembered. Picking from the menu both opens that one and makes it the
+ * default, which is what a split button is understood to do.
+ *
+ * The menu items are real anchors, so middle-click and cmd-click still open a
+ * background tab — the preference is saved on the way past rather than by
+ * intercepting the navigation.
+ */
+function chatSplit(variant: 'primary' | 'secondary', id: string): Html {
+  const chosen = getDestination()
+  const cls = variant === 'primary' ? 'btn-primary' : 'btn-secondary'
+  return html`
+    <div class="chatsplit">
+      <a class="${cls} chatsplit-go" data-prompt="open" href="${chosen.url}"
+         target="_blank" rel="noopener noreferrer">${t().openChat(chosen.name)}</a>
+      <button type="button" class="${cls} chatsplit-more" popovertarget="${id}"
+              aria-label="${t().chooseChat}">▾</button>
+      <div id="${id}" popover="auto" class="wine-menu chatsplit-menu">
+        ${CHAT_DESTINATIONS.map(d => html`
+          <a class="wine-menu-item" href="${d.url}" data-chat="${d.id}"
+             target="_blank" rel="noopener noreferrer"
+             aria-current="${d.id === chosen.id ? 'true' : 'false'}">
+            <span class="wine-menu-tick" aria-hidden="true">${d.id === chosen.id ? '✓' : ''}</span>
+            ${d.name}
+          </a>
+        `)}
+      </div>
+    </div>
+  `
 }
 
 export function openPromptDialog(source: PromptSource, branchName: string): void {
@@ -54,9 +90,7 @@ export function openPromptDialog(source: PromptSource, branchName: string): void
       </div>
       <div class="prompt-step is-pending" data-prompt="step2">
         <span class="prompt-steplabel">${t().stepPaste}</span>
-        <a class="btn-secondary prompt-link" data-prompt="open"
-           href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer"
-        >${t().openChatGpt}</a>
+        ${chatSplit('secondary', 'chat-pick-step')}
       </div>
     </div>
     <p class="hint" data-prompt="note"></p>
@@ -72,6 +106,11 @@ export function openPromptDialog(source: PromptSource, branchName: string): void
     if (dialog.open) dialog.close()
     dialog.remove()
   }
+
+  delegate(dialog, 'click', '[data-chat]', (_e, el) => {
+    setDestination(el.dataset.chat ?? '')
+    closePopoverFrom(el)
+  })
 
   dialog.querySelector('[data-prompt="close"]')!.addEventListener('click', close)
   dialog.addEventListener('close', () => dialog.remove())
@@ -127,8 +166,7 @@ export function openPromptDialog(source: PromptSource, branchName: string): void
         <h3>${t().nowOpenChat}</h3>
         <p>${t().onClipboard}</p>
         <div class="prompt-done-actions">
-          <a class="btn-primary" href="https://chatgpt.com/"
-             target="_blank" rel="noopener noreferrer">${t().openChatGpt}</a>
+          ${chatSplit('primary', 'chat-pick-done')}
           <button type="button" class="btn-secondary" data-prompt="again">${t().copyAgain}</button>
         </div>
       </div>

@@ -275,6 +275,7 @@ export const fr: Messages = {
     'sélectionnable — prenez-le à la main.',
   selectInstead: 'Sélectionner le texte',
   close: 'Fermer',
-  openChatGpt: 'Ouvrir ChatGPT ↗',
+  openChat: name => `Ouvrir ${name} ↗`,
+  chooseChat: 'Choisir une autre IA',
   include: 'Inclure',
 }

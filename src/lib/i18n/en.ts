@@ -284,7 +284,8 @@ export const en = {
     'take it by hand.',
   selectInstead: 'Select the text instead',
   close: 'Close',
-  openChatGpt: 'Open ChatGPT ↗',
+  openChat: (name: string) => `Open ${name} ↗`,
+  chooseChat: 'Choose a different chat',
   include: 'Include',
 }
 
