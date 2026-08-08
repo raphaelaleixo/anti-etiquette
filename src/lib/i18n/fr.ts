@@ -263,13 +263,10 @@ export const fr: Messages = {
   topN: n => `${n} premiers`,
   allN: n => `Tous les ${n}`,
   characters: n => `${n} caractères`,
-  stepCopy: 'Étape 1 — copier',
-  stepPaste: 'Étape 2 — coller dans une IA',
   copySummary: 'Copier le résumé',
   copiedChars: n => `Copié — ${n} caractères`,
   nowOpenChat: 'Ouvrez une IA et collez-le.',
   onClipboard: 'C’est dans votre presse-papiers. Demandez lequel vous plairait vraiment, et pourquoi.',
-  copyAgain: 'Copier de nouveau',
   clipboardRefused:
     'Ce navigateur n’a pas permis à la page de copier. Le texte est ' +
     'sélectionnable — prenez-le à la main.',

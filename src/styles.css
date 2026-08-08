@@ -1768,17 +1768,8 @@ button { font: inherit; color: inherit; }
   resize: none;
 }
 
-.prompt-steps { display: flex; flex-direction: column; gap: 9px; }
-.prompt-step { display: flex; flex-direction: column; gap: 8px; }
-.prompt-steplabel {
-  font: 500 11px/1 var(--mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--mute3);
-}
-/* Step 2 stays dim until step 1 has actually happened. */
-.prompt-step.is-pending { opacity: 0.45; }
-.prompt-step.is-done .prompt-steplabel { color: var(--ok-ink); }
+.prompt-actionrow { display: flex; }
+.prompt-actionrow > * { flex: 1; }
 /*
  * A split control: the destination you use, and a way to pick another. The
  * two halves share a border so they read as one thing, which is the whole
@@ -1858,8 +1849,6 @@ button { font: inherit; color: inherit; }
   }
   .prompt-dialog-head h2 { font-size: 24px; }
   .prompt-dialog textarea { block-size: 230px; padding: 18px; font-size: 13px; line-height: 1.65; }
-  .prompt-steps { flex-direction: row; align-items: flex-end; gap: 16px; }
-  .prompt-step { flex: 1; }
 }
 
 /* ═════════════════════════════════════════════════════════ adding wines ══ */

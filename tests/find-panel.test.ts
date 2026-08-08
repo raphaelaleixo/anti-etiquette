@@ -705,9 +705,31 @@ describe('the prompt dialog', () => {
     expect(chosen).toEqual([0])
   })
 
-  it('opens the chat you use, and lets you pick another', () => {
-    storage.removeItem('chat')
+  /** Nothing to open until there is something on the clipboard. */
+  async function openAndCopy(): Promise<void> {
+    stubClipboard(async () => {})
     openPromptDialog(promptSource('the prompt'), 'Marché Central')
+    $<HTMLButtonElement>('[data-prompt="copy"]').click()
+    await vi.waitFor(() => expect($('.prompt-done')).toBeTruthy())
+  }
+
+  it('offers nothing to open until the text has been copied', async () => {
+    // A dimmed control you cannot use yet is not a preview of the sequence,
+    // it is something to skip past.
+    storage.removeItem('chat')
+    stubClipboard(async () => {})
+    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+
+    expect(document.querySelector('.chatsplit')).toBe(null)
+    expect($$('[data-prompt="copy"]')).toHaveLength(1)
+
+    $<HTMLButtonElement>('[data-prompt="copy"]').click()
+    await vi.waitFor(() => expect($('.chatsplit')).toBeTruthy())
+  })
+
+  it('opens the chat you use, and lets you pick another', async () => {
+    storage.removeItem('chat')
+    await openAndCopy()
 
     // One press for the common case; the rest behind the caret.
     expect($('.chatsplit-go').textContent).toContain('ChatGPT')
@@ -716,24 +738,24 @@ describe('the prompt dialog', () => {
     expect($('[data-chat="chatgpt"]').getAttribute('aria-current')).toBe('true')
   })
 
-  it('remembers the one you picked, for next time', () => {
+  it('remembers the one you picked, for next time', async () => {
     storage.removeItem('chat')
-    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+    await openAndCopy()
 
     $('[data-chat="claude"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))
     document.querySelector('dialog')!.remove()
-    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+    await openAndCopy()
 
     expect($('.chatsplit-go').textContent).toContain('Claude')
     expect($<HTMLAnchorElement>('.chatsplit-go').href).toContain('claude.ai')
   })
 
-  it('keeps the menu items real links, so a modified click still works', () => {
+  it('keeps the menu items real links, so a modified click still works', async () => {
     // Saving the preference happens on the way past the click rather than by
     // intercepting it, which is what keeps cmd-click and middle-click opening
     // a background tab.
     storage.removeItem('chat')
-    openPromptDialog(promptSource('the prompt'), 'Marché Central')
+    await openAndCopy()
 
     for (const a of $$('[data-chat]')) {
       expect(a.tagName).toBe('A')
@@ -763,19 +785,8 @@ describe('the prompt dialog', () => {
     expect($('.prompt-done-count').textContent).toContain('Copied')
     expect($('.prompt-done h3').textContent).toContain('Now open a chat')
     expect($('.prompt-done-actions .btn-primary').textContent).toContain('ChatGPT')
-    expect($('[data-prompt="again"]').textContent).toContain('Copy again')
-  })
-
-  it('can copy again from the panel that says it copied', async () => {
-    const writes: string[] = []
-    stubClipboard(async text => { writes.push(text) })
-    openPromptDialog(promptSource('the prompt'), 'Marché Central')
-    $<HTMLButtonElement>('[data-prompt="copy"]').click()
-    await vi.waitFor(() => expect($('[data-prompt="again"]')).toBeTruthy())
-
-    $<HTMLButtonElement>('[data-prompt="again"]').click()
-    await vi.waitFor(() => expect(writes).toHaveLength(2))
-    expect(writes.every(w => w === 'the prompt')).toBe(true)
+    // One action, not two. Reopening the dialog is the way back to a copy.
+    expect(document.querySelector('[data-prompt="again"]')).toBe(null)
   })
 
   it('falls back to selecting the text when the clipboard refuses', async () => {

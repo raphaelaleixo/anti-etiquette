@@ -30,7 +30,7 @@ export interface PromptSource {
  * background tab — the preference is saved on the way past rather than by
  * intercepting the navigation.
  */
-function chatSplit(variant: 'primary' | 'secondary', id: string): Html {
+function chatSplit(variant: 'primary', id: string): Html {
   const chosen = getDestination()
   const cls = variant === 'primary' ? 'btn-primary' : 'btn-secondary'
   return html`
@@ -83,15 +83,14 @@ export function openPromptDialog(source: PromptSource, branchName: string): void
       <span class="prompt-chars" data-prompt="chars">${t().characters(prompt.length)}</span>
     </div>
     <textarea rows="12" readonly data-prompt="text"></textarea>
-    <div class="prompt-steps" data-prompt="steps">
-      <div class="prompt-step" data-prompt="step1">
-        <span class="prompt-steplabel">${t().stepCopy}</span>
-        <button type="button" class="btn-primary" data-prompt="copy">${t().copySummary}</button>
-      </div>
-      <div class="prompt-step is-pending" data-prompt="step2">
-        <span class="prompt-steplabel">${t().stepPaste}</span>
-        ${chatSplit('secondary', 'chat-pick-step')}
-      </div>
+    <!--
+      One control, because there is one thing to do. Showing the chat button
+      dimmed alongside it described a sequence rather than offering an action,
+      and the panel that replaces this says the same thing at the moment it
+      becomes true.
+    -->
+    <div class="prompt-actionrow" data-prompt="steps">
+      <button type="button" class="btn-primary" data-prompt="copy">${t().copySummary}</button>
     </div>
     <p class="hint" data-prompt="note"></p>
   `)
@@ -165,15 +164,10 @@ export function openPromptDialog(source: PromptSource, branchName: string): void
         </div>
         <h3>${t().nowOpenChat}</h3>
         <p>${t().onClipboard}</p>
-        <div class="prompt-done-actions">
-          ${chatSplit('primary', 'chat-pick-done')}
-          <button type="button" class="btn-secondary" data-prompt="again">${t().copyAgain}</button>
-        </div>
+        <div class="prompt-done-actions">${chatSplit('primary', 'chat-pick-done')}</div>
       </div>
     `)
-    steps.classList.remove('prompt-steps')
-    steps.querySelector('[data-prompt="again"]')!
-      .addEventListener('click', () => { void copy() })
+    steps.classList.remove('prompt-actionrow')
   }
 
   async function copy(): Promise<void> {

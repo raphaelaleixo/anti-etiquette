@@ -272,13 +272,10 @@ export const en = {
   topN: (n: number) => `Top ${n}`,
   allN: (n: number) => `All ${n}`,
   characters: (n: number) => `${n} characters`,
-  stepCopy: 'Step 1 — copy',
-  stepPaste: 'Step 2 — paste in a chat',
   copySummary: 'Copy the summary',
   copiedChars: (n: number) => `Copied — ${n} characters`,
   nowOpenChat: 'Now open a chat and paste it in.',
   onClipboard: 'It is on your clipboard. Ask which of these you would actually enjoy, and why.',
-  copyAgain: 'Copy again',
   clipboardRefused:
     'This browser would not let the page copy for you. The text is selectable — ' +
     'take it by hand.',
