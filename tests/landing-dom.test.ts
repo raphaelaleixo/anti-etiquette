@@ -49,13 +49,13 @@ beforeEach(() => {
 describe('what the page actually shows', () => {
   it('shows English and hides French when lang is en', () => {
     const shown = visibleText('h1 [data-lang]')
-    expect(shown).toEqual(["The wine you'll like is already on that shelf."])
+    expect(shown).toEqual(['Forget the label. Trust your taste.'])
   })
 
   it('shows French and hides English when lang is fr', () => {
     render('fr')
     const shown = visibleText('h1 [data-lang]')
-    expect(shown).toEqual(['Le vin qui vous plaira est déjà sur cette tablette.'])
+    expect(shown).toEqual(["Oubliez l'étiquette. Fiez-vous à votre goût."])
   })
 
   it('switches every string, not just the heading', () => {
