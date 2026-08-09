@@ -259,7 +259,7 @@ button { font: inherit; color: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px var(--pad);
+  padding: 20px var(--pad);
   border-block-end: 1px solid var(--line2);
   background: var(--topbar);
 }
@@ -269,21 +269,19 @@ button { font: inherit; color: inherit; }
 
 .brand { display: flex; align-items: baseline; gap: 8px; }
 .mark {
-  inline-size: 10px;
-  block-size: 10px;
+  inline-size: 14px;
+  block-size: 14px;
   flex: none;
   border-radius: 50%;
   background: var(--more);
 }
 .wordmark {
   font-family: var(--display);
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1;
   color: var(--ink0);
 }
 
-.topbar-link { font-size: 12px; color: var(--mute2); }
-.topbar-link:hover { color: var(--ink0); }
 
 .langtoggle {
   display: flex;
@@ -326,7 +324,6 @@ button { font: inherit; color: inherit; }
   .mark { inline-size: 12px; block-size: 12px; }
   .wordmark { font-size: 18px; }
   .topbar-right { gap: 24px; }
-  .topbar-link { font-size: 13px; }
   .langtoggle button { padding: 6px 10px; font-size: 11px; }
 }
 

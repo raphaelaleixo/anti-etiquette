@@ -23,7 +23,6 @@ export const fr: Messages = {
   myWines: 'Mes vins',
   exportBackup: 'Exporter une copie',
   importShort: 'Importer',
-  aboutProject: 'À propos du projet',
   alsoHere: 'Aussi ici : des vins que vous connaissez',
   alsoHereNote: 'Tirés de votre liste, en tablette à cette succursale.',
   askAnAi: 'Interroger une IA',

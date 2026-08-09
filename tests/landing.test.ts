@@ -37,9 +37,12 @@ describe('the returning-visitor redirect', () => {
     expect(script).toContain('catch')
   })
 
-  it('has an escape hatch so the About link is reachable', () => {
+  it('has an escape hatch, so the app can get back here at all', () => {
+    // The redirect exists to keep returning visitors out of the marketing
+    // page. Without `?stay` the app's own way back would bounce off it,
+    // because having a saved list is exactly what triggers the redirect.
     expect(landing).toContain("location.search.includes('stay')")
-    expect(app).toContain('/?stay#about')
+    expect(app).toMatch(/href="\/\?stay/)
   })
 })
 
@@ -117,8 +120,12 @@ describe('the About note', () => {
     expect(landing).toMatch(/Montréal branches only/i)
   })
 
-  it('is reachable from the app as well as the landing', () => {
-    expect(app).toContain('#about')
+  it('is reachable from the app, through the wordmark', () => {
+    // The app used to carry an "About this project" link. The wordmark is the
+    // way back now — the same gesture the landing's own brand makes — so what
+    // matters is that a route exists, not that a particular label does.
+    expect(app).toMatch(/<a class="brand" href="\/\?stay"/)
+    expect(landing).toContain('id="about"')
   })
 })
 

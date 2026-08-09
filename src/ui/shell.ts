@@ -1,7 +1,7 @@
 import '../styles.css'
 import { watchOtherTabs } from '../lib/cellar'
 import { hydrateMissing } from '../lib/hydrate'
-import { initLang, t, subscribe as onLangChange } from '../lib/lang'
+import { initLang } from '../lib/lang'
 import { ModeSwitch } from './elements/mode-switch'
 import { AppStatus } from './elements/app-status'
 import { AppPanel } from './elements/app-panel'
@@ -64,10 +64,6 @@ export function start(): void {
   // something to interrupt them over.
   void hydrateMissing().catch(() => {})
 
-  const about = document.querySelector('.topbar-link')
-  const showAbout = (): void => { if (about) about.textContent = t().aboutProject }
-  showAbout()
-  onLangChange(showAbout)
 }
 
 start()

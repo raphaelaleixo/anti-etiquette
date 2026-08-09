@@ -21,7 +21,6 @@ export const en = {
   myWines: 'My wines',
   exportBackup: 'Export a backup',
   importShort: 'Import',
-  aboutProject: 'About this project',
   alsoHere: 'Also here: wines you already know',
   alsoHereNote: 'From your own list, in stock at this branch.',
   askAnAi: 'Ask AI',
