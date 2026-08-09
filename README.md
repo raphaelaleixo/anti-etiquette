@@ -2,19 +2,21 @@
 
 **[anti-etiquette-git-main-raphaelaleixos-projects.vercel.app](https://anti-etiquette-git-main-raphaelaleixos-projects.vercel.app)**
 
-Name a few wines you've had an opinion about. Pick the SAQ branch you're
-standing in. It reads what that branch has on the shelf right now, ranks it
-against your taste, and tells you why each bottle fits.
+**Forget the label. Trust your taste.**
+
+Name a few wines you've loved, disliked, or simply remember. Pick the SAQ
+branch you're standing in and your budget. It finds the bottles on that shelf
+most likely to be your thing — and tells you why.
 
 Montréal branches only. Unofficial, and not affiliated with the Société des
 alcools du Québec.
 
 ## What it does
 
-You give it wines you remember — as you remember them, not as the catalogue
-spells them. "grange des pères rouge" is a perfectly good line. Wines you
-disliked count for as much as wines you loved, because they push the ranking
-away from a whole family of bottles.
+Wines go in as you remember them, not as the catalogue spells them — "grange
+des pères rouge" is a perfectly good line. The ones you disliked count for as
+much as the ones you loved, because they push the ranking away from a whole
+family of bottles.
 
 Then you pick a branch, and it reads that branch's current stock. Not the
 catalogue at large — the shelf, as it is today.
