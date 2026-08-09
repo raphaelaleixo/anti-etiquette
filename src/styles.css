@@ -267,7 +267,7 @@ button { font: inherit; color: inherit; }
 .topbar-left { display: flex; align-items: center; gap: 32px; }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
 
-.brand { display: flex; align-items: baseline; gap: 8px; }
+.brand { display: flex; align-items: baseline; gap: 12px; }
 .mark {
   inline-size: 14px;
   block-size: 14px;
@@ -287,15 +287,15 @@ button { font: inherit; color: inherit; }
   display: flex;
   align-items: center;
   overflow: hidden;
-  border: 1px solid var(--edge);
+  border: 1px solid var(--line4);
   border-radius: 3px;
 }
 .langtoggle button {
-  padding: 6px 8px;
+  padding: 7px 11px;
   border: 0;
   background: transparent;
   color: var(--mute2);
-  font: 500 10px/1 var(--mono);
+  font: 500 11px/1 var(--mono);
   cursor: pointer;
 }
 .langtoggle button.active { background: var(--seg-on); color: var(--ink0); }
@@ -324,7 +324,8 @@ button { font: inherit; color: inherit; }
   .mark { inline-size: 12px; block-size: 12px; }
   .wordmark { font-size: 18px; }
   .topbar-right { gap: 24px; }
-  .langtoggle button { padding: 6px 10px; font-size: 11px; }
+  .brand { gap: 10px; }
+  .langtoggle button { padding: 6px 10px; }
 }
 
 /* ── the two sections ────────────────────────────────────────────────────── */

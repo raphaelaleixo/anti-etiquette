@@ -90,7 +90,7 @@ a { color: inherit; text-decoration: none; }
   border-block-end: 1px solid var(--line);
   flex-wrap: wrap;
 }
-.brand { display: flex; align-items: center; gap: 12px; }
+.brand { display: flex; align-items: baseline; gap: 12px; }
 .brand-mark {
   inline-size: 14px;
   block-size: 14px;
