@@ -1,24 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Anti-Étiquette — Forget the label. Trust your taste.</title>
+    <title>Anti-Étiquette — Oubliez l'étiquette. Fiez-vous à votre goût.</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-180.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#15120f" />
     <meta
       name="description"
-      content="Forget the label, trust your taste. Name a few wines you've loved or disliked, pick your SAQ branch, and see which bottles on that shelf you'll actually like."
+      content="Oubliez l'étiquette, fiez-vous à votre goût. Nommez quelques vins aimés ou détestés, choisissez votre succursale SAQ, et voyez ce qui devrait vous plaire."
     />
     <!-- The hook leads the link preview; og:site_name keeps the brand visible
          beside it, so nothing is lost by not putting the name in the title. -->
     <meta property="og:site_name" content="Anti-Étiquette" />
-    <meta property="og:title" content="Forget the label. Trust your taste." />
+    <meta property="og:locale" content="fr_CA" />
+    <meta property="og:locale:alternate" content="en_CA" />
+    <meta property="og:title" content="Oubliez l'étiquette. Fiez-vous à votre goût." />
     <meta
       property="og:description"
-      content="Anti-Étiquette finds the wines on your SAQ branch's shelf that match what you already like — and tells you why."
+      content="Anti-Étiquette trouve, sur la tablette de votre succursale SAQ, les vins qui correspondent à ce que vous aimez déjà — et vous dit pourquoi."
     />
     <meta property="og:type" content="website" />
 
@@ -48,7 +50,8 @@
             var saved = localStorage.getItem('lang')
             if (saved === 'en' || saved === 'fr') return saved
           } catch (e) { /* storage denied */ }
-          return (navigator.language || '').toLowerCase().indexOf('fr') === 0 ? 'fr' : 'en'
+          // English for a browser that asks for it; French for everyone else.
+          return (navigator.language || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'fr'
         }
         doc.lang = read()
         document.addEventListener('click', function (e) {

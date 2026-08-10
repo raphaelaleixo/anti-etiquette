@@ -135,6 +135,53 @@ describe('the language store', () => {
     expect(storage.getItem('lang')).toBe('fr')
   })
 
+  /**
+   * Montréal-only, so French is the language to be wrong in. English is served
+   * to a browser that asks for it; a stored choice beats both.
+   *
+   * The detection runs once, at module load, so these reset the module and
+   * import it again rather than calling initLang — which only applies a
+   * language already decided. Testing it any other way would be testing the
+   * mock.
+   */
+  describe('which language a first visit gets', () => {
+    async function firstVisitWith(language: string | undefined, saved?: string) {
+      vi.resetModules()
+      vi.stubGlobal('navigator', language === undefined ? undefined : { language })
+      const store = await import('../src/lib/storage')
+      store.storage.removeItem('lang')
+      if (saved) store.storage.setItem('lang', saved)
+      const fresh = await import('../src/lib/lang')
+      return fresh.getLang()
+    }
+
+    afterEach(() => { vi.unstubAllGlobals(); vi.resetModules() })
+
+    it('defaults to French when the browser asks for nothing in particular', async () => {
+      expect(await firstVisitWith('')).toBe('fr')
+    })
+
+    it('defaults to French for a browser set to something else entirely', async () => {
+      expect(await firstVisitWith('pt-BR')).toBe('fr')
+    })
+
+    it('serves English to a browser that asks for English', async () => {
+      expect(await firstVisitWith('en-CA')).toBe('en')
+    })
+
+    it('serves French to a French browser', async () => {
+      expect(await firstVisitWith('fr-CA')).toBe('fr')
+    })
+
+    it('lets a stored choice beat the browser', async () => {
+      expect(await firstVisitWith('fr-CA', 'en')).toBe('en')
+    })
+
+    it('falls back to French when there is no navigator at all', async () => {
+      expect(await firstVisitWith(undefined)).toBe('fr')
+    })
+  })
+
   it('does not throw when storage refuses the write', () => {
     vi.spyOn(storage, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError')

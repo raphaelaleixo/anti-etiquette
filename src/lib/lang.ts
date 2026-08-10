@@ -43,10 +43,13 @@ function detect(): Lang {
     // Storage denied. Fall through to the browser's own setting.
   }
   try {
+    // English is served to a browser that asks for it; everything else gets
+    // French. Montréal-only, and the province's language is the one to be
+    // wrong in if the signal is missing or unreadable.
     const nav = globalThis.navigator?.language ?? ''
-    return nav.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+    return nav.toLowerCase().startsWith('en') ? 'en' : 'fr'
   } catch {
-    return 'en'
+    return 'fr'
   }
 }
 
