@@ -155,6 +155,9 @@ export const en = {
   fetchingPage: (done: number, total: number) => `Fetching catalog… page ${done} of ${total}`,
   searchFailed: (reason: string) => `Search failed: ${reason}`,
   couldNotSave: 'Could not save to this browser.',
+  // The chips in the scope bar show a value; the label supplies the verb.
+  changeBranchTo: (name: string) => `Change branch — currently ${name}`,
+  changeFiltersFrom: (summary: string) => `Change filters — currently ${summary}`,
 
   // ---------------------------------------------------------- add wines
   addTitle: 'Add wines',

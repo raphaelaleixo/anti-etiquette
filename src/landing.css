@@ -32,7 +32,8 @@
   --ink2: #f4f1ec;
   --ink: #c6c4be;
   --mute: #9b9891;
-  --mute2: #7d7a74;
+  /* Was #7d7a74, which measures 4.36:1 on the page — just under AA. */
+  --mute2: #83807a;
 
   --accent: #ea856b;
   --accent-hi: #f0a08c;

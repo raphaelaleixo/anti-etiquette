@@ -37,7 +37,12 @@ export class AppHead extends StoreElement {
     return html`
       <div class="pagehead">
         <div class="pagehead-title">
-          <h1>${t.myWines}</h1>
+          <!--
+            h2, not h1: the shell already carries a visually hidden h1 naming
+            the app, and it is there on both sections. This is the section
+            inside it, and its opposite number on Find is the results heading.
+          -->
+          <h2>${t.myWines}</h2>
           <span class="pagehead-sub">${t.savedShaping(snap.entries.length, snap.liked.length)}</span>
         </div>
         <div class="pagehead-actions">
@@ -66,10 +71,18 @@ export class AppHead extends StoreElement {
       -->
       <div class="scopebar">
         <div class="scopebar-chips">
-          <button type="button" class="scopechip" data-head="branch">
+          <!--
+            The visible text is the current value, which is what someone
+            scanning the bar needs. On its own it does not say that pressing it
+            changes anything — "Rosemont" is a place, not an action — so each
+            chip is labelled with the verb and keeps the value after it.
+          -->
+          <button type="button" class="scopechip" data-head="branch"
+                  aria-label="${t.changeBranchTo(branch ? branchName(branch) : t.chooseBranch)}">
             ${branch ? branchName(branch) : t.chooseBranch}
           </button>
-          <button type="button" class="scopechip" data-head="filters">
+          <button type="button" class="scopechip" data-head="filters"
+                  aria-label="${t.changeFiltersFrom(chipSummary(filters))}">
             ${chipSummary(filters)}
           </button>
         </div>

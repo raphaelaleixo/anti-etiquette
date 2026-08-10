@@ -133,10 +133,10 @@ function results(
   return html`
     <section class="results-section">
       <div class="results-head">
-        <div class="results-title">
+        <h2 class="results-title">
           ${lang.t().bestMatches}
           <span class="results-against">${lang.t().rankedAgainst(seedCount)}</span>
-        </div>
+        </h2>
       </div>
       <div class="results-list">
         ${rows.map((scored, i) => html`

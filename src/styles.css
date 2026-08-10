@@ -81,10 +81,17 @@
   --ink:     oklch(0.95 0.008 85);    /* names */
   --ink2:    oklch(0.90 0.008 85);
   --ink3:    oklch(0.82 0.008 85);    /* button labels */
-  --mute:    oklch(0.74 0.010 85);    /* explanatory prose */
-  --mute2:   oklch(0.66 0.010 85);
-  --mute3:   oklch(0.58 0.010 85);    /* mono labels */
-  --faint:   oklch(0.48 0.008 70);    /* line numbers, the hidden group's dot */
+  --mute:    oklch(0.74 0.010 85);    /* explanatory prose        7.2:1 */
+  --mute2:   oklch(0.66 0.010 85);    /*                          5.4:1 */
+  /* The frames say 0.58, which measures 3.9:1 against the lightest surface it
+     lands on — and this is the mono ramp, the smallest text on the screen.
+     Small type needs more contrast, not less, so it goes up to clear AA. */
+  --mute3:   oklch(0.62 0.010 85);    /* mono labels              4.6:1 */
+  --faint:   oklch(0.48 0.008 70);    /* the hidden group's dot */
+  /* Split out of --faint, which was carrying the line numbers at 2.9:1. They
+     are decoration by intent but rendered characters in fact, so they are held
+     to the full 4.5 rather than the 3:1 an affordance would get. */
+  --gutter:  oklch(0.59 0.008 70);    /* line numbers            4.6:1 */
 
   /* More like this — and the accent, because it is the product's argument. */
   --more:      oklch(0.72 0.13 35);
@@ -395,7 +402,7 @@ button { font: inherit; color: inherit; }
   padding: 20px var(--pad) 16px;
 }
 .pagehead-title { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-.pagehead-title h1 { font-size: 24px; line-height: 1.1; }
+.pagehead-title h2 { font-size: 24px; line-height: 1.1; }
 .pagehead-sub {
   font: 500 12px/1 var(--mono);
   letter-spacing: 0.08em;
@@ -406,7 +413,7 @@ button { font: inherit; color: inherit; }
 
 @media (min-width: 62rem) {
   .pagehead { padding: 28px var(--pad) 20px; }
-  .pagehead-title h1 { font-size: 26px; }
+  .pagehead-title h2 { font-size: 26px; }
 }
 
 /* ── scope bar: where you are, above everything it applies to ────────────── */
@@ -615,7 +622,18 @@ button { font: inherit; color: inherit; }
   border-radius: 2px;
   background: var(--faint);
 }
-.group-name { font-size: 15px; font-weight: 600; color: var(--ink0); }
+/* An h3, so it takes the heading reset — including the display face, which
+   this ramp does not want. The group names are labels, not headings drawn as
+   headings, and the design sets them in the base sans. */
+.group-name {
+  font-size: 15px;
+  font-weight: 600;
+  /* An h3, so it takes the heading reset — including the display face, which
+     this label does not want. These are names for the three lists, set in the
+     base sans like the design draws them, not headings drawn as headings. */
+  font-family: var(--sans);
+  color: var(--ink0);
+}
 .group-count {
   margin-inline-start: auto;
   font: 500 12px/1 var(--mono);
@@ -1994,7 +2012,7 @@ button { font: inherit; color: inherit; }
     background: var(--sub);
     font: 400 15px/1.75 var(--mono);
     text-align: end;
-    color: var(--faint);
+    color: var(--gutter);
     white-space: pre;
     overflow: hidden;
     user-select: none;

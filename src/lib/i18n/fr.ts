@@ -149,6 +149,8 @@ export const fr: Messages = {
   fetchingPage: (done, total) => `Lecture du catalogue… page ${done} sur ${total}`,
   searchFailed: reason => `Échec de la recherche : ${reason}`,
   couldNotSave: 'Impossible d’enregistrer dans ce navigateur.',
+  changeBranchTo: name => `Changer de succursale — actuellement ${name}`,
+  changeFiltersFrom: summary => `Modifier les filtres — actuellement ${summary}`,
 
   // ---------------------------------------------------------- add wines
   addTitle: 'Ajouter des vins',

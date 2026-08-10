@@ -23,6 +23,17 @@
       content="Anti-Étiquette trouve, sur la tablette de votre succursale SAQ, les vins qui correspondent à ce que vous aimez déjà — et vous dit pourquoi."
     />
     <meta property="og:type" content="website" />
+    <!--
+      One page, four hostnames: Vercel aliases the project, the team and the
+      git branch to the same deployment, so a shared link can arrive on any of
+      them. Canonical names the one that counts.
+
+      Deliberately no hreflang. Both languages live at this single URL behind a
+      toggle, so there is no second URL to point at — an hreflang pair here
+      would be advertising addresses that do not exist.
+    -->
+    <link rel="canonical" href="https://anti-etiquette.vercel.app/" />
+    <meta property="og:url" content="https://anti-etiquette.vercel.app/" />
 
     <script>
       // Returning visitors never see this page. Synchronous and in <head> on

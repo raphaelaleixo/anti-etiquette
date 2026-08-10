@@ -57,7 +57,14 @@ describe('what the landing does not ship', () => {
   it('requests nothing from a third party', () => {
     // An app whose whole argument is "nothing is sent anywhere" cannot open
     // the page by telling a font CDN that you opened it.
-    const urls = [...landing.matchAll(/(?:href|src)="(https?:\/\/[^"]+)"/g)].map(m => m[1])
+    //
+    // rel="canonical" is the one absolute URL allowed through, and only
+    // because it is never fetched — it names this page rather than asking for
+    // another one. The exemption is written as removing that exact tag rather
+    // than as a host allowlist, so a stylesheet, a preconnect or a script
+    // pointing at the same host would still fail.
+    const fetched = landing.replace(/<link\s+rel="canonical"[^>]*>/g, '')
+    const urls = [...fetched.matchAll(/(?:href|src)="(https?:\/\/[^"]+)"/g)].map(m => m[1])
     expect(urls).toEqual([])
   })
 

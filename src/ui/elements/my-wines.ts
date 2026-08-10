@@ -376,7 +376,7 @@ export class MyWines extends StoreElement {
         <header class="group-head">
           <div class="group-titlerow">
             <span class="group-dot" aria-hidden="true"></span>
-            <span class="group-name">${lang.kindLabel(kind)}</span>
+            <h3 class="group-name">${lang.kindLabel(kind)}</h3>
             <span class="group-count">${entries.length}</span>
             ${collapsible && entries.length > 0 && html`
               <button type="button" class="group-toggle" data-act="toggle" data-kind="${kind}"
