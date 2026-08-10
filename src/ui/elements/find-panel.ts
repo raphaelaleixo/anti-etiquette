@@ -156,6 +156,16 @@ function results(
           </div>
         `)}
       </div>
+      <!--
+        Said before the gap is met rather than after. The count is the branch's,
+        not ours, and a bottle their system believes in can still be misplaced —
+        which is a thing to have been told in advance rather than discovered in
+        an aisle. The link is the way to the authoritative number, on the page
+        that actually holds it.
+      -->
+      <p class="results-footnote">
+        <strong>${lang.t().notOnShelfTitle}</strong> ${lang.t().notOnShelfNote}
+      </p>
     </section>
   `
 }

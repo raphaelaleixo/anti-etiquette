@@ -128,6 +128,11 @@ export const fr: Messages = {
   fileThisWine: name => `Classer ${name}`,
   fileIfDrunk: 'Seulement si vous l’avez bu — cela oriente les prochains classements.',
   hide: 'Masquer',
+  notOnShelfTitle: 'Pas sur la tablette ?',
+  notOnShelfNote:
+    'Les quantités viennent du système de la succursale, et il arrive qu’une ' +
+    'bouteille soit mal rangée. Le nom d’un vin ouvre sa fiche SAQ, où l’on voit ' +
+    'ce que chaque succursale a en stock — ou prenez simplement le suivant.',
   noRating: 'Pas encore de note',
   ratingOf: score => `${score} / 100`,
   fromReviews: n => `d’après ${n} avis`,

@@ -935,6 +935,65 @@ describe('popover ordering on a result', () => {
   })
 })
 
+/**
+ * A wine can be in the branch's system and not on the shelf — misplaced, in
+ * someone's basket, hidden by a customer meaning to come back. Confirmed by a
+ * branch manager, whose own stock screen agreed with the app while the bottle
+ * was nowhere to be found. The app inherits that error rather than adding one,
+ * but a visitor in an aisle cannot tell those apart, so it says so first.
+ */
+describe('when the bottle is not there', () => {
+  it('says whose number it is, before the gap is met', async () => {
+    mountPanel()
+    await searchWith([wine('900'), wine('901')])
+
+    const note = $('.results-footnote').textContent!
+    expect(note).toContain('Not on the shelf?')
+    // Whose count it is, and that it can be wrong.
+    expect(note).toMatch(/branch.s own system/)
+    expect(note).toMatch(/misplaced/)
+  })
+
+  it('points at the page that holds the authoritative count', async () => {
+    // The per-branch quantity lives on saq.com, on the page the wine's name
+    // already links to — the one number the app deliberately cannot fetch.
+    mountPanel()
+    await searchWith([wine('900')])
+
+    expect($('.results-footnote').textContent).toMatch(/SAQ page/)
+    expect($<HTMLAnchorElement>('.results-name').href).toContain('saq.com')
+  })
+
+  it('offers the mitigation it already built', async () => {
+    // Ten results means a ghost costs a line, not the trip.
+    mountPanel()
+    await searchWith(Array.from({ length: 12 }, (_, i) => wine(String(900 + i))))
+
+    expect($('.results-footnote').textContent).toMatch(/next one down/)
+    expect($$('.results-row').length).toBeGreaterThan(1)
+  })
+
+  it('says nothing when there is nothing to say', async () => {
+    mountPanel()
+    expect(document.querySelector('.results-footnote')).toBe(null)
+  })
+
+  it('says it once, under the ranking and nowhere else', async () => {
+    // It was briefly saying it twice. The favourites card ends with exactly the
+    // same lines as the results list, so a blind replace put one under each —
+    // and every assertion still passed, because they all read the first match.
+    vi.spyOn(catalog, 'fetchBranchCatalog').mockResolvedValue([wine('111'), wine('900')])
+    appState.setBranch('23112')
+    cellar.saveWine(wine('111'), 'like')
+    mountPanel()
+    await runSearch()
+
+    expect($('.favourites-card')).toBeTruthy()   // the other place it appeared
+    expect($$('.results-footnote')).toHaveLength(1)
+    expect($('.results-section').contains($('.results-footnote'))).toBe(true)
+  })
+})
+
 describe('the row leads with the bottle, then explains it', () => {
   it('puts the name before the reason in the document', async () => {
     // You are standing in front of a shelf matching the row against a label.

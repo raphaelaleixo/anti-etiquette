@@ -1254,6 +1254,18 @@ button { font: inherit; color: inherit; }
 
 .results-list { display: flex; flex-direction: column; gap: 12px; }
 
+/* A footnote, not a warning: quiet, and after the thing it is about. */
+.results-footnote {
+  margin-block-start: 4px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mute2);
+  max-inline-size: 68ch;
+}
+.results-footnote strong { font-weight: 600; color: var(--ink3); }
+
 
 .results-row {
   display: grid;

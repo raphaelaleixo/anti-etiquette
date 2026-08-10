@@ -18,8 +18,15 @@ des pères rouge" is a perfectly good line. The ones you disliked count for as
 much as the ones you loved, because they push the ranking away from a whole
 family of bottles.
 
-Then you pick a branch, and it reads that branch's current stock. Not the
-catalogue at large — the shelf, as it is today.
+Then you pick a branch, and it reads what that branch's system says it is
+holding. Not the catalogue at large — that branch, today.
+
+Worth being exact about, because a branch manager was: the count is the SAQ's
+own, and their system can believe in a bottle that has been misplaced, hidden
+by a customer meaning to come back, or is already in someone's basket. The app
+inherits that and cannot do better than it — which is why it ranks ten rather
+than one, and why every wine's name links to its SAQ page, where the
+per-branch quantity actually lives.
 
 What comes back is ten bottles, ranked, and **every row says why**:
 

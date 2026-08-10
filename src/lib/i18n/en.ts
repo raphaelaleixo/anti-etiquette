@@ -134,6 +134,11 @@ export const en = {
   fileThisWine: (name: string) => `File ${name}`,
   fileIfDrunk: 'Only if you have drunk it — this shapes what gets ranked next.',
   hide: 'Hide',
+  notOnShelfTitle: 'Not on the shelf?',
+  notOnShelfNote:
+    'Stock counts come from the branch\u2019s own system, and bottles do get ' +
+    'misplaced. A wine\u2019s name opens its SAQ page, where you can check what ' +
+    'each branch is holding — or just take the next one down.',
   noRating: 'No community rating yet',
   ratingOf: (score: number) => `${score} / 100`,
   fromReviews: (n: number) => `from ${n} reviews`,
