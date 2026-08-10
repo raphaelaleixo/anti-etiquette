@@ -21,7 +21,7 @@ export const en = {
   myWines: 'My wines',
   exportBackup: 'Export a backup',
   importShort: 'Import',
-  alsoHere: 'Also here: wines you already know',
+  alsoHere: (n: number) => `You already like ${n} wine${s(n)} on this shelf`,
   alsoHereNote: 'From your own list, in stock at this branch.',
   askAnAi: 'Ask AI',
   searchAgain: 'Search again',

@@ -575,11 +575,31 @@ describe('the rating', () => {
 })
 
 describe('favourites here', () => {
-  it('calls out saved wines stocked at this branch', async () => {
+  it('counts saved wines stocked at this branch, in the summary', async () => {
+    // The count is the part that carries the value — you can decide whether to
+    // open it without opening it.
     mountPanel()
     await searchWith([wine('111', { name: 'My Own' }), wine('900')])
-    expect($('.favourites-title').textContent).toContain('wines you already know')
+    expect($('.favourites-title').textContent).toContain('already like 1 wine')
     expect($('.favourites-name').textContent).toBe('My Own')
+  })
+
+  it('comes before the ranking, not after it', async () => {
+    // It used to live in a rail beside the results, which on a phone put it
+    // below all ten of them. A bottle you have already liked is a better bet
+    // than one the app is guessing at, so it goes first.
+    mountPanel()
+    await searchWith([wine('111', { name: 'My Own' }), wine('900')])
+
+    const kids = [...$('.find-grid').children]
+    expect(kids.findIndex(k => k.classList.contains('favourites-card')))
+      .toBeLessThan(kids.findIndex(k => k.classList.contains('results-section')))
+  })
+
+  it('starts closed, so the ranking stays the main event', async () => {
+    mountPanel()
+    await searchWith([wine('111', { name: 'My Own' }), wine('900')])
+    expect($<HTMLDetailsElement>('.favourites-card').open).toBe(false)
   })
 
   it('lists every saved wine the branch stocks', async () => {

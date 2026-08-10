@@ -23,7 +23,7 @@ export const fr: Messages = {
   myWines: 'Mes vins',
   exportBackup: 'Exporter une copie',
   importShort: 'Importer',
-  alsoHere: 'Aussi ici : des vins que vous connaissez',
+  alsoHere: n => `Vous aimez déjà ${n} vin${s(n)} sur cette tablette`,
   alsoHereNote: 'Tirés de votre liste, en tablette à cette succursale.',
   askAnAi: 'Interroger une IA',
   searchAgain: 'Chercher à nouveau',

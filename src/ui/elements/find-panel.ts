@@ -59,14 +59,26 @@ function saqLink(wine: Wine, className: string): Html {
   `
 }
 
+/**
+ * Wines from your own list that this branch is holding.
+ *
+ * Above the ranking, because a bottle you have already liked is a better bet
+ * than a bottle the app is guessing at, and saying so is more honest than
+ * burying it. Collapsed, because the ranking is still what this screen is for
+ * — the count in the summary is the part that carries the value, and opening
+ * it is one press.
+ *
+ * It used to sit in a rail beside the results, which put it *below* all ten of
+ * them on a phone. Nobody scrolls past ten wine cards to find the good news.
+ */
 function favourites(rows: readonly Wine[]): Html | false {
   if (rows.length === 0) return false
   return html`
-    <section class="favourites-card">
-      <div class="favourites-head">
-        <div class="favourites-title">${lang.t().alsoHere}</div>
-        <p class="hint">${lang.t().alsoHereNote}</p>
-      </div>
+    <details class="favourites-card">
+      <summary class="favourites-head">
+        <span class="favourites-title">${lang.t().alsoHere(rows.length)}</span>
+        <span class="hint">${lang.t().alsoHereNote}</span>
+      </summary>
       <div class="favourites-list">
         ${rows.map(wine => html`
           <div class="favourites-row">
@@ -78,7 +90,7 @@ function favourites(rows: readonly Wine[]): Html | false {
           </div>
         `)}
       </div>
-    </section>
+    </details>
   `
 }
 
@@ -402,12 +414,8 @@ export class FindPanel extends StoreElement {
       ${this.#emptyState(likedCount, branch, search !== null && search !== undefined)}
       ${search && html`
         <div class="find-grid">
-          <div class="find-main">
-            ${results(visible, search.profile, likedCount)}
-          </div>
-          <aside class="find-side">
-            ${favourites(visibleFavourites)}
-          </aside>
+          ${favourites(visibleFavourites)}
+          ${results(visible, search.profile, likedCount)}
         </div>
       `}
     `)

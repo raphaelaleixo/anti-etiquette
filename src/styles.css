@@ -1218,15 +1218,9 @@ button { font: inherit; color: inherit; }
   align-items: start;
 }
 /* A grid item defaults to min-content width; wine names are long. */
-.find-main { min-inline-size: 0; }
-.find-side { display: flex; flex-direction: column; gap: 20px; }
+.find-grid > * { min-inline-size: 0; }
 @media (min-width: 62rem) {
-  .find-grid { padding: 28px var(--pad) 32px; }
-  /* The rail is only worth its width when something is in it. */
-  .find-grid:has(.favourites-card) {
-    grid-template-columns: 1fr 380px;
-    gap: 32px;
-  }
+  .find-grid { padding: 28px var(--pad) 32px; max-inline-size: 60rem; }
 }
 
 /* ── results ─────────────────────────────────────────────────────────────── */
@@ -1401,12 +1395,27 @@ button { font: inherit; color: inherit; }
 }
 .favourites-head {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 16px 18px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  list-style: none;
+}
+.favourites-head::-webkit-details-marker { display: none; }
+/* A caret, so the summary reads as something that opens. */
+.favourites-head::after {
+  content: '⌄';
+  margin-inline-start: auto;
+  color: var(--mute3);
+  line-height: 1;
+}
+.favourites-card[open] .favourites-head {
   border-block-end: 1px solid var(--line2);
 }
-.favourites-title { font-family: var(--display); font-size: 18px; line-height: 1.25; color: var(--ink0); }
+.favourites-card[open] .favourites-head::after { content: '⌃'; }
+.favourites-head:hover { background: var(--raise); }
+.favourites-title { font-family: var(--display); font-size: 17px; line-height: 1.25; color: var(--ink0); }
 .favourites-head .hint { font-size: 12px; }
 .favourites-list { display: flex; flex-direction: column; }
 .favourites-row {
